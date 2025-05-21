@@ -34,7 +34,7 @@ jobs:
             const issue_number = process.env.ISSUE_NUMBER;
             const comments = await github.rest.issues.listComments({
               ...context.repo,
-              issue_number,
+              issue_number: issue_number,
               per_page: 100,
             });
             // Find the bot's own tracking comment
@@ -46,20 +46,14 @@ jobs:
             }
           result-encoding: string
 
-      - name: Get current labels and assignees
+      - name: Get current labels and assignees, set as env vars
         id: issue_meta
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const issue_number = process.env.ISSUE_NUMBER;
-            const issue = await github.rest.issues.get({
-              ...context.repo,
-              issue_number,
-            });
-            const labels = issue.data.labels.map(l => l.name).join(', ') || "None";
-            const assignees = issue.data.assignees.map(a => a.login).join(', ') || "None";
-            return { labels, assignees };
-          result-encoding: json
+        run: |
+          ISSUE_JSON=$(gh issue view "$ISSUE_NUMBER" --json labels,assignees -q ".")
+          LABELS=$(echo "$ISSUE_JSON" | jq -r '.labels | map(.name) | join(", ")')
+          ASSIGNEES=$(echo "$ISSUE_JSON" | jq -r '.assignees | map(.login) | join(", ")')
+          echo "ISSUE_LABELS=${LABELS:-None}" >> $GITHUB_ENV
+          echo "ISSUE_ASSIGNEES=${ASSIGNEES:-None}" >> $GITHUB_ENV
 
       - name: Send, Edit, or Update Discord Message
         env:
@@ -73,17 +67,15 @@ jobs:
           EVENT_NAME: ${{ env.EVENT_NAME }}
           ACTION: ${{ env.ACTION }}
           COMMENT_BODY: ${{ env.COMMENT_BODY }}
-          ISSUE_LABELS: ${{ fromJson(steps.issue_meta.outputs.result).labels }}
-          ISSUE_ASSIGNEES: ${{ fromJson(steps.issue_meta.outputs.result).assignees }}
+          ISSUE_LABELS: ${{ env.ISSUE_LABELS }}
+          ISSUE_ASSIGNEES: ${{ env.ISSUE_ASSIGNEES }}
         run: |
           set -e
           WEBHOOK_ID=$(echo $DISCORD_WEBHOOK_URL | cut -d'/' -f6)
           WEBHOOK_TOKEN=$(echo $DISCORD_WEBHOOK_URL | cut -d'/' -f7)
           API_URL="https://discord.com/api/webhooks/$WEBHOOK_ID/$WEBHOOK_TOKEN"
           MSG_ID="$DISCORD_MESSAGE_ID"
-          GH_TOKEN="${{ secrets.GITHUB_TOKEN }}"
 
-          # Format labels and assignees for display
           LABELS="**Labels:** $ISSUE_LABELS"
           ASSIGNEES="**Assignees:** $ISSUE_ASSIGNEES"
 
