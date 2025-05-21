@@ -73,8 +73,8 @@ jobs:
           EVENT_NAME: ${{ env.EVENT_NAME }}
           ACTION: ${{ env.ACTION }}
           COMMENT_BODY: ${{ env.COMMENT_BODY }}
-          ISSUE_LABELS: ${{ fromJson(steps.issue_meta.outputs.result).labels }}
-          ISSUE_ASSIGNEES: ${{ fromJson(steps.issue_meta.outputs.result).assignees }}
+          ISSUE_LABELS: ${{ fromJson(steps.issue_meta.outputs.result || '{"labels":"None"}').labels }}
+          ISSUE_ASSIGNEES: ${{ fromJson(steps.issue_meta.outputs.result || '{"assignees":"None"}').assignees }}
         run: |
           set -e
           WEBHOOK_ID=$(echo $DISCORD_WEBHOOK_URL | cut -d'/' -f6)
