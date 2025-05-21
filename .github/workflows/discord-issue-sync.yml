@@ -24,9 +24,9 @@ jobs:
             echo "ISSUE_STATE=${{ github.event.issue.state }}" >> $GITHUB_ENV
             echo "EVENT_NAME=${{ github.event_name }}" >> $GITHUB_ENV
             echo "ACTION=${{ github.event.action }}" >> $GITHUB_ENV
-            # Use printf to escape special characters in COMMENT_BODY
-            printf "COMMENT_BODY=%s\n" "${{ github.event.comment.body }}" >> $GITHUB_ENV
-            
+            # Escape special characters in COMMENT_BODY
+            printf "COMMENT_BODY=%s\n" "$(echo "${{ github.event.comment.body }}" | sed 's/[^a-zA-Z0-9,.!? ]/_/g')" >> $GITHUB_ENV
+
       - name: Find Discord Message ID
         id: find_message
         uses: actions/github-script@v7
