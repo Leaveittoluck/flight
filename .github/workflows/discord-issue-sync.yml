@@ -1,0 +1,115 @@
+name: Sync GitHub Issues to Discord
+
+on:
+  issues:
+    types: [opened, edited, closed, labeled, unlabeled, assigned, unassigned]
+  issue_comment:
+    types: [created]
+
+jobs:
+  discord-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install jq and GitHub CLI
+        run: |
+          sudo apt-get update && sudo apt-get install -y jq gh
+
+      - name: Set up variables
+        id: vars
+        run: |
+            echo "ISSUE_NUMBER=${{ github.event.issue.number }}" >> $GITHUB_ENV
+            echo "ISSUE_TITLE=${{ github.event.issue.title }}" >> $GITHUB_ENV
+            echo "ISSUE_BODY=${{ github.event.issue.body }}" >> $GITHUB_ENV
+            echo "ISSUE_URL=${{ github.event.issue.html_url }}" >> $GITHUB_ENV
+            echo "ISSUE_STATE=${{ github.event.issue.state }}" >> $GITHUB_ENV
+            echo "EVENT_NAME=${{ github.event_name }}" >> $GITHUB_ENV
+            echo "ACTION=${{ github.event.action }}" >> $GITHUB_ENV
+            # Escape special characters in COMMENT_BODY
+            printf "COMMENT_BODY=%s\n" "$(echo "${{ github.event.comment.body }}" | sed 's/[^a-zA-Z0-9,.!? ]/_/g')" >> $GITHUB_ENV
+
+      - name: Find Discord Message ID
+        id: find_message
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue_number = process.env.ISSUE_NUMBER;
+            const comments = await github.rest.issues.listComments({
+              ...context.repo,
+              issue_number,
+              per_page: 100,
+            });
+            // Find the bot's own tracking comment
+            const discordComment = comments.data.find(c => c.body && c.body.startsWith('<!-- discord-msg:'));
+            if (discordComment) {
+              return discordComment.body.split(':')[1].split('-->')[0].trim();
+            } else {
+              return '';
+            }
+          result-encoding: string
+
+      - name: Get current labels and assignees
+        id: issue_meta
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue_number = process.env.ISSUE_NUMBER;
+            const issue = await github.rest.issues.get({
+              ...context.repo,
+              issue_number,
+            });
+            const labels = issue.data.labels.map(l => l.name).join(', ') || "None";
+            const assignees = issue.data.assignees.map(a => a.login).join(', ') || "None";
+            return { labels, assignees };
+          result-encoding: json
+
+      - name: Send, Edit, or Update Discord Message
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_MESSAGE_ID: ${{ steps.find_message.outputs.result }}
+          ISSUE_NUMBER: ${{ env.ISSUE_NUMBER }}
+          ISSUE_TITLE: ${{ env.ISSUE_TITLE }}
+          ISSUE_BODY: ${{ env.ISSUE_BODY }}
+          ISSUE_URL: ${{ env.ISSUE_URL }}
+          ISSUE_STATE: ${{ env.ISSUE_STATE }}
+          EVENT_NAME: ${{ env.EVENT_NAME }}
+          ACTION: ${{ env.ACTION }}
+          COMMENT_BODY: ${{ env.COMMENT_BODY }}
+          ISSUE_LABELS: ${{ fromJson(steps.issue_meta.outputs.result || '{"labels":"None"}').labels }}
+          ISSUE_ASSIGNEES: ${{ fromJson(steps.issue_meta.outputs.result || '{"assignees":"None"}').assignees }}
+        run: |
+          set -e
+          WEBHOOK_ID=$(echo $DISCORD_WEBHOOK_URL | cut -d'/' -f6)
+          WEBHOOK_TOKEN=$(echo $DISCORD_WEBHOOK_URL | cut -d'/' -f7)
+          API_URL="https://discord.com/api/webhooks/$WEBHOOK_ID/$WEBHOOK_TOKEN"
+          MSG_ID="$DISCORD_MESSAGE_ID"
+          GH_TOKEN="${{ secrets.GITHUB_TOKEN }}"
+
+          # Format labels and assignees for display
+          LABELS="**Labels:** $ISSUE_LABELS"
+          ASSIGNEES="**Assignees:** $ISSUE_ASSIGNEES"
+
+          if [[ "$EVENT_NAME" == "issues" && "$ACTION" == "opened" ]]; then
+            CONTENT="📝 **New Issue Created:** [#${ISSUE_NUMBER} ${ISSUE_TITLE}](${ISSUE_URL})\n${ISSUE_BODY}\n$LABELS\n$ASSIGNEES"
+            RESPONSE=$(curl -s -H "Content-Type: application/json" -d "{\"content\": \"$CONTENT\"}" $API_URL)
+            MSG_ID=$(echo $RESPONSE | jq -r '.id')
+            # Save the message ID as a hidden comment
+            gh issue comment "$ISSUE_NUMBER" --body "<!-- discord-msg:$MSG_ID -->"
+          elif [[ "$EVENT_NAME" == "issues" && ( "$ACTION" == "edited" || "$ACTION" == "labeled" || "$ACTION" == "unlabeled" || "$ACTION" == "assigned" || "$ACTION" == "unassigned" ) ]]; then
+            if [[ -n "$MSG_ID" ]]; then
+              CONTENT="📝 **Issue Updated:** [#${ISSUE_NUMBER} ${ISSUE_TITLE}](${ISSUE_URL})\n${ISSUE_BODY}\n$LABELS\n$ASSIGNEES"
+              curl -s -X PATCH -H "Content-Type: application/json" -d "{\"content\": \"$CONTENT\"}" "$API_URL/messages/$MSG_ID"
+            fi
+          elif [[ "$EVENT_NAME" == "issues" && "$ACTION" == "closed" ]]; then
+            if [[ -n "$MSG_ID" ]]; then
+              CONTENT="✅ **Issue Closed:** [#${ISSUE_NUMBER} ${ISSUE_TITLE}](${ISSUE_URL})\n$LABELS\n$ASSIGNEES"
+              curl -s -X PATCH -H "Content-Type: application/json" -d "{\"content\": \"$CONTENT\"}" "$API_URL/messages/$MSG_ID"
+            fi
+          elif [[ "$EVENT_NAME" == "issue_comment" && "$ACTION" == "created" ]]; then
+            if [[ -n "$MSG_ID" ]]; then
+              COMMENT_CONTENT="💬 **New Comment on [#${ISSUE_NUMBER} ${ISSUE_TITLE}](${ISSUE_URL})**:\n${COMMENT_BODY}"
+              # Post as a Discord thread reply to the original message
+              curl -s -H "Content-Type: application/json" \
+                -d "{\"content\": \"$COMMENT_CONTENT\", \"message_reference\": {\"message_id\": \"$MSG_ID\"}}" \
+                "$API_URL"
+            fi
+          fi
