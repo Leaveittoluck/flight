@@ -78,20 +78,20 @@ a {
 
 @media (max-width: 600px) {
     .destination,.shadowdest {
-    height: 250px;  /* reduce height */
+    height: 250px;  
   }
 
   .destination p {
-    font-size: 40px;    /* smaller font size */
-    opacity: 0.85;      /* maybe a bit more visible */
-    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7);  /* smaller shadow */
+    font-size: 40px;    
+    opacity: 0.85;      
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7); 
   }
 
   .book-btn {
-    padding: 12px 20px;  /* smaller button padding */
+    padding: 12px 20px;
   }
 
   .book-btn a {
-    font-size: 14px;     /* smaller text inside button */
+    font-size: 14px;
   }
 }
