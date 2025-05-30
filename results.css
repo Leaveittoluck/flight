@@ -1,0 +1,9 @@
+/* Global styles */
+* {
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background-color: #2a262d;
+}
