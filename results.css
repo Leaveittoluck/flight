@@ -1,4 +1,3 @@
-/* Global styles */
 * {
     font-family: 'Poppins', sans-serif;
 }
@@ -75,4 +74,24 @@ a {
 .book-btn:hover {
     transform: translateX(-50%) translateY(-2px);
     box-shadow: 0 4px 12px rgba(42, 38, 45, 0.5);
+}
+
+@media (max-width: 600px) {
+  .destination {
+    height: 250px;  /* reduce height */
+  }
+
+  .destination p {
+    font-size: 40px;    /* smaller font size */
+    opacity: 0.85;      /* maybe a bit more visible */
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7);  /* smaller shadow */
+  }
+
+  .book-btn {
+    padding: 12px 20px;  /* smaller button padding */
+  }
+
+  .book-btn a {
+    font-size: 14px;     /* smaller text inside button */
+  }
 }
