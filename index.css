@@ -165,7 +165,7 @@ a#fly-btn {
   border-radius: 30px;
   cursor: pointer;
   font-size: 16px;
-  font-weight: 500;;
+  font-weight: 500;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   text-decoration: none;
   display: inline-block;
@@ -174,7 +174,6 @@ a#fly-btn {
 a#fly-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(42, 38, 45, 0.4);
-
 }
 
   footer.footer-container {
