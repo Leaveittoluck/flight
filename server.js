@@ -16,10 +16,10 @@ const client = redis.createClient( {
 client.on('error', err => console.error('Redis error', err));
 
 (async () => {
-    await client.connet();
+    await client.connect();
 })();
 
-app.use(cors);
+app.use(cors());
 app.use(express.static(__dirname));
 
 app.get('/', (req,res) => {
