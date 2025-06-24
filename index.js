@@ -24,7 +24,7 @@
     };
 
     const chosenDestinations = destinations[type];
-
+    console.log(chosenDestinations);
     if (!Array.isArray(chosenDestinations)) {
       alert('Something went wrong selecting your destination. Please check the holiday type.');
       return;
