@@ -1,0 +1,20 @@
+
+{
+    "Adventure & Nature": [
+        {"name": "Mallorca", "ticket": 150 },
+        {"name": "Tenerife", "ticket": 230}
+    ],
+    "Relax & Recharge": [
+        {"name": "Mallorca", "ticket": 150},
+        {"name": "Alicante", "ticket": 180}
+    ],
+    "City & Culture": [
+        {"name": "Dublin", "ticket": 80},
+        {"name": "Istanbul", "ticket": 150},
+        {"name": "Edinburgh", "ticket": 70},
+        {"name": "Belfast", "ticket": 90},
+        {"name": "Rome", "ticket": 120}
+    ]
+
+}
+    

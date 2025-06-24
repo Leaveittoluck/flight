@@ -22,23 +22,37 @@
       'Split', 'Fes', 'Zurich', 'Munich', 'Amman', 'Rimini', 'Florence', 'Casablanca'],
 
     };
-  document.getElementById('holiday-form').addEventListener('submit', function(e) {
+  document.getElementById('holiday-form').addEventListener('submit', async function(e) {
     e.preventDefault();
 
     const type = document.getElementById('type').value;
-    const chosenDestinations = destinations[type];
-    if (!Array.isArray(chosenDestinations)) {
-      alert('Something went wrong selecting your destination. Please check the holiday type.');
+    try {
+      const response = await fetch('allFlights.json');
+      const allFlights = await response.json();
+
+      const chosenDestinations = allFlights[type];
+      console.log(chosenDestinations);
+
+      if (!Array.isArray(chosenDestinations)) {
+        alert('Something went wrong selecting your destination. Please check the holiday type.');
+      }
+
+      const randomDestination = chosenDestinations[Math.floor(Math.random() * chosenDestinations.length)];
+      console.log(randomDestination.name);
+      console.log(randomDestination.ticket);
+
+      console.log('Chosen destination:', randomDestination);
+
+      sessionStorage.setItem('selectedDestination', randomDestination.name);
+      sessionStorage.setItem('ticketPrice', randomDestination.ticket);
+
+      window.location.href = "results.html";
+      }
+    catch(err) {
+      console.error(`Failed to load destination data`, err);
+      alert(`Error loading destination data!`);
     }
-
-    const randomDestination = chosenDestinations[Math.floor(Math.random() * chosenDestinations.length)];
-    console.log(chosenDestinations);
-
-    console.log('Chosen destination:', randomDestination);
-
-    sessionStorage.setItem('selectedDestination', randomDestination);
-
-    window.location.href = "results.html";
+    
   })
 
   function toggleInfo() {
