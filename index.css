@@ -125,6 +125,10 @@ body {
   text-align: center;
 }
 
+.info-container:hover .info-box {
+  display: block;
+}
+
 .input-group select:valid + label {
   top: -8px;
   left: 10px;
