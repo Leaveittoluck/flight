@@ -22,14 +22,26 @@
       'Split', 'Fes', 'Zurich', 'Munich', 'Amman', 'Rimini', 'Florence', 'Casablanca'],
 
     };
+  document.getElementById('holiday-form').addEventListener('submit', function(e) {
+    e.preventDefault();
 
+    const type = document.getElementById('type').value;
     const chosenDestinations = destinations[type];
-    console.log(chosenDestinations);
     if (!Array.isArray(chosenDestinations)) {
       alert('Something went wrong selecting your destination. Please check the holiday type.');
-      return;
     }
 
     const randomDestination = chosenDestinations[Math.floor(Math.random() * chosenDestinations.length)];
+    console.log(chosenDestinations);
 
-    const destinationElement = document.getElementById('destination');
+    console.log('Chosen destination:', randomDestination);
+
+    sessionStorage.setItem('selectedDestination', randomDestination);
+
+    window.location.href = "results.html";
+  })
+
+    function toggleInfo() {
+      const infoBox = document.getElementById('infoBox');
+      infoBox.classList.toggle('visible');
+    }
