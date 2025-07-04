@@ -22,38 +22,42 @@
       'Split', 'Fes', 'Zurich', 'Munich', 'Amman', 'Rimini', 'Florence', 'Casablanca'],
 
     };
-  document.getElementById('holiday-form').addEventListener('submit', async function(e) {
-    e.preventDefault();
 
+    document.getElementById('holiday-form').addEventListener('submit', async function(e){
+    const budget = document.getElementById('budget').value;
     const type = document.getElementById('type').value;
-    try {
-      const response = await fetch('allFlights.json');
-      const allFlights = await response.json();
-
-      const chosenDestinations = allFlights[type];
-      console.log(chosenDestinations);
-
-      if (!Array.isArray(chosenDestinations)) {
-        alert('Something went wrong selecting your destination. Please check the holiday type.');
-      }
-
-      const randomDestination = chosenDestinations[Math.floor(Math.random() * chosenDestinations.length)];
-      console.log(randomDestination.name);
-      console.log(randomDestination.ticket);
-
-      console.log('Chosen destination:', randomDestination);
-
-      sessionStorage.setItem('selectedDestination', randomDestination.name);
-      sessionStorage.setItem('ticketPrice', randomDestination.ticket);
-
-      window.location.href = "results.html";
-      }
-    catch(err) {
-      console.error(`Failed to load destination data`, err);
-      alert(`Error loading destination data!`);
-    }
     
-  })
+      try {
+            const response = await fetch('http://localhost:5000/api/destination' , {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              budget: budget,
+              type: type
+            })
+          });
+
+          const data = await response.json();
+
+          if(response.ok) {
+            sessionStorage.setItem('selectedDestination', data.destination);
+            sessionStorage.setItem('ticketPrice', data.ticket);
+            sessionStorage.setItem('dataSource', data.source);
+            window.location.href = 'results.html';
+          }
+          else {
+            sessionStorage.setItem('errorMessage', data.error || 'Unknown error occured!');
+            window.location.href = 'results.html';
+          }
+        }
+      catch(err) {
+        console.error(`Failed to load destination data`, err);
+        alert(`Error loading destination data!`);
+      }
+      
+    });
 
   function toggleInfo() {
     const infoBox = document.getElementById('infoBox');
