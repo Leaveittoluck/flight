@@ -2,13 +2,35 @@
     font-family: 'Poppins', sans-serif;
 }
 
+html, body {
+    height: 100%; 
+    margin: 0;
+    padding: 0;
+}
+
 body {
     margin: 0;
     padding: 0;
-    background: #e43571;
+    background: #95e4e8;
     display: flex;
-    justify-content: center;
-    color: white;
+    justify-content: flex-start;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    color: black;
+
+    background-image:
+      radial-gradient(circle at right top, #d2b48c 10%, #f4a460 30%, transparent 70%),
+      linear-gradient(to bottom, #95e4e8, #95e4e8);
+    background-size:
+      60% 100%,
+      100% 100%;
+    background-position: 
+      right top,
+      left top;
+
+    background-repeat: no-repeat;
+    background-attachment: scroll;
 }
 
 a {
@@ -17,6 +39,8 @@ a {
 
 .main-content {
     width: 100%;
+    align-items: center;
+    padding-top: 0;
 }
 
 .shadowdest {
@@ -37,6 +61,10 @@ a {
     justify-content: center;     /* center horizontally */
     align-items: center;
     box-shadow: 0px 7px 10px rgba(0, 0, 0, 0.3);
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    z-index: 2;
 }
 
 .destination p {
@@ -49,6 +77,20 @@ a {
     border: none;
     text-shadow: 5px 5px 10px rgba(0, 0, 0, 0.8);
 }
+
+/* .destination::after {
+  content: '';
+  position: absolute;
+  bottom: -50px;
+  left:0;
+  width: 100%;
+  height: 100px;
+  background: linear-gradient(to top, #d2b48c, #f4a460);
+  border-top-left-radius: 50% 100px;
+  border-top-right-radius: 50% 100px;
+  transform: translateY(-20px);
+  z-index: 1;
+} */
 
 .book-btn {
     position: fixed;
@@ -86,6 +128,21 @@ a {
     opacity: 0.85;      
     text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7); 
   }
+
+  body {
+        background-image:
+            radial-gradient(
+                circle at right top,
+                #d2b48c 0%,
+                #f4a460 50%,
+                transparent 70%
+            ),
+            linear-gradient(to bottom, #95e4e8, #95e4e8);
+
+        background-size:
+            80% 500px, 
+            100% 100%;
+      }
 
   .book-btn {
     padding: 12px 20px;
@@ -151,7 +208,7 @@ a {
   transform: translate(-50%, -50%);
   font-size: 2rem;
   font-weight: bold;
-  color: white;
+  color: black;
   font-family: 'Poppins', sans-serif;
 
 }
