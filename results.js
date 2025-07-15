@@ -4,7 +4,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const dataSource = sessionStorage.getItem('dataSource');
   const errorMessage = sessionStorage.getItem('errorMessage');
 
-  const container = document.querySelector('.destination');
+  const container = document.querySelector('.flights');
 
   if(errorMessage){
     let countdown = 5;
@@ -12,12 +12,13 @@ window.addEventListener('DOMContentLoaded', () => {
     
     container.innerHTML = `<h2>${errorMessage}</h2>
     <div class="countdown-circle">
-      <svg>
-          <circle r="40" cx="50" cy="50"></circle>
-          <circle id="progress" r="40" cx="50" cy="50"></circle>
-      </svg>
+      <div class="circle-wrapper">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <circle id="progress" r="40" cx="50" cy="50"></circle>
+        </svg>
+        <div class="countdown-number" id="countdown-number">${countdown}</div>
 
-      <div class="countdown-number" id="countdown-number">${countdown}</div>
+      </div>
     </div>
     <p>Returning to the form shortly...</p>`;
 
