@@ -75,7 +75,7 @@ body {
   .input-group select {
     font-size: 16px;
     padding: 16px 12px;
-  }
+  } 
 }
 
 .logo-container {
@@ -160,7 +160,7 @@ body {
   border-radius: 4px;
 }
 
-a#fly-btn {
+#fly-btn {
   margin-top: 10px;
   padding: 17px 30px;
   background: #2a262d;
@@ -175,7 +175,7 @@ a#fly-btn {
   display: inline-block;
 }
 
-a#fly-btn:hover {
+#fly-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(42, 38, 45, 0.4);
 }
