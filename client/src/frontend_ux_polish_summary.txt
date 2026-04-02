@@ -1,0 +1,99 @@
+================================================================================
+CHANGE SUMMARY — Frontend UX & Visual Polish
+Date: 2026-04-02
+Branch: feature/project-scaffold
+================================================================================
+
+OVERVIEW
+--------
+UX, layout, and visual hierarchy improvements across the generator form and
+results section. No new components, no API changes, no structural changes.
+All existing functionality preserved.
+
+--------------------------------------------------------------------------------
+FILES MODIFIED
+--------------------------------------------------------------------------------
+
+client/src/index.css
+  - Added @keyframes fadeInUp (opacity 0→1, translateY 10px→0)
+  - Used by DestinationResults to stagger card entrance animations
+
+----
+
+client/src/components/form/BudgetInput.jsx
+  WHY: The field had generic microcopy and no real-time feedback.
+  CHANGES:
+  - Added `travellers` prop (passed down from GeneratorForm)
+  - Added per-person cost hint: "≈ £X per person" shown in blue below the input
+    whenever budget > 0 and travellers > 1
+  - Improved label: "Total budget" (cleaner than "Total group budget (£)")
+  - Improved helper text: "Your whole group's spend — flights and hotel combined"
+  - Per-person hint is hidden when there is a validation error to avoid visual clash
+
+----
+
+client/src/components/form/GeneratorForm.jsx
+  WHY: The form was a flat grid — no visual grouping or hierarchy.
+  CHANGES:
+  - Passes `travellers={form.travellers}` to BudgetInput so per-person hint works
+  - Restructured the card into three zones:
+      1. Budget + Travellers (top section, p-6)
+      2. Mood + Season (separated by a thin border-t, p-6)
+      3. Submit row (slate-50 background, border-t) — matches standard form footer UX
+  - Card now uses rounded-2xl + shadow-sm for a lifted feel
+  - Submit button copy: "Find my destination" (more personal)
+  - Section heading: "Where do you want to go?" (replaces "Plan your trip")
+
+----
+
+client/src/components/destinations/DestinationCard.jsx
+  WHY: All info was rendered at the same visual weight — no hierarchy.
+  CHANGES:
+  - Restructured into distinct banded sections:
+      HERO (white bg, p-6):
+        • City bold 2xl, country slightly smaller + muted — different weights on same line
+        • Hook: text-base, slate-600 (more readable, not tiny text-sm)
+        • Estimated total: text-3xl font-extrabold text-blue-600 — very prominent
+        • "est. total" label small uppercase below the cost
+        • Trip type tags directly below hook (primary = blue, secondary = slate)
+      SUPPORTING INFO (slate-50 bg, border-t):
+        • Flight cost/person, hotel cost/night + duration, weather — inline with icons
+        • Each item has font-semibold value + muted label
+      FUN FACT (amber-50 bg, amber-100 border-t):
+        • Warm amber background separates it visually as a callout
+      RECOMMENDED PLACES (white bg, border-t):
+        • Renamed section label: "Worth visiting" (more natural)
+        • Bullet points replaced with blue dot + spacing
+      CTA LINKS (border-t):
+        • "Search flights" → filled blue button
+        • "Find hotels" → ghost blue button
+        • Previously plain text links — now clearly actionable
+  - Fixed linter warnings: `flex-shrink-0` → `shrink-0` (Tailwind canonical class)
+
+----
+
+client/src/components/destinations/DestinationResults.jsx
+  WHY: Loading state was a plain status box; heading was technical; copy was generic.
+  CHANGES:
+  - LOADING: replaced StatusMessage with inline Spinner component:
+      • CSS border-spin circle (border-t-blue-500 animate-spin)
+      • "Finding your destinations…" + "This may take a moment" below
+  - SUCCESS heading: "Your destinations" (replaces "X destinations found")
+      • Count shown as a subdued "X matches" beside the heading
+  - ERROR copy: "We couldn't reach the server" + "Check your connection and try again."
+  - EMPTY copy: "No destinations found for that search" +
+      "Try increasing your budget, reducing the group size, or switching to a different mood."
+  - CARD ENTRANCE: each card wrapped in a div with inline fadeInUp animation
+      + staggered delay (i * 80ms) so cards appear one after another
+
+--------------------------------------------------------------------------------
+WHAT DID NOT CHANGE
+--------------------------------------------------------------------------------
+- API layer (destinationsApi.js) — untouched
+- State management in GeneratorPage.jsx — untouched
+- normalizeDestination.js — untouched
+- Constants (moodOptions, seasonOptions) — untouched
+- Component file structure — untouched
+- All functionality — preserved exactly
+
+================================================================================

@@ -47,21 +47,36 @@ export default function GeneratorForm({ onSubmit, isLoading }) {
 
   return (
     <section>
-      <SectionHeading>Plan your trip</SectionHeading>
+      <SectionHeading>Where do you want to go?</SectionHeading>
       <form onSubmit={handleSubmit} noValidate>
-        <div className="bg-white rounded-xl border border-slate-200 p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <BudgetInput value={form.budget} onChange={set('budget')} error={errors.budget} />
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          {/* Budget + travellers row */}
+          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <BudgetInput
+              value={form.budget}
+              onChange={set('budget')}
+              error={errors.budget}
+              travellers={form.travellers}
+            />
             <TravellersSelect value={form.travellers} onChange={set('travellers')} />
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-slate-100" />
+
+          {/* Mood + season row */}
+          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
             <MoodSelect value={form.mood} onChange={set('mood')} error={errors.mood} />
             <SeasonSelect value={form.season} onChange={set('season')} />
           </div>
-          <div className="mt-6 flex items-center gap-3">
+
+          {/* Submit row */}
+          <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center gap-4">
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Finding destinations…' : 'Find destinations'}
+              {isLoading ? 'Searching…' : 'Find my destination'}
             </Button>
             {isLoading && (
-              <span className="text-sm text-slate-500">This may take a moment</span>
+              <span className="text-sm text-slate-500">Hang tight, this takes a moment</span>
             )}
           </div>
         </div>

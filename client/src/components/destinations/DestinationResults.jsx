@@ -2,46 +2,59 @@ import SectionHeading from '../ui/SectionHeading'
 import StatusMessage from '../ui/StatusMessage'
 import DestinationCard from './DestinationCard'
 
+function Spinner() {
+  return (
+    <div className="flex flex-col items-center justify-center gap-4 py-16">
+      <div className="w-10 h-10 rounded-full border-4 border-slate-200 border-t-blue-500 animate-spin" />
+      <div className="text-center">
+        <p className="text-sm font-medium text-slate-700">Finding your destinations…</p>
+        <p className="text-xs text-slate-500 mt-0.5">This may take a moment</p>
+      </div>
+    </div>
+  )
+}
+
 export default function DestinationResults({ status, destinations, errorMsg }) {
   if (status === 'idle') return null
 
-  const heading =
-    status === 'success'
-      ? `${destinations.length} destination${destinations.length === 1 ? '' : 's'} found`
-      : 'Results'
-
   return (
     <section>
-      <SectionHeading>{heading}</SectionHeading>
-
-      {status === 'loading' && (
-        <StatusMessage
-          variant="info"
-          title="Finding your perfect destinations…"
-          body="Searching across our destination database"
-        />
+      {status === 'success' && (
+        <div className="flex items-baseline gap-2 mb-4">
+          <SectionHeading>Your destinations</SectionHeading>
+          <span className="text-sm text-slate-400 -mt-4">
+            {destinations.length} match{destinations.length === 1 ? '' : 'es'}
+          </span>
+        </div>
       )}
+
+      {status === 'loading' && <Spinner />}
 
       {status === 'error' && (
         <StatusMessage
           variant="error"
-          title="Something went wrong"
-          body={errorMsg || 'Unable to fetch destinations. Please try again.'}
+          title="We couldn't reach the server"
+          body={errorMsg || 'Check your connection and try again.'}
         />
       )}
 
       {status === 'empty' && (
         <StatusMessage
           variant="empty"
-          title="No destinations matched"
-          body="Try adjusting your budget, number of travellers, or trip mood and search again."
+          title="No destinations found for that search"
+          body="Try increasing your budget, reducing the group size, or switching to a different mood."
         />
       )}
 
       {status === 'success' && (
-        <div className="grid grid-cols-1 gap-5">
-          {destinations.map((dest) => (
-            <DestinationCard key={dest.id} destination={dest} />
+        <div className="grid grid-cols-1 gap-6">
+          {destinations.map((dest, i) => (
+            <div
+              key={dest.id}
+              style={{ animation: `fadeInUp 0.35s ease both`, animationDelay: `${i * 80}ms` }}
+            >
+              <DestinationCard destination={dest} />
+            </div>
           ))}
         </div>
       )}
