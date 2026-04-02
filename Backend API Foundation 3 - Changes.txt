@@ -1,0 +1,232 @@
+===================================================
+FLIGHT PROJECT - Backend API Foundation Step 3
+Real Destination Generator Logic
+===================================================
+
+DATE: 2026-04-02
+
+---------------------------------------------------
+FILES CREATED
+---------------------------------------------------
+
+server/src/repositories/destinations.repository.js
+  All parameterized SQL queries. Five functions:
+
+  getTripTypeBySlug(slug)
+    SELECT id, slug, label FROM flight.trip_types
+    WHERE slug = $1 AND is_active = true
+
+  getSimilarTripTypeIds(tripTypeId, minScore)
+    SELECT similar_to_id FROM flight.trip_type_similarity
+    WHERE trip_type_id = $1 AND similarity_score >= $2
+
+  getCandidateDestinations(tripTypeIds, departureAirportId, excludeIds)
+    SELECT DISTINCT d.* FROM flight.destinations d
+    JOIN flight.destination_trip_types dtt ON dtt.destination_id = d.id
+    WHERE d.departure_airport_id = $1
+      AND dtt.trip_type_id = ANY($2::int[])
+      AND d.is_active = true
+      AND d.id != ALL($3::int[])    <- safe with empty array
+
+  getTripTypesForDestinationIds(destinationIds)
+    SELECT dtt.destination_id, tt.id, tt.slug, tt.label, dtt.is_primary
+    FROM flight.destination_trip_types dtt
+    JOIN flight.trip_types tt ON tt.id = dtt.trip_type_id
+    WHERE dtt.destination_id = ANY($1::int[])
+
+  getRecommendedPlacesForDestinationIds(destinationIds)
+    SELECT destination_id, name, description
+    FROM flight.recommended_places
+    WHERE destination_id = ANY($1::int[])
+    ORDER BY destination_id, sort_order
+
+---------------------------------------------------
+FILES UPDATED
+---------------------------------------------------
+
+server/src/services/destinations.service.js
+  Full 4-tier fallback orchestration:
+
+  Affordability formula:
+    estimated_total_cost =
+      (flight_cost_per_person_gbp * travellers)
+      + (ceil(travellers / 2) * hotel_cost_per_night_gbp * default_duration_nights)
+
+  Tiers (in order):
+    tier1_exact        exact trip type,    budget <= budget
+    tier2_exact_flex   exact trip type,    budget <= budget * 1.10
+    tier3_similar      similar types,      budget <= budget
+    tier4_similar_flex similar types,      budget <= budget * 1.10
+
+  - similar types: similarity_score >= 6 only
+  - deduplication: excludeIds passed to repo on each tier
+  - randomization: shuffle() applied after budget filter
+  - max 3 results total across all tiers
+  - after selection: fetches trip_types + recommended_places in 2 parallel queries
+  - assembles final nested response
+
+server/src/controllers/destinations.controller.js
+  - Updated message: "Destinations found" / "No destinations matched your criteria"
+  - Everything else unchanged (validation, error forwarding)
+
+---------------------------------------------------
+FILES UNCHANGED
+---------------------------------------------------
+
+server/src/routes/destinations.routes.js
+server/src/routes/index.js
+server/src/validators/destinations.validator.js
+server/src/middleware/notFound.js
+server/src/middleware/errorHandler.js
+server/src/db/pool.js
+server/src/app.js
+server/src/server.js
+
+---------------------------------------------------
+FINAL FILE TREE: server/src
+---------------------------------------------------
+
+server/src/
+├── app.js
+├── server.js
+├── db/
+│   └── pool.js
+├── controllers/
+│   ├── destinations.controller.js
+│   └── health.controller.js
+├── middleware/
+│   ├── errorHandler.js
+│   └── notFound.js
+├── repositories/
+│   └── destinations.repository.js
+├── routes/
+│   ├── destinations.routes.js
+│   ├── health.routes.js
+│   └── index.js
+├── services/
+│   └── destinations.service.js
+└── validators/
+    └── destinations.validator.js
+
+---------------------------------------------------
+HOW THE FALLBACK FLOW WORKS
+---------------------------------------------------
+
+1. Resolve the requested trip_type_slug to a trip_type row.
+   If slug is unknown, return 0 results immediately.
+
+2. Look up similar trip type ids from trip_type_similarity
+   where similarity_score >= 6.
+
+3. Run up to 4 tiers in order, stopping when 3 destinations
+   are collected:
+
+   Tier 1 — exact trip type ids, strict budget
+   Tier 2 — exact trip type ids, budget + 10%
+   Tier 3 — similar trip type ids, strict budget
+   Tier 4 — similar trip type ids, budget + 10%
+
+   Each tier:
+   - Queries candidates excluding already-selected ids
+   - Computes estimated_total_cost per destination in JS
+   - Filters out unaffordable results
+   - Shuffles remaining candidates (randomization)
+   - Takes only as many as still needed to reach 3
+
+4. After final set is selected:
+   - Fetch trip_types for all destination ids (1 query)
+   - Fetch recommended_places for all destination ids (1 query)
+   - Assemble nested response
+
+5. meta.fallback_used = true if tier1_exact was not hit.
+   meta.tiers_hit lists every tier that contributed results.
+
+---------------------------------------------------
+RESPONSE SHAPE
+---------------------------------------------------
+
+{
+  "ok": true,
+  "message": "Destinations found",
+  "data": {
+    "request": {
+      "departure_airport_id": 1,
+      "budget": 400,
+      "travellers": 2,
+      "trip_type_slug": "city_break"
+    },
+    "meta": {
+      "results_count": 3,
+      "fallback_used": false,
+      "tiers_hit": ["tier1_exact"]
+    },
+    "destinations": [
+      {
+        "destination_id": 22,
+        "city": "Vilnius",
+        "country": "Lithuania",
+        "hook": "...",
+        "fun_fact": "...",
+        "weather_summary": "...",
+        "flight_cost_per_person_gbp": 52,
+        "hotel_cost_per_night_gbp": 44,
+        "default_duration_nights": 2,
+        "estimated_total_cost": 192,
+        "trip_types": [
+          { "id": 5, "slug": "city_break", "label": "City Break", "is_primary": true },
+          { "id": 4, "slug": "culture",    "label": "Culture",    "is_primary": false }
+        ],
+        "recommended_places": [
+          { "name": "Gediminas Tower", "description": "..." }
+        ],
+        "skyscanner_url": "https://www.skyscanner.net/routes/stn/vno/",
+        "booking_com_url": "https://www.booking.com/city/lt/vilnius.html"
+      }
+    ]
+  }
+}
+
+---------------------------------------------------
+TEST PAYLOADS
+---------------------------------------------------
+
+1. NORMAL — city_break, 2 travellers, budget 400
+   POST http://localhost:5000/api/destinations/generate
+   {
+     "departure_airport_id": 1,
+     "budget": 400,
+     "travellers": 2,
+     "trip_type_slug": "city_break"
+   }
+   Expect: tier1_exact hit, 3 results, fallback_used: false
+
+2. TIGHT BUDGET — forces fallback tiers
+   {
+     "departure_airport_id": 1,
+     "budget": 150,
+     "travellers": 4,
+     "trip_type_slug": "adventure"
+   }
+   Expect: may hit tier2/3/4 or 0 results depending on seed data
+
+3. UNKNOWN SLUG — clean empty result
+   {
+     "departure_airport_id": 1,
+     "budget": 500,
+     "travellers": 1,
+     "trip_type_slug": "nonexistent_type"
+   }
+   Expect: results_count: 0, no error, ok: true
+
+---------------------------------------------------
+HOW TO RUN
+---------------------------------------------------
+
+cd server
+npm run dev
+
+curl -X POST http://localhost:5000/api/destinations/generate \
+  -H "Content-Type: application/json" \
+  -d '{"departure_airport_id":1,"budget":400,"travellers":2,"trip_type_slug":"city_break"}'
+
+===================================================

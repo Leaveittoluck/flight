@@ -20,7 +20,9 @@ async function generate(req, res, next) {
 
     res.status(200).json({
       ok: true,
-      message: "Destination generate route is wired",
+      message: data.destinations.length
+        ? "Destinations found"
+        : "No destinations matched your criteria",
       data,
     });
   } catch (error) {
