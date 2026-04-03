@@ -1,2 +1,187 @@
-# New
- 
+# Leave It To Luck
+
+A travel destination discovery app. Enter your budget, group size, and trip mood — the app picks destinations that fit.
+
+Built as a travel affiliate platform: destination cards link to Skyscanner and Booking.com. Affiliate link clicks are tracked through the backend before redirecting users.
+
+---
+
+## Current MVP scope
+
+- Generator form: budget, travellers, mood, season
+- Destination engine: selects up to 3 matching destinations from the database with tier-based budget fallback logic
+- Destination cards: city, cost breakdown, trip tags, fun fact, recommended places, CTA links
+- CTA click tracking: every flight/hotel button click is recorded via backend before redirect
+- Routing: Home, Dashboard (placeholder), Stats (placeholder)
+
+Third-party travel API integrations (live flight prices, hotel availability) are planned for a later phase. All provider calls will route through this backend — never directly from the frontend. Identical provider requests within a short window will be cached to protect rate-limited API quotas.
+
+---
+
+## Tech stack
+
+| Layer    | Technology                          |
+|----------|-------------------------------------|
+| Frontend | Vite + React 19 + Tailwind CSS v4   |
+| Backend  | Node.js + Express                   |
+| Database | PostgreSQL (schema: `flight`)       |
+| Routing  | react-router-dom v7                 |
+| HTTP     | axios                               |
+| Validation | zod                               |
+
+---
+
+## Repo structure
+
+```
+flight/
+  client/          Vite + React frontend
+    src/
+      pages/           GeneratorPage, DashboardPage, StatsPage
+      components/
+        form/          BudgetInput, TravellersSelect, MoodSelect, SeasonSelect, GeneratorForm
+        destinations/  DestinationCard, DestinationResults
+        layout/        Navbar, Layout
+        ui/            Button, SectionHeading, StatusMessage
+      services/        destinationsApi.js, clicksApi.js
+      constants/       moodOptions.js, seasonOptions.js
+      utils/           normalizeDestination.js
+
+  server/          Express API
+    src/
+      routes/          index.js, destinations.routes.js, clicks.routes.js, health.routes.js
+      controllers/     destinations.controller.js, clicks.controller.js, health.controller.js
+      services/        destinations.service.js, clicks.service.js
+      validators/      destinations.validator.js, clicks.validator.js
+      repositories/    destinations.repository.js
+      middleware/      errorHandler.js, notFound.js
+      db/              pool.js
+```
+
+---
+
+## Running locally
+
+### Prerequisites
+- Node.js 18+
+- PostgreSQL running locally with the `flight` schema seeded
+
+### Backend
+
+```bash
+cd server
+cp .env.example .env        # fill in your DATABASE_URL
+npm install
+npm run dev                 # or: node src/server.js
+```
+
+Server starts on `http://localhost:5000` (or the PORT in your .env).
+
+### Frontend
+
+```bash
+cd client
+cp .env.example .env        # VITE_API_BASE_URL can stay empty for local dev
+npm install
+npm run dev
+```
+
+Frontend starts on `http://localhost:5173`.  
+The Vite dev server proxies all `/api/*` requests to `http://localhost:5000` — no CORS config needed locally.
+
+---
+
+## Environment variables
+
+### server/.env
+
+| Variable       | Description                                              |
+|----------------|----------------------------------------------------------|
+| `PORT`         | Port the Express server listens on (default: 5000)      |
+| `DATABASE_URL` | PostgreSQL connection string                             |
+| `DB_SCHEMA`    | Postgres schema name (default: `public`, set to `flight`)|
+| `NODE_ENV`     | `development` or `production`                           |
+
+### client/.env
+
+| Variable             | Description                                                    |
+|----------------------|----------------------------------------------------------------|
+| `VITE_API_BASE_URL`  | API base URL for production. Leave empty for local dev proxy.  |
+
+---
+
+## API routes
+
+### `GET /api/health`
+Health check. Returns `{ ok: true }`.
+
+### `POST /api/destinations/generate`
+Generate up to 3 destination suggestions.
+
+**Request body:**
+```json
+{
+  "departure_airport_id": 1,
+  "budget": 2000,
+  "travellers": 2,
+  "trip_type_slug": "beach",
+  "season": "summer"
+}
+```
+
+**Response:**
+```json
+{
+  "ok": true,
+  "message": "Destinations found",
+  "data": {
+    "destinations": [...],
+    "meta": { "results_count": 3, "fallback_used": false, "tiers_hit": ["tier1_exact"] },
+    "request": { ... }
+  }
+}
+```
+
+### `POST /api/click`
+Track a CTA button click before affiliate redirect.
+
+**Request body:**
+```json
+{
+  "destination_id": 12,
+  "click_type": "flight"
+}
+```
+
+`click_type` must be `"flight"` or `"hotel"`.
+
+**Response:**
+```json
+{
+  "ok": true,
+  "message": "Click tracked",
+  "data": { "destination_id": 12, "click_type": "flight" }
+}
+```
+
+---
+
+## Frontend pages
+
+| Route        | Status      | Notes                        |
+|--------------|-------------|------------------------------|
+| `/`          | Working     | Generator form + results     |
+| `/dashboard` | Placeholder | Trip history — not built yet |
+| `/stats`     | Placeholder | Analytics — not built yet    |
+
+---
+
+## Known TODOs
+
+- [ ] Verify `trip_type_slug` values in `client/src/constants/moodOptions.js` match the actual `flight.trip_types` table in the DB (slugs were seeded manually — no migration file in repo yet)
+- [ ] Add DB persistence for click events (`flight.clicks` table)
+- [ ] Add subscription/plan checks and monthly click limits (hook is in `clicks.service.js`)
+- [ ] Replace departure airport hardcode (`DEPARTURE_AIRPORT_ID = 1`) with a selector
+- [ ] Build Dashboard and Stats pages
+- [ ] Add auth before any per-user features
+- [ ] Integrate live flight/hotel provider APIs (via backend only, with caching)

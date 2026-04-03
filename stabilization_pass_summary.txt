@@ -1,0 +1,135 @@
+================================================================================
+CHANGE SUMMARY — Stabilization Pass
+Date: 2026-04-03
+Branch: feature/project-scaffold
+================================================================================
+
+OVERVIEW
+--------
+Stabilization pass before continuing feature work. Fixed the broken CTA click
+tracking (404), added env examples, rewrote the README, and documented known
+risks around mood slug drift.
+
+--------------------------------------------------------------------------------
+PART 1 — BACKEND CLICK ROUTE (fixes frontend 404)
+--------------------------------------------------------------------------------
+
+server/src/validators/clicks.validator.js  [NEW]
+  - Zod schema: destination_id (int, positive) + click_type (enum: flight|hotel)
+  - Same safeParse pattern as destinations.validator.js
+
+server/src/services/clicks.service.js  [NEW]
+  - trackClick({ destination_id, click_type }) — returns payload (no DB yet)
+  - Three clearly marked TODO blocks:
+      1. Subscription/limit check → throw 429 + code:"LIMIT_REACHED" when ready
+      2. DB persistence → INSERT INTO flight.clicks when table is created
+      3. Provider caching note → future live API calls should cache here
+
+server/src/controllers/clicks.controller.js  [NEW]
+  - Validates with clicks.validator; returns 400 on bad input
+  - Calls trackClick; returns { ok, message, data }
+  - Passes all service errors to next() — global error handler picks up
+    err.status (429) and err.message automatically for limit enforcement
+
+server/src/routes/clicks.routes.js  [NEW]
+  - POST /click → track controller
+
+server/src/routes/index.js  [MODIFIED]
+  - Added: const clicksRouter = require("./clicks.routes")
+  - Added: router.use(clicksRouter)
+  - Route is now live at POST /api/click
+
+--------------------------------------------------------------------------------
+PART 2 — LIMIT ENFORCEMENT SCAFFOLD (no code change needed)
+--------------------------------------------------------------------------------
+
+The service already has a placeholder showing exactly where to throw:
+
+  const err = new Error("Monthly click limit reached. Upgrade to continue.");
+  err.status = 429;
+  err.code = "LIMIT_REACHED";
+  throw err;
+
+The frontend already handles HTTP 429 and body.code === "LIMIT_REACHED" with
+the message: "You've reached your monthly limit. Upgrade to continue."
+No frontend changes required when this is activated.
+
+--------------------------------------------------------------------------------
+PART 3 — ENV FILES
+--------------------------------------------------------------------------------
+
+server/.env.example  [MODIFIED]
+  - Added DB_SCHEMA=flight (was missing, but pool.js reads it)
+  - Added NODE_ENV=development
+  - Replaced real DB password with placeholder
+
+client/.env.example  [NEW]
+  - VITE_API_BASE_URL= (empty = use Vite dev proxy)
+  - Comment explains local vs production usage
+
+--------------------------------------------------------------------------------
+PART 4 — README
+--------------------------------------------------------------------------------
+
+README.md  [REWRITTEN]
+  - Project description + MVP scope
+  - Tech stack table
+  - Full repo structure tree
+  - How to run server + client
+  - Environment variable tables
+  - API route documentation (health, generate, click)
+  - Frontend pages table
+  - Known TODOs list
+
+--------------------------------------------------------------------------------
+PART 5 — MOOD SLUG SAFETY
+--------------------------------------------------------------------------------
+
+client/src/constants/moodOptions.js  [MODIFIED — comment only]
+  - Added prominent warning that slugs are unverified against the DB
+  - Added the exact SQL query to run for verification:
+      SELECT slug, label FROM flight.trip_types WHERE is_active = true ORDER BY slug;
+  - Added recommendation for a future GET /api/trip-types endpoint as the
+    long-term fix for frontend/backend slug drift
+
+IMPORTANT — THE SLUGS CANNOT BE VERIFIED FROM THIS REPO:
+  There are no SQL migration or seed files committed. The slug values
+  (beach, city-break, adventure, cultural, skiing, relaxation) are guesses
+  based on common travel categories. You MUST run the query above against
+  your database and update moodOptions.js before launch.
+
+  If a slug doesn't match a DB row, the mood option will silently return
+  zero destinations — no error, no warning.
+
+--------------------------------------------------------------------------------
+FILES CHANGED SUMMARY
+--------------------------------------------------------------------------------
+
+Created:
+  server/src/validators/clicks.validator.js
+  server/src/services/clicks.service.js
+  server/src/controllers/clicks.controller.js
+  server/src/routes/clicks.routes.js
+  client/.env.example
+
+Modified:
+  server/src/routes/index.js
+  server/.env.example
+  client/src/constants/moodOptions.js
+  README.md
+
+--------------------------------------------------------------------------------
+OUTSTANDING TODOS (must action before production)
+--------------------------------------------------------------------------------
+
+1. Verify mood slugs against DB:
+   SELECT slug, label FROM flight.trip_types WHERE is_active = true ORDER BY slug;
+   Update client/src/constants/moodOptions.js to match.
+
+2. Create flight.clicks DB table and uncomment persistence in clicks.service.js
+
+3. Implement subscription plan check in clicks.service.js when auth is ready
+
+4. Replace DEPARTURE_AIRPORT_ID = 1 hardcode in GeneratorPage.jsx with selector
+
+================================================================================
