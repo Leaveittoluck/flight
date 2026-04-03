@@ -7,10 +7,18 @@ import { normalizeDestination } from '../utils/normalizeDestination'
 // Hardcoded to London Stansted (airport id 1) until a departure selector is added.
 const DEPARTURE_AIRPORT_ID = 1
 
+// Mock value — replace with real quota from the backend once auth/plans exist.
+const MOCK_MONTHLY_CLICKS = 5
+
 export default function GeneratorPage() {
   const [status, setStatus] = useState('idle') // idle | loading | error | empty | success
   const [destinations, setDestinations] = useState([])
   const [errorMsg, setErrorMsg] = useState('')
+  const [clicksRemaining, setClicksRemaining] = useState(MOCK_MONTHLY_CLICKS)
+
+  function handleClickUsed() {
+    setClicksRemaining((prev) => Math.max(0, prev - 1))
+  }
 
   async function handleSubmit(formValues) {
     setStatus('loading')
@@ -62,6 +70,8 @@ export default function GeneratorPage() {
           status={status}
           destinations={destinations}
           errorMsg={errorMsg}
+          clicksRemaining={clicksRemaining}
+          onClickUsed={handleClickUsed}
         />
       </main>
     </div>

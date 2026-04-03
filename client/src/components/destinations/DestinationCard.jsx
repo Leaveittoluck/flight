@@ -10,6 +10,19 @@ function formatGBP(amount) {
   }).format(amount)
 }
 
+function CtaTooltip() {
+  return (
+    <div
+      role="tooltip"
+      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 bg-slate-800 text-white text-xs rounded-lg whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+    >
+      Upgrade to continue booking
+      {/* Arrow */}
+      <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
+    </div>
+  )
+}
+
 function resolveCtaError(err) {
   const status = err?.response?.status
   const code = err?.response?.data?.code
@@ -19,19 +32,22 @@ function resolveCtaError(err) {
   return "Something went wrong. Try again or open the link directly."
 }
 
-export default function DestinationCard({ destination: d }) {
+export default function DestinationCard({ destination: d, clicksRemaining, onClickUsed }) {
   // pending: null | 'flight' | 'hotel'
   const [pending, setPending] = useState(null)
   // ctaError: { type: null | 'flight' | 'hotel', message: string }
   const [ctaError, setCtaError] = useState({ type: null, message: '' })
 
+  const limitReached = clicksRemaining === 0
+
   async function handleCtaClick(type, url) {
-    if (pending) return
+    if (pending || limitReached) return
     setPending(type)
     setCtaError({ type: null, message: '' })
     try {
       await trackClick({ destination_id: d.id, click_type: type })
       window.open(url, '_blank', 'noopener,noreferrer')
+      onClickUsed()
     } catch (err) {
       setCtaError({ type, message: resolveCtaError(err) })
     } finally {
@@ -167,25 +183,39 @@ export default function DestinationCard({ destination: d }) {
         <div className="border-t border-slate-100 px-6 py-4">
           <div className="flex gap-3">
             {d.skyscanner_url && (
-              <button
-                onClick={() => handleCtaClick('flight', d.skyscanner_url)}
-                disabled={!!pending}
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {pending === 'flight' ? 'Opening…' : 'Search flights →'}
-              </button>
+              // Wrapper captures hover even when inner button is disabled
+              <div className={`relative group ${limitReached ? 'cursor-not-allowed' : ''}`}>
+                <button
+                  onClick={() => handleCtaClick('flight', d.skyscanner_url)}
+                  disabled={!!pending || limitReached}
+                  title={limitReached ? 'Upgrade to continue booking' : undefined}
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                >
+                  {pending === 'flight' ? 'Opening…' : 'Search flights →'}
+                </button>
+                {limitReached && <CtaTooltip />}
+              </div>
             )}
             {d.booking_com_url && (
-              <button
-                onClick={() => handleCtaClick('hotel', d.booking_com_url)}
-                disabled={!!pending}
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {pending === 'hotel' ? 'Opening…' : 'Find hotels →'}
-              </button>
+              <div className={`relative group ${limitReached ? 'cursor-not-allowed' : ''}`}>
+                <button
+                  onClick={() => handleCtaClick('hotel', d.booking_com_url)}
+                  disabled={!!pending || limitReached}
+                  title={limitReached ? 'Upgrade to continue booking' : undefined}
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                >
+                  {pending === 'hotel' ? 'Opening…' : 'Find hotels →'}
+                </button>
+                {limitReached && <CtaTooltip />}
+              </div>
             )}
           </div>
-          {ctaError.message && (
+          {limitReached && (
+            <p className="mt-2.5 text-xs text-amber-600 font-medium">
+              You've reached your limit. Upgrade to continue.
+            </p>
+          )}
+          {!limitReached && ctaError.message && (
             <p className="mt-2.5 text-xs text-red-600 font-medium">{ctaError.message}</p>
           )}
         </div>

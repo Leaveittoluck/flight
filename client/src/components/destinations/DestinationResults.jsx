@@ -14,18 +14,43 @@ function Spinner() {
   )
 }
 
-export default function DestinationResults({ status, destinations, errorMsg }) {
+function ClicksCounter({ remaining }) {
+  if (remaining > 0) {
+    return (
+      <p className="text-xs text-slate-500 mb-4">
+        {remaining} affiliate click{remaining === 1 ? '' : 's'} remaining this month
+      </p>
+    )
+  }
+  return (
+    <p className="text-xs font-medium text-amber-600 mb-4">
+      No clicks remaining this month — upgrade to continue booking
+    </p>
+  )
+}
+
+export default function DestinationResults({
+  status,
+  destinations,
+  errorMsg,
+  clicksRemaining,
+  onClickUsed,
+}) {
   if (status === 'idle') return null
 
   return (
     <section>
       {status === 'success' && (
-        <div className="flex items-baseline gap-2 mb-4">
+        <div className="flex items-baseline gap-2 mb-2">
           <SectionHeading>Your destinations</SectionHeading>
           <span className="text-sm text-slate-400 -mt-4">
             {destinations.length} match{destinations.length === 1 ? '' : 'es'}
           </span>
         </div>
+      )}
+
+      {status === 'success' && (
+        <ClicksCounter remaining={clicksRemaining} />
       )}
 
       {status === 'loading' && <Spinner />}
@@ -53,7 +78,11 @@ export default function DestinationResults({ status, destinations, errorMsg }) {
               key={dest.id}
               style={{ animation: `fadeInUp 0.35s ease both`, animationDelay: `${i * 80}ms` }}
             >
-              <DestinationCard destination={dest} />
+              <DestinationCard
+                destination={dest}
+                clicksRemaining={clicksRemaining}
+                onClickUsed={onClickUsed}
+              />
             </div>
           ))}
         </div>
