@@ -1,3 +1,6 @@
+import { useState } from 'react'
+import { trackClick } from '../../services/clicksApi'
+
 function formatGBP(amount) {
   if (amount == null) return null
   return new Intl.NumberFormat('en-GB', {
@@ -7,7 +10,35 @@ function formatGBP(amount) {
   }).format(amount)
 }
 
+function resolveCtaError(err) {
+  const status = err?.response?.status
+  const code = err?.response?.data?.code
+  if (status === 429 || code === 'LIMIT_REACHED') {
+    return "You've reached your monthly limit. Upgrade to continue."
+  }
+  return "Something went wrong. Try again or open the link directly."
+}
+
 export default function DestinationCard({ destination: d }) {
+  // pending: null | 'flight' | 'hotel'
+  const [pending, setPending] = useState(null)
+  // ctaError: { type: null | 'flight' | 'hotel', message: string }
+  const [ctaError, setCtaError] = useState({ type: null, message: '' })
+
+  async function handleCtaClick(type, url) {
+    if (pending) return
+    setPending(type)
+    setCtaError({ type: null, message: '' })
+    try {
+      await trackClick({ destination_id: d.id, click_type: type })
+      window.open(url, '_blank', 'noopener,noreferrer')
+    } catch (err) {
+      setCtaError({ type, message: resolveCtaError(err) })
+    } finally {
+      setPending(null)
+    }
+  }
+
   return (
     <article className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       {/* ── HERO: city, cost, hook ── */}
@@ -131,28 +162,31 @@ export default function DestinationCard({ destination: d }) {
         </div>
       )}
 
-      {/* ── CTA LINKS ── */}
+      {/* ── CTA BUTTONS ── */}
       {(d.skyscanner_url || d.booking_com_url) && (
-        <div className="border-t border-slate-100 px-6 py-4 flex gap-3">
-          {d.skyscanner_url && (
-            <a
-              href={d.skyscanner_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors"
-            >
-              Search flights →
-            </a>
-          )}
-          {d.booking_com_url && (
-            <a
-              href={d.booking_com_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors"
-            >
-              Find hotels →
-            </a>
+        <div className="border-t border-slate-100 px-6 py-4">
+          <div className="flex gap-3">
+            {d.skyscanner_url && (
+              <button
+                onClick={() => handleCtaClick('flight', d.skyscanner_url)}
+                disabled={!!pending}
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {pending === 'flight' ? 'Opening…' : 'Search flights →'}
+              </button>
+            )}
+            {d.booking_com_url && (
+              <button
+                onClick={() => handleCtaClick('hotel', d.booking_com_url)}
+                disabled={!!pending}
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {pending === 'hotel' ? 'Opening…' : 'Find hotels →'}
+              </button>
+            )}
+          </div>
+          {ctaError.message && (
+            <p className="mt-2.5 text-xs text-red-600 font-medium">{ctaError.message}</p>
           )}
         </div>
       )}

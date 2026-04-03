@@ -1,0 +1,78 @@
+================================================================================
+CHANGE SUMMARY — CTA Click Tracking
+Date: 2026-04-03
+Branch: feature/project-scaffold
+================================================================================
+
+OVERVIEW
+--------
+Added click tracking for the "Search flights" and "Find hotels" CTA buttons on
+DestinationCard. Before redirecting the user, the app now calls the backend.
+Redirect only happens on success; errors are shown inline.
+
+--------------------------------------------------------------------------------
+FILES CREATED
+--------------------------------------------------------------------------------
+
+client/src/services/clicksApi.js
+  - New dedicated service file for click tracking
+  - Uses the same axios + BASE_URL pattern as destinationsApi.js
+  - Exports: trackClick({ destination_id, click_type })
+  - click_type values: 'flight' | 'hotel'
+  - POSTs to POST /api/click
+
+  NOTE: The /api/click backend route does not exist yet. The frontend is wired
+  correctly — requests will return 404 until the route is added to the server.
+
+--------------------------------------------------------------------------------
+FILES MODIFIED
+--------------------------------------------------------------------------------
+
+client/src/components/destinations/DestinationCard.jsx
+  IMPORTS ADDED:
+  - useState from 'react'
+  - trackClick from '../../services/clicksApi'
+
+  LOGIC ADDED:
+  - resolveCtaError(err): maps backend error to user-facing message
+      • HTTP 429 or body.code === 'LIMIT_REACHED'
+        → "You've reached your monthly limit. Upgrade to continue."
+      • Anything else
+        → "Something went wrong. Try again or open the link directly."
+
+  - State: pending (null | 'flight' | 'hotel') — tracks which button is in flight
+  - State: ctaError { type, message } — holds the error for the last failed click
+
+  - handleCtaClick(type, url):
+      1. Guard: if another click is already pending, return immediately (no double click)
+      2. Set pending = type, clear any previous error
+      3. Await trackClick({ destination_id: d.id, click_type: type })
+      4. On success: window.open(url, '_blank', 'noopener,noreferrer')
+      5. On error: resolve message and set ctaError
+      6. Finally: clear pending
+
+  CTA BUTTONS (replaced <a> tags):
+  - Both CTAs are now <button> elements calling handleCtaClick
+  - disabled={!!pending} — both buttons disabled while either is in progress
+  - Button label changes: "Opening…" while that specific button is pending
+  - Error message rendered below the button row (text-xs text-red-600)
+  - Clicking a new button clears the previous error
+
+  LAYOUT:
+  - The CTA section wrapper changed from `flex gap-3` directly to a div
+    containing the flex row + conditional error message below it
+  - Card visual appearance is otherwise identical
+
+--------------------------------------------------------------------------------
+BACKEND CONTRACT EXPECTED
+--------------------------------------------------------------------------------
+
+POST /api/click
+Request body: { destination_id: number, click_type: "flight" | "hotel" }
+
+Success (200):      { ok: true }
+Limit reached:      { ok: false, code: "LIMIT_REACHED", message: "..." }
+                    OR HTTP 429
+General error:      any 4xx/5xx
+
+================================================================================
