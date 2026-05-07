@@ -2,19 +2,13 @@ const pool = require("../db/pool");
 
 const MONTHLY_CLICK_LIMIT = 5;
 
-async function trackClick({ destination_id, click_type }) {
-  // No auth yet — user_id is NULL and all anonymous clicks share the same quota.
-  // Once auth is in place, replace `null` with the real user ID and the COUNT
-  // query will automatically scope to that user only (IS NOT DISTINCT FROM handles
-  // the NULL = NULL comparison that standard = does not).
-  const userId = null;
-
+async function trackClick({ destination_id, click_type, anonymous_id }) {
   const countResult = await pool.query(
     `SELECT COUNT(*)::int AS total
      FROM flight.clicks
-     WHERE user_id IS NOT DISTINCT FROM $1
+     WHERE anonymous_id = $1
        AND created_at >= date_trunc('month', NOW())`,
-    [userId]
+    [anonymous_id]
   );
 
   const usedThisMonth = countResult.rows[0].total;
@@ -27,9 +21,9 @@ async function trackClick({ destination_id, click_type }) {
   }
 
   await pool.query(
-    `INSERT INTO flight.clicks (user_id, destination_id, click_type)
+    `INSERT INTO flight.clicks (anonymous_id, destination_id, click_type)
      VALUES ($1, $2, $3)`,
-    [userId, destination_id, click_type]
+    [anonymous_id, destination_id, click_type]
   );
 
   // NOTE (provider caching): When live flight/hotel provider APIs are added,

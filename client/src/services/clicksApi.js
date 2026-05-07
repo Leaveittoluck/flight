@@ -1,10 +1,5 @@
-import axios from 'axios'
-
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
-
-const api = axios.create({
-  baseURL: BASE_URL,
-})
+import { apiFetch } from './apiFetch'
+import { getAnonymousId } from '../utils/anonymousId'
 
 /**
  * Track a CTA click before redirecting the user to an affiliate link.
@@ -13,5 +8,12 @@ const api = axios.create({
  * @param {'flight'|'hotel'} payload.click_type
  */
 export function trackClick({ destination_id, click_type }) {
-  return api.post('/api/click', { destination_id, click_type })
+  return apiFetch('/api/click', {
+    method: 'POST',
+    body: JSON.stringify({
+      destination_id,
+      click_type,
+      anonymous_id: getAnonymousId(),
+    }),
+  })
 }

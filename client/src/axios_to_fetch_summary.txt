@@ -1,0 +1,76 @@
+================================================================================
+CHANGE SUMMARY — axios → native fetch refactor
+Date: 2026-05-07
+Branch: feature/project-scaffold
+================================================================================
+
+OVERVIEW
+--------
+Removed axios entirely and replaced with native fetch. No component logic
+changed. The apiFetch helper preserves the exact response/error shape that
+components already depend on.
+
+--------------------------------------------------------------------------------
+FILES CREATED
+--------------------------------------------------------------------------------
+
+client/src/services/apiFetch.js
+  Shared fetch wrapper used by both service files.
+
+  Success path:
+    - Calls fetch with Content-Type: application/json header
+    - Parses response.json()
+    - Returns { data: <parsed JSON> }
+      → matches axios's res.data shape
+      → GeneratorPage reads res.data?.data?.destinations — unchanged
+
+  Error path:
+    - On !response.ok, throws an Error with:
+        err.message  = data.message or fallback string
+        err.response = { status: response.status, data: <parsed JSON> }
+      → matches axios's err.response shape
+      → GeneratorPage reads err?.response?.data?.message — unchanged
+      → DestinationCard reads err?.response?.status and err?.response?.data?.code — unchanged
+
+  BASE_URL:
+    - Still reads import.meta.env.VITE_API_BASE_URL || ''
+    - Vite proxy and production env var behaviour identical to before
+
+--------------------------------------------------------------------------------
+FILES MODIFIED
+--------------------------------------------------------------------------------
+
+client/src/services/destinationsApi.js
+  - Removed: import axios, axios.create()
+  - Now: import { apiFetch }, call apiFetch('/api/destinations/generate', POST + body)
+
+client/src/services/clicksApi.js
+  - Removed: import axios, axios.create()
+  - Now: import { apiFetch }, call apiFetch('/api/click', POST + body)
+  - anonymous_id inclusion unchanged
+
+client/package.json
+  - Removed: "axios": "^1.14.0" from dependencies
+
+--------------------------------------------------------------------------------
+PACKAGE CLEANUP — ACTION REQUIRED
+--------------------------------------------------------------------------------
+
+axios is removed from package.json but the node_modules folder still contains
+it until you run:
+
+  cd client
+  npm install
+
+This will update node_modules to match the new package.json (axios removed).
+The lockfile will also be updated.
+
+--------------------------------------------------------------------------------
+COMPONENTS UNCHANGED
+--------------------------------------------------------------------------------
+
+GeneratorPage.jsx    — res.data?.data?.destinations still works
+DestinationCard.jsx  — err?.response?.status / err?.response?.data?.code still works
+All other components — no fetch/axios usage anywhere else
+
+================================================================================

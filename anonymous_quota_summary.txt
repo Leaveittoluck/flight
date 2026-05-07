@@ -1,0 +1,101 @@
+================================================================================
+CHANGE SUMMARY — Anonymous Browser Quota
+Date: 2026-05-07
+Branch: feature/project-scaffold
+================================================================================
+
+OVERVIEW
+--------
+Click quota is now scoped per browser using a persistent anonymous_id stored
+in localStorage. Each browser gets its own 5-click/month allowance instead of
+all anonymous users sharing one global counter.
+
+--------------------------------------------------------------------------------
+FRONTEND — already complete (from previous session)
+--------------------------------------------------------------------------------
+
+client/src/utils/anonymousId.js  [EXISTS]
+  - getAnonymousId(): reads 'litl_anonymous_id' from localStorage
+  - If missing: generates crypto.randomUUID(), saves, returns it
+  - Stable across page reloads and browser restarts
+  - Clears only if user manually wipes localStorage
+
+client/src/services/clicksApi.js  [EXISTS]
+  - trackClick() now includes anonymous_id: getAnonymousId() in POST body
+
+--------------------------------------------------------------------------------
+BACKEND — changed in this session
+--------------------------------------------------------------------------------
+
+server/migrations/002_add_anonymous_id_to_clicks.sql  [NEW]
+  - ALTER TABLE flight.clicks ADD COLUMN IF NOT EXISTS anonymous_id UUID NULL
+  - CREATE INDEX idx_clicks_anon_created ON flight.clicks (anonymous_id, created_at)
+  - user_id column and its index kept intact for future auth
+
+server/src/validators/clicks.validator.js  [MODIFIED]
+  - Added: anonymous_id: z.string().uuid()
+  - Rejects requests missing or malformed anonymous_id with 400
+
+server/src/services/clicks.service.js  [MODIFIED]
+  - Accepts anonymous_id parameter
+  - COUNT query: WHERE anonymous_id = $1 AND created_at >= date_trunc('month', NOW())
+  - INSERT now writes anonymous_id instead of user_id
+  - Removed user_id = null logic entirely
+  - Limit enforcement and remaining_clicks return unchanged
+
+--------------------------------------------------------------------------------
+HOW THE FLOW WORKS
+--------------------------------------------------------------------------------
+
+1. Browser first visit:
+   - getAnonymousId() finds nothing in localStorage
+   - Generates a UUID, saves as 'litl_anonymous_id', returns it
+
+2. Every CTA click:
+   - Frontend reads anonymous_id from localStorage
+   - POST /api/click: { destination_id, click_type, anonymous_id }
+
+3. Backend:
+   - Validator ensures anonymous_id is a valid UUID
+   - Service counts this browser's clicks in the current calendar month
+   - If count >= 5: HTTP 429, code: "LIMIT_REACHED"
+   - If allowed: INSERT row, return remaining_clicks
+
+4. Each browser now has an independent 5-click quota.
+   Clearing localStorage (or switching browsers) starts a fresh quota.
+
+--------------------------------------------------------------------------------
+RUN THE MIGRATION
+--------------------------------------------------------------------------------
+
+  psql $DATABASE_URL -f server/migrations/002_add_anonymous_id_to_clicks.sql
+
+--------------------------------------------------------------------------------
+TESTING
+--------------------------------------------------------------------------------
+
+Check anonymous_id in browser:
+  localStorage.getItem('litl_anonymous_id')
+
+Reset anonymous_id (simulates a new browser):
+  localStorage.removeItem('litl_anonymous_id')
+  — next click will generate a fresh UUID and a fresh quota
+
+Reset click rows for a specific ID in psql:
+  DELETE FROM flight.clicks WHERE anonymous_id = '<your-uuid>';
+
+Verify quota counting:
+  SELECT anonymous_id, COUNT(*) FROM flight.clicks
+  WHERE created_at >= date_trunc('month', NOW())
+  GROUP BY anonymous_id;
+
+--------------------------------------------------------------------------------
+NEXT STEPS
+--------------------------------------------------------------------------------
+
+When auth is added:
+  - Replace anonymous_id with real user_id in quota logic
+  - Consider migrating existing anonymous click rows to the user's account
+  - user_id column is already in the table, waiting
+
+================================================================================
