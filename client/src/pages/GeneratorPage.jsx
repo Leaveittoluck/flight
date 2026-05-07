@@ -6,12 +6,14 @@ import { normalizeDestination } from '../utils/normalizeDestination'
 
 // Hardcoded to London Stansted (airport id 1) until a departure selector is added.
 const DEPARTURE_AIRPORT_ID = 1
+const DEPARTURE_AIRPORT_IATA = 'STN'
 
 export default function GeneratorPage() {
   const [status, setStatus] = useState('idle') // idle | loading | error | empty | success
   const [destinations, setDestinations] = useState([])
   const [errorMsg, setErrorMsg] = useState('')
   const [clicksRemaining, setClicksRemaining] = useState(null) // null until first click response
+  const [tripInput, setTripInput] = useState(null) // { travellers, departureDate, returnDate, originIata }
 
   function handleClickUsed(remaining) {
     setClicksRemaining(remaining)
@@ -21,6 +23,12 @@ export default function GeneratorPage() {
     setStatus('loading')
     setDestinations([])
     setErrorMsg('')
+    setTripInput({
+      travellers: formValues.travellers,
+      departureDate: formValues.departure_date,
+      returnDate: formValues.return_date || null,
+      originIata: DEPARTURE_AIRPORT_IATA,
+    })
 
     try {
       const payload = {
@@ -28,6 +36,8 @@ export default function GeneratorPage() {
         budget: Number(formValues.budget),
         travellers: formValues.travellers,
         trip_type_slug: formValues.mood,
+        departure_date: formValues.departure_date,
+        ...(formValues.return_date ? { return_date: formValues.return_date } : {}),
         ...(formValues.season ? { season: formValues.season } : {}),
       }
 
@@ -69,6 +79,7 @@ export default function GeneratorPage() {
           errorMsg={errorMsg}
           clicksRemaining={clicksRemaining}
           onClickUsed={handleClickUsed}
+          tripInput={tripInput}
         />
       </main>
     </div>

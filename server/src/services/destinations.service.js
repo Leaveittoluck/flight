@@ -27,9 +27,9 @@ function filterByBudget(candidates, travellers, budgetLimit) {
     .filter((d) => d.estimated_total_cost <= budgetLimit);
 }
 
-async function generateDestinations({ departure_airport_id, budget, travellers, trip_type_slug }) {
+async function generateDestinations({ departure_airport_id, budget, travellers, trip_type_slug, departure_date, return_date }) {
   const emptyResult = (meta = {}) => ({
-    request: { departure_airport_id, budget, travellers, trip_type_slug },
+    request: { departure_airport_id, budget, travellers, trip_type_slug, departure_date, return_date },
     meta: { results_count: 0, fallback_used: false, tiers_hit: [], ...meta },
     destinations: [],
   });
@@ -104,6 +104,7 @@ async function generateDestinations({ departure_airport_id, budget, travellers, 
     hotel_cost_per_night_gbp: parseFloat(d.hotel_cost_per_night_gbp),
     default_duration_nights: d.default_duration_nights,
     estimated_total_cost: d.estimated_total_cost,
+    iata_code: d.iata_code || null,
     trip_types: tripTypesByDest[d.id] || [],
     recommended_places: placesByDest[d.id] || [],
     skyscanner_url: d.skyscanner_url,
@@ -111,7 +112,7 @@ async function generateDestinations({ departure_airport_id, budget, travellers, 
   }));
 
   return {
-    request: { departure_airport_id, budget, travellers, trip_type_slug },
+    request: { departure_airport_id, budget, travellers, trip_type_slug, departure_date, return_date },
     meta: {
       results_count: destinations.length,
       fallback_used: !tiersHit.includes("tier1_exact"),

@@ -1,0 +1,141 @@
+================================================================================
+CHANGE SUMMARY — London Stansted Destinations Seed
+Date: 2026-05-07
+Branch: feature/project-scaffold
+================================================================================
+
+OVERVIEW
+--------
+Created a single idempotent seed script that populates the database with
+48 direct-flight destinations from London Stansted (STN), including trip type
+associations, recommended places, and approximate pricing. One command from
+the VS Code terminal fills the entire database.
+
+--------------------------------------------------------------------------------
+NEW FILES
+--------------------------------------------------------------------------------
+
+server/scripts/seedStanstedDestinations.js
+  - Node.js script using the existing pg pool + dotenv
+  - Run with: cd server && npm run db:seed:stansted
+  - Fully idempotent: INSERT for new rows, UPDATE for existing rows
+  - Wrapped in a single transaction: all-or-nothing, rolls back on error
+  - Seeds in order:
+    1. Trip types (6 types)
+    2. Trip type similarity pairs (6 pairs, bidirectional)
+    3. 48 destinations with full content
+    4. Destination–trip type associations
+    5. Recommended places (up to 3 per destination)
+
+--------------------------------------------------------------------------------
+MODIFIED FILES
+--------------------------------------------------------------------------------
+
+server/package.json
+  - Added: "db:seed:stansted": "node scripts/seedStanstedDestinations.js"
+
+README.md
+  - Added "Database setup" section with exact commands
+  - Removed resolved TODOs (trip type slugs, clicks table)
+
+--------------------------------------------------------------------------------
+DESTINATIONS SEEDED (48 total)
+--------------------------------------------------------------------------------
+
+BEACH & SUN (14):
+  Alicante (ALC), Malaga (AGP), Palma (PMI), Ibiza (IBZ),
+  Faro/Algarve (FAO), Lanzarote (ACE), Fuerteventura (FUE),
+  Gran Canaria (LPA), Tenerife (TFS), Corfu (CFU), Rhodes (RHO),
+  Zakynthos (ZTH), Valencia (VLC), Seville (SVQ)
+
+CITY BREAKS (22):
+  Dublin (DUB), Amsterdam (AMS), Paris/Beauvais (BVA), Brussels/Charleroi (CRL),
+  Barcelona (BCN), Madrid (MAD), Lisbon (LIS), Porto (OPO),
+  Rome/Ciampino (CIA), Milan/Bergamo (BGY), Naples (NAP), Venice/Treviso (TSF),
+  Pisa (PSA), Bologna (BLQ), Prague (PRG), Budapest (BUD),
+  Krakow (KRK), Warsaw/Modlin (WMI), Wroclaw (WRO), Berlin (BER),
+  Athens (ATH), Thessaloniki (SKG), Tallinn (TLL), Riga (RIX), Vilnius (VNO)
+
+CULTURAL (4):
+  Malta (MLA), Dubrovnik (DBV), Split (SPU), Marrakech (RAK)
+
+SKIING (2):
+  Salzburg (SZG), Geneva (GVA)
+
+ADVENTURE/CITY (2):
+  Edinburgh (EDI), Tel Aviv (TLV)
+
+Note: Several destinations have multiple trip types. E.g. Barcelona has
+city_break (primary), cultural, and beach. Malta has cultural (primary),
+beach, and city_break.
+
+--------------------------------------------------------------------------------
+TRIP TYPES SEEDED
+--------------------------------------------------------------------------------
+
+Slugs: beach, city_break, adventure, cultural, skiing, relaxation
+
+These match the values in client/src/constants/moodOptions.js exactly.
+The seed creates them if missing, or updates the label if they already exist.
+
+--------------------------------------------------------------------------------
+TRIP TYPE SIMILARITY
+--------------------------------------------------------------------------------
+
+city_break ↔ cultural:   score 9  (used when exact mood has no matches)
+beach      ↔ relaxation: score 8
+skiing     ↔ adventure:  score 7
+beach      ↔ adventure:  score 6
+city_break ↔ adventure:  score 6
+cultural   ↔ relaxation: score 6
+
+The service uses SIMILARITY_MIN_SCORE = 6, so all pairs above will trigger
+fallback results. Similarity is seeded bidirectionally.
+
+--------------------------------------------------------------------------------
+CONTENT INCLUDED PER DESTINATION
+--------------------------------------------------------------------------------
+
+Each destination has:
+  - city, country, iata_code (for dynamic Skyscanner URL building)
+  - hook: one-line travel pitch
+  - fun_fact: verified interesting fact
+  - weather_summary: one-line climate guide
+  - flight_cost_per_person_gbp: approximate one-way Ryanair/easyJet price
+  - hotel_cost_per_night_gbp: mid-range per-night cost
+  - default_duration_nights: typical trip length (3 for city breaks, 7 for beach)
+  - 2–3 recommended_places with descriptions
+
+IATA codes use the actual operating airport from STN (e.g. CIA for Rome, not
+FCO; BGY for Milan, not MXP; TSF for Venice, not VCE) since these are the
+Ryanair-served airports that Skyscanner will route correctly.
+
+--------------------------------------------------------------------------------
+HOW TO RUN
+--------------------------------------------------------------------------------
+
+From the project root (VS Code terminal):
+  cd server && npm run db:seed:stansted
+
+Or from the server/ directory:
+  npm run db:seed:stansted
+
+Prerequisites:
+  - server/.env must have DATABASE_URL set
+  - server/.env must have DB_SCHEMA=flight (or the schema prefix in the script)
+  - The flight schema and all tables must already exist
+  - Run server/migrations/003 first if iata_code column is not yet added
+
+Output on success:
+  ✅ Seed complete:
+     N new destinations inserted
+     N existing destinations updated
+     N trip type associations written
+     N recommended places written
+     N new trip types created
+
+Output on failure:
+  ❌ Seed failed — all changes rolled back
+  [error message]
+
+================================================================================

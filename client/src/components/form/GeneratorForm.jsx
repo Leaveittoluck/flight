@@ -3,6 +3,7 @@ import BudgetInput from './BudgetInput'
 import TravellersSelect from './TravellersSelect'
 import MoodSelect from './MoodSelect'
 import SeasonSelect from './SeasonSelect'
+import DateInputPair from './DateInputPair'
 import Button from '../ui/Button'
 import SectionHeading from '../ui/SectionHeading'
 
@@ -11,6 +12,8 @@ const DEFAULT_FORM = {
   travellers: 2,
   mood: '',
   season: '',
+  departure_date: '',
+  return_date: '',
 }
 
 export default function GeneratorForm({ onSubmit, isLoading }) {
@@ -31,6 +34,15 @@ export default function GeneratorForm({ onSubmit, isLoading }) {
     }
     if (!form.mood) {
       errs.mood = 'Please select a trip mood'
+    }
+    const todayISO = new Date().toISOString().slice(0, 10)
+    if (!form.departure_date) {
+      errs.departure_date = 'Please select a departure date'
+    } else if (form.departure_date < todayISO) {
+      errs.departure_date = 'Departure date cannot be in the past'
+    }
+    if (form.return_date && form.return_date <= form.departure_date) {
+      errs.return_date = 'Return date must be after departure'
     }
     return errs
   }
@@ -68,6 +80,20 @@ export default function GeneratorForm({ onSubmit, isLoading }) {
           <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
             <MoodSelect value={form.mood} onChange={set('mood')} error={errors.mood} />
             <SeasonSelect value={form.season} onChange={set('season')} />
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-slate-100" />
+
+          {/* Date row */}
+          <div className="p-6">
+            <DateInputPair
+              departureDate={form.departure_date}
+              returnDate={form.return_date}
+              onDepartureChange={set('departure_date')}
+              onReturnChange={set('return_date')}
+              errors={errors}
+            />
           </div>
 
           {/* Submit row */}

@@ -64,13 +64,13 @@ flight/
 
 ### Prerequisites
 - Node.js 18+
-- PostgreSQL running locally with the `flight` schema seeded
+- PostgreSQL running locally with the `flight` schema created
 
 ### Backend
 
 ```bash
 cd server
-cp .env.example .env        # fill in your DATABASE_URL
+cp .env.example .env        # fill in DATABASE_URL and set DB_SCHEMA=flight
 npm install
 npm run dev                 # or: node src/server.js
 ```
@@ -88,6 +88,25 @@ npm run dev
 
 Frontend starts on `http://localhost:5173`.  
 The Vite dev server proxies all `/api/*` requests to `http://localhost:5000` — no CORS config needed locally.
+
+### Database setup
+
+Run these once against your PostgreSQL database (requires the `flight` schema to exist):
+
+```bash
+# 1. Create the clicks table
+psql $DATABASE_URL -f server/migrations/000_consolidated_schema.sql
+
+# 2. Add iata_code column to destinations
+psql $DATABASE_URL -f server/migrations/003_add_iata_code_to_destinations.sql
+
+# 3. Seed all London Stansted destinations (idempotent — safe to re-run)
+cd server && npm run db:seed:stansted
+```
+
+The seed script inserts 48 direct-flight destinations from STN with trip types,
+recommended places, and pricing data. It is fully idempotent: re-running it
+updates existing rows rather than creating duplicates.
 
 ---
 
@@ -178,9 +197,6 @@ Track a CTA button click before affiliate redirect.
 
 ## Known TODOs
 
-- [ ] Verify `trip_type_slug` values in `client/src/constants/moodOptions.js` match the actual `flight.trip_types` table in the DB (slugs were seeded manually — no migration file in repo yet)
-- [ ] Add DB persistence for click events (`flight.clicks` table)
-- [ ] Add subscription/plan checks and monthly click limits (hook is in `clicks.service.js`)
 - [ ] Replace departure airport hardcode (`DEPARTURE_AIRPORT_ID = 1`) with a selector
 - [ ] Build Dashboard and Stats pages
 - [ ] Add auth before any per-user features

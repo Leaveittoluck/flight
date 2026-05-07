@@ -15,6 +15,7 @@ export function normalizeDestination(dest = {}) {
     flight_cost_per_person_gbp: dest.flight_cost_per_person_gbp ?? null,
     hotel_cost_per_night_gbp: dest.hotel_cost_per_night_gbp ?? null,
     default_duration_nights: dest.default_duration_nights ?? null,
+    iata_code: dest.iata_code || null,
     trip_types: Array.isArray(dest.trip_types) ? dest.trip_types : [],
     recommended_places: Array.isArray(dest.recommended_places) ? dest.recommended_places : [],
     skyscanner_url: dest.skyscanner_url || null,

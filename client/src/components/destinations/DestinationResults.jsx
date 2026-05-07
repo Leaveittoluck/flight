@@ -36,6 +36,7 @@ export default function DestinationResults({
   errorMsg,
   clicksRemaining,
   onClickUsed,
+  tripInput,
 }) {
   if (status === 'idle') return null
 
@@ -83,6 +84,7 @@ export default function DestinationResults({
                 destination={dest}
                 clicksRemaining={clicksRemaining}
                 onClickUsed={onClickUsed}
+                tripInput={tripInput}
               />
             </div>
           ))}

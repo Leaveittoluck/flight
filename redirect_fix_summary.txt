@@ -1,0 +1,95 @@
+================================================================================
+CHANGE SUMMARY — CTA Redirect Bug Fix
+Date: 2026-05-07
+Branch: feature/project-scaffold
+================================================================================
+
+PROBLEM
+-------
+Clicking "Search flights" or "Find hotels" showed:
+  "Something went wrong. Try again or open the link directly."
+No external link opened.
+
+ROOT CAUSES (three stacked bugs)
+---------------------------------
+
+1. window.open() gated behind async tracking call  [FRONTEND — PRIMARY]
+
+   In handleCtaClick(), window.open() was placed INSIDE the try block, AFTER
+   await trackClick(). If trackClick threw for any reason, the catch block ran
+   and window.open() was never reached. The redirect was 100% blocked by any
+   analytics failure.
+
+2. Popup blockers suppress deferred window.open()  [FRONTEND — SECONDARY]
+
+   window.open() called after an await breaks the browser's synchronous
+   user-gesture chain. Chrome, Firefox, and Safari only allow window.open() to
+   open a new tab when invoked synchronously in a click handler. Any await
+   before the call causes popup blockers to suppress the new tab silently, even
+   when the tracking call succeeds.
+
+3. DB migration not applied → 500 errors  [BACKEND — LIKELY TRIGGER]
+
+   clicks.service.js queries: WHERE anonymous_id = $1
+   If migration 002 was never run, the anonymous_id column doesn't exist.
+   PostgreSQL throws "column does not exist" → Express catches it →
+   errorHandler returns 500 → apiFetch throws → catch in handleCtaClick
+   shows "Something went wrong." This is most likely what triggered the
+   original report on a fresh local setup.
+
+--------------------------------------------------------------------------------
+FIX
+--------------------------------------------------------------------------------
+
+client/src/components/destinations/DestinationCard.jsx
+  - Moved window.open() to BEFORE the try block and BEFORE any await.
+    The link now opens synchronously in the click handler, so:
+    (a) It is never blocked by a tracking failure
+    (b) It fires within the browser's synchronous gesture window → no popup block
+  - Updated fallback error message from "Try again or open the link directly."
+    to "Click tracking failed — your link still opened." (accurate post-fix)
+
+server/migrations/000_consolidated_schema.sql  [NEW]
+  - Idempotent CREATE TABLE IF NOT EXISTS for flight.clicks with both
+    user_id and anonymous_id columns plus both indexes.
+  - Use this for fresh setups instead of running 001 + 002 separately.
+
+--------------------------------------------------------------------------------
+NEW FLOW
+------------------------------------------------------------------------
+
+User clicks CTA
+  ↓
+window.open(url) — synchronous, fires immediately
+  ↓ (affiliate tab opens)
+await trackClick() — runs in background
+  ├─ success → update clicksRemaining counter
+  └─ failure → show inline tracking error (link already open, no redirect lost)
+
+The 429 / LIMIT_REACHED path is unchanged: the frontend's limitReached guard
+(clicksRemaining === 0) still prevents the button from firing. If the backend
+returns 429 unexpectedly (e.g. first session, quota already exhausted in DB),
+the link opens AND the upgrade message appears inline.
+
+--------------------------------------------------------------------------------
+MIGRATION STEPS (if not already run)
+--------------------------------------------------------------------------------
+
+Fresh setup — run the consolidated script:
+  psql $DATABASE_URL -f server/migrations/000_consolidated_schema.sql
+
+Existing DB (migration 001 already applied, 002 not):
+  psql $DATABASE_URL -f server/migrations/002_add_anonymous_id_to_clicks.sql
+
+Verify the column exists:
+  \d flight.clicks
+  -- should show: anonymous_id | uuid | nullable
+
+--------------------------------------------------------------------------------
+NO OTHER FILES CHANGED
+--------------------------------------------------------------------------------
+
+apiFetch.js, clicksApi.js, clicks.service.js, clicks.controller.js,
+clicks.validator.js — all unchanged.
+
+================================================================================

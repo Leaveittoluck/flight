@@ -25,7 +25,7 @@ async function getCandidateDestinations(tripTypeIds, departureAirportId, exclude
   const result = await pool.query(
     `SELECT DISTINCT d.id, d.city, d.country, d.hook, d.fun_fact, d.weather_summary,
             d.flight_cost_per_person_gbp, d.hotel_cost_per_night_gbp, d.default_duration_nights,
-            d.skyscanner_url, d.booking_com_url
+            d.iata_code, d.skyscanner_url, d.booking_com_url
      FROM flight.destinations d
      JOIN flight.destination_trip_types dtt ON dtt.destination_id = d.id
      WHERE d.departure_airport_id = $1

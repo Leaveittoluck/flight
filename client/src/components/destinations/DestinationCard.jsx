@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { trackClick } from '../../services/clicksApi'
+import { buildSkyscannerUrl, buildBookingUrl } from '../../utils/buildProviderUrls'
 
 function formatGBP(amount) {
   if (amount == null) return null
@@ -29,10 +30,10 @@ function resolveCtaError(err) {
   if (status === 429 || code === 'LIMIT_REACHED') {
     return "You've reached your monthly limit. Upgrade to continue."
   }
-  return "Something went wrong. Try again or open the link directly."
+  return "Click tracking failed — your link still opened."
 }
 
-export default function DestinationCard({ destination: d, clicksRemaining, onClickUsed }) {
+export default function DestinationCard({ destination: d, clicksRemaining, onClickUsed, tripInput }) {
   // pending: null | 'flight' | 'hotel'
   const [pending, setPending] = useState(null)
   // ctaError: { type: null | 'flight' | 'hotel', message: string }
@@ -40,13 +41,42 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
 
   const limitReached = clicksRemaining === 0
 
-  async function handleCtaClick(type, url) {
+  // Build the URL to open, injecting user's dates and traveller count.
+  // Falls back to the static DB URL when dynamic params are unavailable.
+  function resolveUrl(type) {
+    if (type === 'flight') {
+      return buildSkyscannerUrl({
+        originIata: tripInput?.originIata ?? 'STN',
+        destIata: d.iata_code,
+        departureDate: tripInput?.departureDate ?? null,
+        returnDate: tripInput?.returnDate ?? null,
+        adults: tripInput?.travellers ?? 1,
+        fallbackUrl: d.skyscanner_url,
+      })
+    }
+    return buildBookingUrl({
+      city: d.city,
+      country: d.country,
+      checkinDate: tripInput?.departureDate ?? null,
+      checkoutDate: tripInput?.returnDate ?? null,
+      durationNights: d.default_duration_nights,
+      adults: tripInput?.travellers ?? 1,
+      fallbackUrl: d.booking_com_url,
+    })
+  }
+
+  async function handleCtaClick(type) {
     if (pending || limitReached) return
+
+    // Open the link synchronously inside the click handler — must happen before
+    // any await so browsers don't treat it as a popup and block it. This also
+    // ensures the redirect is never blocked by a tracking failure.
+    window.open(resolveUrl(type), '_blank', 'noopener,noreferrer')
+
     setPending(type)
     setCtaError({ type: null, message: '' })
     try {
       const res = await trackClick({ destination_id: d.id, click_type: type })
-      window.open(url, '_blank', 'noopener,noreferrer')
       onClickUsed(res.data?.data?.remaining_clicks ?? 0)
     } catch (err) {
       setCtaError({ type, message: resolveCtaError(err) })
@@ -54,6 +84,11 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
       setPending(null)
     }
   }
+
+  // Show "Search flights" when we have an IATA code (dynamic) or a static URL (fallback).
+  const canSearchFlights = !!(d.iata_code || d.skyscanner_url)
+  // Show "Find hotels" when we have a city name (dynamic) or a static URL (fallback).
+  const canFindHotels = !!(d.city || d.booking_com_url)
 
   return (
     <article className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -179,14 +214,14 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
       )}
 
       {/* ── CTA BUTTONS ── */}
-      {(d.skyscanner_url || d.booking_com_url) && (
+      {(canSearchFlights || canFindHotels) && (
         <div className="border-t border-slate-100 px-6 py-4">
           <div className="flex gap-3">
-            {d.skyscanner_url && (
+            {canSearchFlights && (
               // Wrapper captures hover even when inner button is disabled
               <div className={`relative group ${limitReached ? 'cursor-not-allowed' : ''}`}>
                 <button
-                  onClick={() => handleCtaClick('flight', d.skyscanner_url)}
+                  onClick={() => handleCtaClick('flight')}
                   disabled={!!pending || limitReached}
                   title={limitReached ? 'Upgrade to continue booking' : undefined}
                   className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:pointer-events-none"
@@ -196,10 +231,10 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
                 {limitReached && <CtaTooltip />}
               </div>
             )}
-            {d.booking_com_url && (
+            {canFindHotels && (
               <div className={`relative group ${limitReached ? 'cursor-not-allowed' : ''}`}>
                 <button
-                  onClick={() => handleCtaClick('hotel', d.booking_com_url)}
+                  onClick={() => handleCtaClick('hotel')}
                   disabled={!!pending || limitReached}
                   title={limitReached ? 'Upgrade to continue booking' : undefined}
                   className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:pointer-events-none"

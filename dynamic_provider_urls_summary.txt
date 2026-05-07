@@ -1,0 +1,146 @@
+================================================================================
+CHANGE SUMMARY — Dynamic Provider URLs (Travellers + Dates in Affiliate Links)
+Date: 2026-05-07
+Branch: feature/project-scaffold
+================================================================================
+
+PROBLEM
+-------
+Booking.com and Skyscanner opened with only 1 traveller and no specific dates
+because the app was using static URLs from the database, which contain no user
+input. The user's traveller count, departure date, and return date were never
+forwarded to the affiliate providers.
+
+--------------------------------------------------------------------------------
+ARCHITECTURE
+--------------------------------------------------------------------------------
+
+User form input (travellers, departure_date, return_date) is captured as a
+`tripInput` object on submit and flows as a prop through:
+
+  GeneratorPage → DestinationResults → DestinationCard
+
+Each DestinationCard builds provider URLs at click time using the tripInput +
+destination data (city, iata_code, default_duration_nights). Static DB URLs
+are retained as fallbacks only.
+
+--------------------------------------------------------------------------------
+NEW FILES
+--------------------------------------------------------------------------------
+
+client/src/utils/buildProviderUrls.js
+  - buildSkyscannerUrl({ originIata, destIata, departureDate, returnDate,
+                          adults, fallbackUrl })
+    Produces: /transport/flights/{from}/{to}/{dep_yymmdd}/[{ret_yymmdd}/]?adults=N&cabinclass=economy
+    Falls back to fallbackUrl (static DB URL) when destIata is null.
+
+  - buildBookingUrl({ city, country, checkinDate, checkoutDate,
+                      durationNights, adults, fallbackUrl })
+    Produces: /searchresults.html?ss={city, country}&checkin=…&checkout=…&group_adults=N&no_rooms=N
+    Checkout derived from: checkoutDate → durationNights+checkin → checkin+7d default.
+    No IATA code required — city name is sufficient.
+
+client/src/components/form/DateInputPair.jsx
+  - Two date inputs: departure_date (required) and return_date (optional)
+  - return_date min is dynamically set to departure_date + 1 day
+  - "Leave blank to use each destination's default stay" hint when no return set
+
+server/migrations/003_add_iata_code_to_destinations.sql
+  - ALTER TABLE flight.destinations ADD COLUMN IF NOT EXISTS iata_code VARCHAR(3) NULL
+  - Must be populated per-destination (see migration file for UPDATE examples)
+  - Rows with iata_code = NULL fall back to static skyscanner_url safely
+
+--------------------------------------------------------------------------------
+MODIFIED FILES
+--------------------------------------------------------------------------------
+
+server/src/validators/destinations.validator.js
+  - Added: departure_date (required, YYYY-MM-DD regex)
+  - Added: return_date (optional, YYYY-MM-DD regex)
+  - Added: .refine() — return_date must be > departure_date when both present
+
+server/src/repositories/destinations.repository.js
+  - getCandidateDestinations SELECT: added d.iata_code
+
+server/src/services/destinations.service.js
+  - generateDestinations now accepts departure_date, return_date
+  - destinations response includes iata_code per destination
+  - request echo includes departure_date, return_date
+
+client/src/utils/normalizeDestination.js
+  - Added: iata_code: dest.iata_code || null
+
+client/src/components/form/GeneratorForm.jsx
+  - Added departure_date, return_date to DEFAULT_FORM
+  - Added DateInputPair component in a new form row between season and submit
+  - Validation: departure_date required + not in past; return_date > departure
+
+client/src/pages/GeneratorPage.jsx
+  - Added DEPARTURE_AIRPORT_IATA = 'STN' constant (paired with existing ID = 1)
+  - Added tripInput state: { travellers, departureDate, returnDate, originIata }
+  - setTripInput called on submit (even before API response arrives)
+  - departure_date, return_date added to POST payload
+  - tripInput passed to DestinationResults
+
+client/src/components/destinations/DestinationResults.jsx
+  - Accepts and forwards tripInput prop to each DestinationCard
+
+client/src/components/destinations/DestinationCard.jsx
+  - Accepts tripInput prop
+  - handleCtaClick no longer takes a url parameter; calls resolveUrl(type) instead
+  - resolveUrl() calls buildSkyscannerUrl / buildBookingUrl with full user context
+  - Button visibility: canSearchFlights = iata_code || skyscanner_url;
+                       canFindHotels   = city || booking_com_url
+  - Static DB URLs (skyscanner_url, booking_com_url) kept as fallbacks
+
+--------------------------------------------------------------------------------
+SKYSCANNER URL FORMAT
+--------------------------------------------------------------------------------
+
+One-way:
+  https://www.skyscanner.net/transport/flights/STN/BCN/250615/?adults=2&cabinclass=economy
+
+Return:
+  https://www.skyscanner.net/transport/flights/STN/BCN/250615/250622/?adults=2&cabinclass=economy
+
+Date encoding: YYYY-MM-DD → YYMMDD (strip dashes, drop first 2 chars of year)
+  '2025-06-15' → '250615'
+
+--------------------------------------------------------------------------------
+BOOKING.COM URL FORMAT
+--------------------------------------------------------------------------------
+
+  https://www.booking.com/searchresults.html?ss=Barcelona%2C+Spain
+    &checkin=2025-06-15&checkout=2025-06-22
+    &group_adults=2&no_rooms=1
+
+no_rooms = Math.ceil(adults / 2)
+checkout fallback chain: return_date → departure_date + default_duration_nights → departure_date + 7
+
+--------------------------------------------------------------------------------
+MIGRATION STEPS
+--------------------------------------------------------------------------------
+
+1. Add the iata_code column:
+   psql $DATABASE_URL -f server/migrations/003_add_iata_code_to_destinations.sql
+
+2. Populate iata_code for each destination (examples in migration file):
+   UPDATE flight.destinations SET iata_code = 'BCN' WHERE city = 'Barcelona';
+   -- repeat for each destination
+
+3. Verify:
+   SELECT city, country, iata_code FROM flight.destinations ORDER BY city;
+
+Note: Destinations with NULL iata_code still get a Booking.com link (city-based)
+and fall back to the static skyscanner_url for flights. Partial population is safe.
+
+--------------------------------------------------------------------------------
+DEPARTURE AIRPORT
+--------------------------------------------------------------------------------
+
+Currently hardcoded as STN (London Stansted, airport ID 1) in GeneratorPage.jsx.
+When a departure selector is added, update DEPARTURE_AIRPORT_ID and
+DEPARTURE_AIRPORT_IATA together in that file, and source the IATA from the
+airports table instead.
+
+================================================================================
