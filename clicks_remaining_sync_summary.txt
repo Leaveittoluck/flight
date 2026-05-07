@@ -1,0 +1,67 @@
+================================================================================
+CHANGE SUMMARY — Sync clicksRemaining from Backend
+Date: 2026-05-07
+Branch: feature/project-scaffold
+================================================================================
+
+OVERVIEW
+--------
+Replaced the local mock click counter with real data from the backend.
+clicksRemaining in GeneratorPage is now driven by the actual remaining_clicks
+value returned from POST /api/click, rather than being decremented client-side
+from a hardcoded starting value of 5.
+
+--------------------------------------------------------------------------------
+FILES CHANGED
+--------------------------------------------------------------------------------
+
+client/src/pages/GeneratorPage.jsx
+  - Removed: const MOCK_MONTHLY_CLICKS = 5 and local decrement logic
+  - Changed: initial state from useState(MOCK_MONTHLY_CLICKS) to useState(null)
+  - Changed: handleClickUsed(remaining) now calls setClicksRemaining(remaining)
+    directly instead of computing a decremented value
+
+client/src/components/destinations/DestinationCard.jsx
+  - handleCtaClick: captures trackClick() response
+  - Calls onClickUsed(res.data?.data?.remaining_clicks ?? 0) after opening the
+    affiliate link, passing the authoritative backend count to the parent
+
+client/src/components/destinations/DestinationResults.jsx
+  - ClicksCounter: added null guard — returns null when remaining == null
+  - Prevents "No clicks remaining" flash before the user has ever clicked a CTA
+
+--------------------------------------------------------------------------------
+HOW THE FLOW WORKS NOW
+--------------------------------------------------------------------------------
+
+1. Page loads → clicksRemaining = null → ClicksCounter renders nothing
+2. User clicks a CTA button
+3. trackClick() POSTs to /api/click with anonymous_id
+4. Backend counts DB rows for this browser, checks quota, inserts row,
+   returns { remaining_clicks: N }
+5. Frontend receives N, calls onClickUsed(N) → clicksRemaining = N
+6. ClicksCounter now shows real count; at 0 it shows the upgrade message
+7. DestinationCard sets limitReached = (clicksRemaining === 0), disabling
+   buttons and showing the tooltip/inline message
+
+--------------------------------------------------------------------------------
+BEHAVIOUR CHANGES
+--------------------------------------------------------------------------------
+
+Before:
+  - Counter started at 5 on page load, regardless of actual DB state
+  - Refreshing the page reset the displayed counter to 5 even if DB had fewer
+
+After:
+  - Counter is not shown until the first successful CTA click
+  - After each click, the count reflects the real remaining quota in the DB
+  - Consistent across page refreshes (state is authoritative from backend)
+
+--------------------------------------------------------------------------------
+NO SCHEMA / MIGRATION CHANGES
+--------------------------------------------------------------------------------
+
+This was a purely frontend cleanup. The backend service and DB schema are
+unchanged from the anonymous quota implementation.
+
+================================================================================

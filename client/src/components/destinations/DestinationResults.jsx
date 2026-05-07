@@ -15,6 +15,7 @@ function Spinner() {
 }
 
 function ClicksCounter({ remaining }) {
+  if (remaining == null) return null
   if (remaining > 0) {
     return (
       <p className="text-xs text-slate-500 mb-4">
