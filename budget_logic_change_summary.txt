@@ -1,0 +1,111 @@
+================================================================================
+CHANGE SUMMARY — Flight-First Budget Logic
+Date: 2026-05-07
+Branch: feature/project-scaffold
+================================================================================
+
+OVERVIEW
+--------
+Changed destination eligibility from "total cost <= budget" to
+"flight cost <= budget". Hotel affordability is now computed separately and
+returned as advisory data. The UI unlocks the hotel CTA only after the user
+has opened the flight search link for that destination.
+
+--------------------------------------------------------------------------------
+FILES CHANGED
+--------------------------------------------------------------------------------
+
+server/src/services/destinations.service.js
+  - Removed: computeCost() (computed flights + hotel total)
+  - Added: flightTotal(dest, travellers) — computes flights only
+  - Changed: filterByBudget() — now filters on flight_total_cost <= limit
+    Attaches flight_total_cost to each candidate so buildCostBreakdown doesn't
+    need to recompute it.
+  - Added: buildCostBreakdown(d, travellers, budget) — returns all 6 new fields
+  - Updated: destinations.map() — spreads buildCostBreakdown result
+
+client/src/utils/normalizeDestination.js
+  - Added 6 new fields with null defaults:
+    flight_total_cost, hotel_rooms_needed, hotel_total_cost,
+    remaining_budget_after_flight, hotel_affordable_after_flight,
+    total_trip_cost_estimate
+
+client/src/components/destinations/DestinationCard.jsx
+  - Added: flightClicked state (false until flight link opens for this card)
+  - handleCtaClick: sets flightClicked = true synchronously when type === 'flight'
+    (before the async tracking call, so hotel unlocks even if tracking fails)
+  - hotelDisabled: true when limitReached OR !flightClicked OR !!pending
+  - CtaTooltip: now accepts a message prop
+    - Flight button: "Upgrade to continue booking" when limitReached
+    - Hotel button: "Search flights first to unlock hotels" when !flightClicked
+    - Hotel button: "Upgrade to continue booking" when limitReached
+  - Cost breakdown section: shows flight_total_cost and hotel_total_cost
+    (with per-person hint and room count for groups)
+  - Budget status line (after flight click):
+    - Green: "{remaining} left after flights — hotels should fit your budget"
+    - Amber: "{remaining} left after flights — hotels may exceed your remaining budget"
+  - Hero cost: now reads total_trip_cost_estimate (was estimated_total_cost)
+    Both fields are populated identically — this is a naming clarification only.
+
+README.md
+  - Updated MVP scope to describe the flight-first CTA flow and date fields
+
+--------------------------------------------------------------------------------
+NEW BUDGET LOGIC
+--------------------------------------------------------------------------------
+
+Old:
+  eligible = (flight_cost * travellers) + (ceil(travellers/2) * hotel_cost_per_night * nights)
+             <= budget
+
+New:
+  eligible = (flight_cost * travellers) <= budget
+
+Response shape per destination now includes:
+  flight_total_cost:             flight_cost_per_person * travellers
+  hotel_rooms_needed:            ceil(travellers / 2)
+  hotel_total_cost:              hotel_rooms_needed * hotel_cost_per_night * nights
+  remaining_budget_after_flight: budget - flight_total_cost
+  hotel_affordable_after_flight: hotel_total_cost <= remaining_budget_after_flight
+  total_trip_cost_estimate:      flight_total_cost + hotel_total_cost
+
+Tier fallback structure unchanged:
+  Tier 1: exact type,    flight_total_cost <= budget
+  Tier 2: exact type,    flight_total_cost <= budget * 1.10
+  Tier 3: similar types, flight_total_cost <= budget
+  Tier 4: similar types, flight_total_cost <= budget * 1.10
+
+--------------------------------------------------------------------------------
+HOW TO TEST
+--------------------------------------------------------------------------------
+
+Example payload (POST /api/destinations/generate):
+{
+  "departure_airport_id": 1,
+  "budget": 400,
+  "travellers": 2,
+  "trip_type_slug": "beach",
+  "departure_date": "2025-08-01",
+  "return_date": "2025-08-08"
+}
+
+With budget=400 and travellers=2, a destination with flight_cost_per_person=42:
+  flight_total_cost            = 42 * 2 = 84        ← fits budget, eligible
+  hotel_rooms_needed           = ceil(2/2) = 1
+  hotel_total_cost             = 1 * 65 * 7 = 455   ← does NOT fit remaining (316)
+  remaining_budget_after_flight = 400 - 84 = 316
+  hotel_affordable_after_flight = false
+  total_trip_cost_estimate      = 84 + 455 = 539
+
+UI behaviour:
+  → "Search flights →" button active
+  → "Find hotels →" button locked with tooltip "Search flights first to unlock hotels"
+  → User clicks flight → link opens, hotel button unlocks
+  → Amber message: "£316 left after flights — hotels may exceed your remaining budget"
+
+With budget=1500 (same destination):
+  remaining_budget_after_flight = 1500 - 84 = 1416
+  hotel_affordable_after_flight = true (455 <= 1416)
+  → After flight click: green message "£1416 left after flights — hotels should fit your budget"
+
+================================================================================

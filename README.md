@@ -8,10 +8,11 @@ Built as a travel affiliate platform: destination cards link to Skyscanner and B
 
 ## Current MVP scope
 
-- Generator form: budget, travellers, mood, season
-- Destination engine: selects up to 3 matching destinations from the database with tier-based budget fallback logic
-- Destination cards: city, cost breakdown, trip tags, fun fact, recommended places, CTA links
-- CTA click tracking: every flight/hotel button click is recorded via backend before redirect
+- Generator form: budget, travellers, mood, season, departure date, optional return date
+- Destination engine: selects up to 3 matching destinations using flight-first budget logic — a destination is eligible when its flight cost fits the budget; hotel affordability is shown separately
+- Destination cards: city, cost breakdown (flights + hotel), trip tags, fun fact, recommended places, CTA links
+- CTA flow: flight button always active; hotel button unlocks after the flight link is opened; remaining budget shown after flight click
+- CTA click tracking: every flight/hotel button click is recorded via backend before redirect; analytics failure never blocks the redirect
 - Routing: Home, Dashboard (placeholder), Stats (placeholder)
 
 Third-party travel API integrations (live flight prices, hotel availability) are planned for a later phase. All provider calls will route through this backend — never directly from the frontend. Identical provider requests within a short window will be cached to protect rate-limited API quotas.
@@ -100,7 +101,10 @@ psql $DATABASE_URL -f server/migrations/000_consolidated_schema.sql
 # 2. Add iata_code column to destinations
 psql $DATABASE_URL -f server/migrations/003_add_iata_code_to_destinations.sql
 
-# 3. Seed all London Stansted destinations (idempotent — safe to re-run)
+# 3. Make provider URL columns nullable (URLs are now built dynamically)
+psql $DATABASE_URL -f server/migrations/004_nullable_provider_urls.sql
+
+# 4. Seed all London Stansted destinations (idempotent — safe to re-run)
 cd server && npm run db:seed:stansted
 ```
 

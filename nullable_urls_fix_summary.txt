@@ -1,0 +1,40 @@
+================================================================================
+CHANGE SUMMARY — Nullable Provider URLs (Seed Fix)
+Date: 2026-05-07
+Branch: feature/project-scaffold
+================================================================================
+
+PROBLEM
+-------
+Seed script failed with:
+  null value in column "skyscanner_url" of relation "destinations"
+  violates not-null constraint
+
+The destinations table had NOT NULL constraints on skyscanner_url and
+booking_com_url. The seed doesn't provide static URLs because the app
+now generates them dynamically from iata_code + user input.
+
+FIX
+---
+
+server/migrations/004_nullable_provider_urls.sql  [NEW]
+  ALTER TABLE flight.destinations ALTER COLUMN skyscanner_url DROP NOT NULL;
+  ALTER TABLE flight.destinations ALTER COLUMN booking_com_url DROP NOT NULL;
+
+README.md  [UPDATED]
+  Added migration 004 to the database setup sequence (step 3, before seeding).
+
+NO OTHER CHANGES
+----------------
+- seedStanstedDestinations.js: already correct — does not insert static URLs
+- buildProviderUrls.js: already correct — falls back to static URL if present,
+  falls back to provider homepage if both iata_code and static URL are absent
+
+UPDATED MIGRATION ORDER
+-----------------------
+  1. psql $DATABASE_URL -f server/migrations/000_consolidated_schema.sql
+  2. psql $DATABASE_URL -f server/migrations/003_add_iata_code_to_destinations.sql
+  3. psql $DATABASE_URL -f server/migrations/004_nullable_provider_urls.sql
+  4. cd server && npm run db:seed:stansted
+
+================================================================================

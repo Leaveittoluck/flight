@@ -11,14 +11,13 @@ function formatGBP(amount) {
   }).format(amount)
 }
 
-function CtaTooltip() {
+function CtaTooltip({ message }) {
   return (
     <div
       role="tooltip"
       className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 bg-slate-800 text-white text-xs rounded-lg whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150"
     >
-      Upgrade to continue booking
-      {/* Arrow */}
+      {message}
       <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
     </div>
   )
@@ -38,11 +37,11 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
   const [pending, setPending] = useState(null)
   // ctaError: { type: null | 'flight' | 'hotel', message: string }
   const [ctaError, setCtaError] = useState({ type: null, message: '' })
+  // Unlocked when the user opens the flight link for this destination
+  const [flightClicked, setFlightClicked] = useState(false)
 
   const limitReached = clicksRemaining === 0
 
-  // Build the URL to open, injecting user's dates and traveller count.
-  // Falls back to the static DB URL when dynamic params are unavailable.
   function resolveUrl(type) {
     if (type === 'flight') {
       return buildSkyscannerUrl({
@@ -67,11 +66,14 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
 
   async function handleCtaClick(type) {
     if (pending || limitReached) return
+    if (type === 'hotel' && !flightClicked) return
 
-    // Open the link synchronously inside the click handler — must happen before
-    // any await so browsers don't treat it as a popup and block it. This also
-    // ensures the redirect is never blocked by a tracking failure.
+    // Open synchronously — before any await so popup blockers don't interfere
+    // and so tracking failure can never block the redirect.
     window.open(resolveUrl(type), '_blank', 'noopener,noreferrer')
+
+    // Unlock hotel button as soon as the flight link opens.
+    if (type === 'flight') setFlightClicked(true)
 
     setPending(type)
     setCtaError({ type: null, message: '' })
@@ -85,10 +87,17 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
     }
   }
 
-  // Show "Search flights" when we have an IATA code (dynamic) or a static URL (fallback).
   const canSearchFlights = !!(d.iata_code || d.skyscanner_url)
-  // Show "Find hotels" when we have a city name (dynamic) or a static URL (fallback).
-  const canFindHotels = !!(d.city || d.booking_com_url)
+  const canFindHotels    = !!(d.city || d.booking_com_url)
+
+  // Hotel button reasons for being disabled
+  const hotelDisabledByQuota  = limitReached
+  const hotelDisabledByOrder  = !flightClicked && !limitReached
+  const hotelDisabled         = !!pending || hotelDisabledByQuota || hotelDisabledByOrder
+
+  const hotelTooltipMessage = hotelDisabledByQuota
+    ? 'Upgrade to continue booking'
+    : 'Search flights first to unlock hotels'
 
   return (
     <article className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -114,10 +123,10 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
             )}
           </div>
 
-          {d.estimated_total_cost != null && (
+          {d.total_trip_cost_estimate != null && (
             <div className="shrink-0 text-right">
               <div className="text-3xl font-extrabold text-blue-600 leading-none">
-                {formatGBP(d.estimated_total_cost)}
+                {formatGBP(d.total_trip_cost_estimate)}
               </div>
               <p className="text-xs text-slate-400 mt-1 font-medium uppercase tracking-wide">
                 est. total
@@ -145,30 +154,36 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
         )}
       </div>
 
-      {/* ── SUPPORTING INFO ── */}
-      {(d.flight_cost_per_person_gbp != null ||
-        d.hotel_cost_per_night_gbp != null ||
-        d.weather_summary) && (
+      {/* ── COST BREAKDOWN ── */}
+      {(d.flight_total_cost != null || d.hotel_total_cost != null || d.weather_summary) && (
         <div className="border-t border-slate-100 bg-slate-50 px-6 py-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-600">
-          {d.flight_cost_per_person_gbp != null && (
+          {d.flight_total_cost != null && (
             <span className="flex items-center gap-1.5">
               <span className="text-base">✈</span>
               <span>
                 <span className="font-semibold text-slate-800">
-                  {formatGBP(d.flight_cost_per_person_gbp)}
+                  {formatGBP(d.flight_total_cost)}
                 </span>{' '}
-                per person
+                flights
+                {d.flight_cost_per_person_gbp != null && tripInput?.travellers > 1 && (
+                  <span className="text-slate-400">
+                    {' '}({formatGBP(d.flight_cost_per_person_gbp)}/person)
+                  </span>
+                )}
               </span>
             </span>
           )}
-          {d.hotel_cost_per_night_gbp != null && d.default_duration_nights != null && (
+          {d.hotel_total_cost != null && d.default_duration_nights != null && (
             <span className="flex items-center gap-1.5">
               <span className="text-base">🏨</span>
               <span>
                 <span className="font-semibold text-slate-800">
-                  {formatGBP(d.hotel_cost_per_night_gbp)}
+                  {formatGBP(d.hotel_total_cost)}
                 </span>{' '}
-                / night &middot; {d.default_duration_nights} nights
+                hotel &middot; {d.default_duration_nights} nights
+                {d.hotel_rooms_needed > 1 && (
+                  <span className="text-slate-400"> ({d.hotel_rooms_needed} rooms)</span>
+                )}
               </span>
             </span>
           )}
@@ -218,7 +233,6 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
         <div className="border-t border-slate-100 px-6 py-4">
           <div className="flex gap-3">
             {canSearchFlights && (
-              // Wrapper captures hover even when inner button is disabled
               <div className={`relative group ${limitReached ? 'cursor-not-allowed' : ''}`}>
                 <button
                   onClick={() => handleCtaClick('flight')}
@@ -226,25 +240,39 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
                   title={limitReached ? 'Upgrade to continue booking' : undefined}
                   className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:pointer-events-none"
                 >
-                  {pending === 'flight' ? 'Opening…' : 'Search flights →'}
+                  {pending === 'flight' ? 'Opening…' : flightClicked ? 'Search flights again →' : 'Search flights →'}
                 </button>
-                {limitReached && <CtaTooltip />}
+                {limitReached && <CtaTooltip message="Upgrade to continue booking" />}
               </div>
             )}
             {canFindHotels && (
-              <div className={`relative group ${limitReached ? 'cursor-not-allowed' : ''}`}>
+              <div className={`relative group ${hotelDisabled ? 'cursor-not-allowed' : ''}`}>
                 <button
                   onClick={() => handleCtaClick('hotel')}
-                  disabled={!!pending || limitReached}
-                  title={limitReached ? 'Upgrade to continue booking' : undefined}
+                  disabled={hotelDisabled}
+                  title={hotelDisabled ? hotelTooltipMessage : undefined}
                   className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:pointer-events-none"
                 >
                   {pending === 'hotel' ? 'Opening…' : 'Find hotels →'}
                 </button>
-                {limitReached && <CtaTooltip />}
+                {hotelDisabled && <CtaTooltip message={hotelTooltipMessage} />}
               </div>
             )}
           </div>
+
+          {/* Budget status after flight click */}
+          {flightClicked && d.remaining_budget_after_flight != null && (
+            d.hotel_affordable_after_flight ? (
+              <p className="mt-2.5 text-xs text-green-700 font-medium">
+                {formatGBP(d.remaining_budget_after_flight)} left after flights — hotels should fit your budget
+              </p>
+            ) : (
+              <p className="mt-2.5 text-xs text-amber-600 font-medium">
+                {formatGBP(d.remaining_budget_after_flight)} left after flights — hotels may exceed your remaining budget
+              </p>
+            )
+          )}
+
           {limitReached && (
             <p className="mt-2.5 text-xs text-amber-600 font-medium">
               You've reached your limit. Upgrade to continue.
