@@ -8,9 +8,19 @@ function round2(n) {
   return Math.round(n * 100) / 100;
 }
 
-// Eligibility is based on flights only — hotel affordability is advisory.
-function flightTotal(dest, travellers) {
-  return round2(parseFloat(dest.flight_cost_per_person_gbp) * travellers);
+// Pre-compute all cost components so both filtering and the response shape
+// share the same arithmetic with no duplication.
+// Prefix _ marks fields that are internal to this module only.
+function computeAllCosts(dest, travellers) {
+  const flightTotal = round2(parseFloat(dest.flight_cost_per_person_gbp) * travellers);
+  const hotelRooms  = Math.ceil(travellers / 2);
+  const hotelTotal  = round2(hotelRooms * parseFloat(dest.hotel_cost_per_night_gbp) * dest.default_duration_nights);
+  return {
+    _flightTotal: flightTotal,
+    _hotelRooms:  hotelRooms,
+    _hotelTotal:  hotelTotal,
+    _tripTotal:   round2(flightTotal + hotelTotal),
+  };
 }
 
 function shuffle(arr) {
@@ -22,39 +32,30 @@ function shuffle(arr) {
   return a;
 }
 
-// Filter candidates where flight cost alone fits within budgetLimit.
-// Attaches flight_total_cost so the final map doesn't recompute it.
+// A destination is eligible only when the full trip (flights + hotel) fits
+// within budgetLimit. Attaches pre-computed cost fields for the response step.
 function filterByBudget(candidates, travellers, budgetLimit) {
   return candidates
-    .map((d) => ({ ...d, flight_total_cost: flightTotal(d, travellers) }))
-    .filter((d) => d.flight_total_cost <= budgetLimit);
+    .map((d) => ({ ...d, ...computeAllCosts(d, travellers) }))
+    .filter((d) => d._tripTotal <= budgetLimit);
 }
 
-// Full cost breakdown attached to each destination in the response.
-function buildCostBreakdown(d, travellers, budget) {
-  const flightCostPerPerson = parseFloat(d.flight_cost_per_person_gbp);
-  const hotelCostPerNight  = parseFloat(d.hotel_cost_per_night_gbp);
-  const nights             = d.default_duration_nights;
-
-  const flightTotalCost           = d.flight_total_cost; // pre-computed in filterByBudget
-  const hotelRoomsNeeded          = Math.ceil(travellers / 2);
-  const hotelTotalCost            = round2(hotelRoomsNeeded * hotelCostPerNight * nights);
-  const remainingBudgetAfterFlight = round2(budget - flightTotalCost);
-  const hotelAffordableAfterFlight = hotelTotalCost <= remainingBudgetAfterFlight;
-  const totalTripCostEstimate      = round2(flightTotalCost + hotelTotalCost);
-
+// Builds the cost breakdown object included in every destination response.
+// Reads the _-prefixed fields attached by filterByBudget.
+function buildCostBreakdown(d, budget) {
+  const remaining = round2(budget - d._flightTotal);
   return {
-    flight_cost_per_person_gbp:   flightCostPerPerson,
-    flight_total_cost:            flightTotalCost,
-    hotel_cost_per_night_gbp:     hotelCostPerNight,
-    hotel_rooms_needed:           hotelRoomsNeeded,
-    default_duration_nights:      nights,
-    hotel_total_cost:             hotelTotalCost,
-    remaining_budget_after_flight: remainingBudgetAfterFlight,
-    hotel_affordable_after_flight: hotelAffordableAfterFlight,
-    total_trip_cost_estimate:     totalTripCostEstimate,
-    // kept for any existing consumers
-    estimated_total_cost:         totalTripCostEstimate,
+    flight_cost_per_person_gbp:    parseFloat(d.flight_cost_per_person_gbp),
+    flight_total_cost:             d._flightTotal,
+    hotel_cost_per_night_gbp:      parseFloat(d.hotel_cost_per_night_gbp),
+    hotel_rooms_needed:            d._hotelRooms,
+    default_duration_nights:       d.default_duration_nights,
+    hotel_total_cost:              d._hotelTotal,
+    remaining_budget_after_flight: remaining,
+    // Always true for tier 1/3 (strict budget); may be false for tier 2/4 (+10% flex)
+    hotel_affordable_after_flight: d._hotelTotal <= remaining,
+    total_trip_cost_estimate:      d._tripTotal,
+    estimated_total_cost:          d._tripTotal,
   };
 }
 
@@ -132,7 +133,7 @@ async function generateDestinations({ departure_airport_id, budget, travellers, 
     fun_fact: d.fun_fact,
     weather_summary: d.weather_summary,
     iata_code: d.iata_code || null,
-    ...buildCostBreakdown(d, travellers, budget),
+    ...buildCostBreakdown(d, budget),
     trip_types: tripTypesByDest[d.id] || [],
     recommended_places: placesByDest[d.id] || [],
     skyscanner_url: d.skyscanner_url,

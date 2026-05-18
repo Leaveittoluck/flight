@@ -28,7 +28,10 @@ function addDays(isoDate, n) {
  */
 export function buildSkyscannerUrl({ originIata, destIata, departureDate, returnDate, adults, fallbackUrl }) {
   if (!destIata || !departureDate) {
-    // destIata not yet populated for this destination — fall back to DB URL
+    // TODO: iata_code not yet populated for this destination (run migration 003
+    // and seed with UPDATE flight.destinations SET iata_code = '...' WHERE city = '...').
+    // Falling back to the static DB URL which does NOT include the adults param —
+    // the user will need to adjust the passenger count on Skyscanner manually.
     return fallbackUrl || 'https://www.skyscanner.net'
   }
 

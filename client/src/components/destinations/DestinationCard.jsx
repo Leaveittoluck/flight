@@ -90,6 +90,11 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
   const canSearchFlights = !!(d.iata_code || d.skyscanner_url)
   const canFindHotels    = !!(d.city || d.booking_com_url)
 
+  // Static Skyscanner URL (no iata_code) does not carry the adults parameter.
+  // Show a notice so the user knows to adjust headcount on the Skyscanner page.
+  const skyscannerPassengerCaveat =
+    !d.iata_code && (tripInput?.travellers ?? 1) > 1
+
   // Hotel button reasons for being disabled
   const hotelDisabledByQuota  = limitReached
   const hotelDisabledByOrder  = !flightClicked && !limitReached
@@ -260,15 +265,22 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
             )}
           </div>
 
-          {/* Budget status after flight click */}
+          {/* Passenger count caveat when dynamic Skyscanner URL unavailable */}
+          {skyscannerPassengerCaveat && (
+            <p className="mt-2 text-xs text-slate-500">
+              Adjust passenger count on Skyscanner before booking
+            </p>
+          )}
+
+          {/* Remaining budget shown after user opens the flight link */}
           {flightClicked && d.remaining_budget_after_flight != null && (
             d.hotel_affordable_after_flight ? (
               <p className="mt-2.5 text-xs text-green-700 font-medium">
-                {formatGBP(d.remaining_budget_after_flight)} left after flights — hotels should fit your budget
+                {formatGBP(d.remaining_budget_after_flight)} left after flights — hotels fit your budget
               </p>
             ) : (
               <p className="mt-2.5 text-xs text-amber-600 font-medium">
-                {formatGBP(d.remaining_budget_after_flight)} left after flights — hotels may exceed your remaining budget
+                {formatGBP(d.remaining_budget_after_flight)} left after flights — hotel cost may push over budget
               </p>
             )
           )}
