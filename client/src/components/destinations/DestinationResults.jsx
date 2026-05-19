@@ -7,7 +7,7 @@ function Spinner() {
     <div className="flex flex-col items-center justify-center gap-4 py-16">
       <div className="w-10 h-10 rounded-full border-4 border-slate-200 border-t-blue-500 animate-spin" />
       <div className="text-center">
-        <p className="text-sm font-medium text-slate-700">Finding your destinations…</p>
+        <p className="text-sm font-medium text-slate-700">Finding estimated trips…</p>
         <p className="text-xs text-slate-500 mt-0.5">This may take a moment</p>
       </div>
     </div>
@@ -60,16 +60,16 @@ export default function DestinationResults({
       {status === 'error' && (
         <StatusMessage
           variant="error"
-          title="We couldn't reach the server"
-          body={errorMsg || 'Check your connection and try again.'}
+          title="Something went wrong"
+          body="We couldn't load destinations right now. Check your connection and try again."
         />
       )}
 
       {status === 'empty' && (
         <StatusMessage
           variant="empty"
-          title="No destinations found for that search"
-          body="Try increasing your budget, reducing the group size, or switching to a different mood."
+          title="No destinations found"
+          body="No estimated trips matched your search. Try a higher budget, fewer travellers, or a different trip mood."
         />
       )}
 

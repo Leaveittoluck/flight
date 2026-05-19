@@ -169,7 +169,7 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
                 <span className="font-semibold text-slate-800">
                   {formatGBP(d.flight_total_cost)}
                 </span>{' '}
-                est. flights
+                Estimated flights
                 {d.flight_cost_per_person_gbp != null && tripInput?.travellers > 1 && (
                   <span className="text-slate-400">
                     {' '}({formatGBP(d.flight_cost_per_person_gbp)}/person)
@@ -185,7 +185,7 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
                 <span className="font-semibold text-slate-800">
                   {formatGBP(d.hotel_total_cost)}
                 </span>{' '}
-                est. hotel &middot; {d.default_duration_nights} nights
+                Estimated hotel &middot; {d.default_duration_nights} nights
                 {d.hotel_rooms_needed > 1 && (
                   <span className="text-slate-400"> ({d.hotel_rooms_needed} rooms)</span>
                 )}

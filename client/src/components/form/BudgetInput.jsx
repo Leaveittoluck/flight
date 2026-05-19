@@ -18,7 +18,7 @@ export default function BudgetInput({ value, onChange, error, travellers = 1 }) 
         Total budget
       </label>
       <p className="text-xs text-slate-500 mb-2">
-        Your whole group's spend — flights and hotel combined
+        Total budget for all travellers — flights and hotel combined
       </p>
       <div className="relative">
         <span className="absolute inset-y-0 left-3 flex items-center text-slate-400 text-sm pointer-events-none">
