@@ -134,7 +134,7 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
                 {formatGBP(d.total_trip_cost_estimate)}
               </div>
               <p className="text-xs text-slate-400 mt-1 font-medium uppercase tracking-wide">
-                est. total
+                estimated total
               </p>
             </div>
           )}
@@ -169,7 +169,7 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
                 <span className="font-semibold text-slate-800">
                   {formatGBP(d.flight_total_cost)}
                 </span>{' '}
-                flights
+                est. flights
                 {d.flight_cost_per_person_gbp != null && tripInput?.travellers > 1 && (
                   <span className="text-slate-400">
                     {' '}({formatGBP(d.flight_cost_per_person_gbp)}/person)
@@ -185,7 +185,7 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
                 <span className="font-semibold text-slate-800">
                   {formatGBP(d.hotel_total_cost)}
                 </span>{' '}
-                hotel &middot; {d.default_duration_nights} nights
+                est. hotel &middot; {d.default_duration_nights} nights
                 {d.hotel_rooms_needed > 1 && (
                   <span className="text-slate-400"> ({d.hotel_rooms_needed} rooms)</span>
                 )}
@@ -265,9 +265,14 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
             )}
           </div>
 
+          {/* Price estimate disclaimer — always visible */}
+          <p className="mt-3 text-xs text-slate-400">
+            Prices are estimates. Final live prices may vary on partner sites.
+          </p>
+
           {/* Passenger count caveat when dynamic Skyscanner URL unavailable */}
           {skyscannerPassengerCaveat && (
-            <p className="mt-2 text-xs text-slate-500">
+            <p className="mt-1.5 text-xs text-slate-500">
               Adjust passenger count on Skyscanner before booking
             </p>
           )}

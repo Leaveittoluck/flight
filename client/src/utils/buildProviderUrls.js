@@ -1,5 +1,5 @@
 // Converts a YYYY-MM-DD string to Skyscanner's 6-digit YYMMDD path segment.
-// e.g. '2025-06-15' → '250615'
+// e.g. '2025-09-10' → '250910'
 function toSkyscannerDate(isoDate) {
   return isoDate.replace(/-/g, '').slice(2)
 }
@@ -15,11 +15,12 @@ function addDays(isoDate, n) {
  * Build a Skyscanner flight-search deep link.
  *
  * URL shape:
- *   /transport/flights/{from}/{to}/{dep_yymmdd}/[{ret_yymmdd}/]?adults=N&cabinclass=economy
+ *   /transport/flights/{origin}/{destination}/{dep_YYMMDD}/[{ret_YYMMDD}/]
+ *     ?adultsv2=N&cabinclass=economy&currency=GBP&locale=en-GB&market=UK
  *
  * @param {object}      opts
  * @param {string}      opts.originIata    - departure airport IATA (e.g. 'STN')
- * @param {string|null} opts.destIata      - destination airport IATA (e.g. 'BCN'); populate via migration 003
+ * @param {string|null} opts.destIata      - destination airport IATA (e.g. 'BCN')
  * @param {string}      opts.departureDate - YYYY-MM-DD
  * @param {string|null} opts.returnDate    - YYYY-MM-DD or null for one-way
  * @param {number}      opts.adults        - traveller count
@@ -28,17 +29,21 @@ function addDays(isoDate, n) {
  */
 export function buildSkyscannerUrl({ originIata, destIata, departureDate, returnDate, adults, fallbackUrl }) {
   if (!destIata || !departureDate) {
-    // TODO: iata_code not yet populated for this destination (run migration 003
-    // and seed with UPDATE flight.destinations SET iata_code = '...' WHERE city = '...').
-    // Falling back to the static DB URL which does NOT include the adults param —
-    // the user will need to adjust the passenger count on Skyscanner manually.
+    console.warn('[buildSkyscannerUrl] falling back to static URL', { hasIata: !!destIata, hasDeparture: !!departureDate })
     return fallbackUrl || 'https://www.skyscanner.net'
   }
 
   const dep = toSkyscannerDate(departureDate)
-  const basePath = `https://www.skyscanner.net/transport/flights/${originIata}/${destIata}/${dep}/`
-  const path = returnDate ? `${basePath}${toSkyscannerDate(returnDate)}/` : basePath
-  const params = new URLSearchParams({ adults: String(adults), cabinclass: 'economy' })
+  const path = returnDate
+    ? `https://www.skyscanner.net/transport/flights/${originIata}/${destIata}/${dep}/${toSkyscannerDate(returnDate)}/`
+    : `https://www.skyscanner.net/transport/flights/${originIata}/${destIata}/${dep}/`
+  const params = new URLSearchParams({
+    adultsv2: String(adults),
+    cabinclass: 'economy',
+    currency: 'GBP',
+    locale: 'en-GB',
+    market: 'UK',
+  })
   return `${path}?${params}`
 }
 
