@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { trackClick } from '../../services/clicksApi'
 import { buildSkyscannerUrl, buildBookingUrl } from '../../utils/buildProviderUrls'
+import DestinationWeather from './DestinationWeather'
+import { weatherEnrichment } from '../../data/weatherEnrichment'
 
 function formatGBP(amount) {
   if (amount == null) return null
@@ -33,6 +35,8 @@ function resolveCtaError(err) {
 }
 
 export default function DestinationCard({ destination: d, clicksRemaining, onClickUsed, tripInput }) {
+  const weather = weatherEnrichment[d.iata_code] ?? null
+
   // pending: null | 'flight' | 'hotel'
   const [pending, setPending] = useState(null)
   // ctaError: { type: null | 'flight' | 'hotel', message: string }
@@ -160,7 +164,7 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
       </div>
 
       {/* ── COST BREAKDOWN ── */}
-      {(d.flight_total_cost != null || d.hotel_total_cost != null || d.weather_summary) && (
+      {(d.flight_total_cost != null || d.hotel_total_cost != null) && (
         <div className="border-t border-slate-100 bg-slate-50 px-6 py-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-600">
           {d.flight_total_cost != null && (
             <span className="flex items-center gap-1.5">
@@ -192,14 +196,11 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
               </span>
             </span>
           )}
-          {d.weather_summary && (
-            <span className="flex items-center gap-1.5">
-              <span className="text-base">🌤</span>
-              <span>{d.weather_summary}</span>
-            </span>
-          )}
         </div>
       )}
+
+      {/* ── WEATHER ── */}
+      <DestinationWeather weather={weather} fallbackSummary={d.weather_summary} />
 
       {/* ── FUN FACT ── */}
       {d.fun_fact && (

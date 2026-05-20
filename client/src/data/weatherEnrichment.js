@@ -1,0 +1,351 @@
+/**
+ * Static weather enrichment keyed by IATA code.
+ * Covers all seeded STN destinations — no live API required.
+ *
+ * Shape:
+ *   bestSeason      — best month/season to visit
+ *   temperatureRange — typical high/low for best season
+ *   summary         — one sentence climate overview
+ *   vibe            — evocative travel-atmosphere sentence
+ *   icon            — "sun" | "cloud-sun" | "cloud-rain" | "snowflake" | "wind"
+ */
+export const weatherEnrichment = {
+  // ── Beach & Sun ──────────────────────────────────────────────────────────
+  ALC: {
+    bestSeason: 'Summer',
+    temperatureRange: '25–32°C',
+    summary: 'Fierce summer sun and warm evenings perfect for sea-salted nights.',
+    vibe: 'Long beach days, cold cervezas, and fiery Costa sunsets that never disappoint.',
+    icon: 'sun',
+  },
+  AGP: {
+    bestSeason: 'Spring',
+    temperatureRange: '20–28°C',
+    summary: 'Warm coastal air, golden light, and a city that wakes up in the afternoon.',
+    vibe: 'Stroll the beachfront promenade, then eat your way through the historic centre as the evening cools.',
+    icon: 'sun',
+  },
+  PMI: {
+    bestSeason: 'Spring',
+    temperatureRange: '18–24°C',
+    summary: 'Warm, breezy, and comfortable for coastal exploring.',
+    vibe: 'Perfect for relaxed walks, outdoor cafés, and golden-hour views over the harbour.',
+    icon: 'cloud-sun',
+  },
+  IBZ: {
+    bestSeason: 'Summer',
+    temperatureRange: '27–33°C',
+    summary: 'Hot Mediterranean days that ease into warm, electric nights.',
+    vibe: 'Salt air, sunset terraces, and evenings that start at 10pm and go until dawn.',
+    icon: 'sun',
+  },
+  FAO: {
+    bestSeason: 'Summer',
+    temperatureRange: '23–29°C',
+    summary: 'Warm Atlantic sunshine with a refreshing breeze off the cliffs.',
+    vibe: 'Dramatic cliff walks by day, grilled fish and wine as the Atlantic turns amber at dusk.',
+    icon: 'sun',
+  },
+  ACE: {
+    bestSeason: 'Winter',
+    temperatureRange: '18–23°C',
+    summary: 'Warm and mild year-round — Europe\'s finest winter sun escape.',
+    vibe: 'Volcanic landscapes baked in year-round warmth, where even December feels like a gentle spring.',
+    icon: 'sun',
+  },
+  FUE: {
+    bestSeason: 'Spring',
+    temperatureRange: '20–27°C',
+    summary: 'Consistently warm and brilliantly windy — a kitesurfer\'s dream.',
+    vibe: 'Wide open beaches, turquoise dunes, and the trade winds that never really stop.',
+    icon: 'wind',
+  },
+  LPA: {
+    bestSeason: 'Spring',
+    temperatureRange: '21–25°C',
+    summary: 'Eternal spring with gentle warmth that suits every type of traveller.',
+    vibe: 'Year-round sunshine, from black-sand beaches to pine-covered highlands — no bad season here.',
+    icon: 'sun',
+  },
+  TFS: {
+    bestSeason: 'Spring',
+    temperatureRange: '22–28°C',
+    summary: 'Warm and sunny on the south coast, cooler and greener in the north.',
+    vibe: 'Wake up to a volcano on the horizon and fall asleep to the sound of the Atlantic.',
+    icon: 'sun',
+  },
+  CFU: {
+    bestSeason: 'Summer',
+    temperatureRange: '26–31°C',
+    summary: 'Hot Ionian summers with a gentle breeze from the northwest.',
+    vibe: 'Olive groves, sea caves, and the kind of slow-pace afternoon that makes you forget deadlines exist.',
+    icon: 'sun',
+  },
+  RHO: {
+    bestSeason: 'Summer',
+    temperatureRange: '27–33°C',
+    summary: 'One of the sunniest corners of Europe — reliably brilliant from spring to autumn.',
+    vibe: 'Medieval lanes at golden hour, then a cool swim before a rooftop dinner above the harbour.',
+    icon: 'sun',
+  },
+  ZTH: {
+    bestSeason: 'Summer',
+    temperatureRange: '26–32°C',
+    summary: 'Long Ionian summers with electric blue water and barely a cloud in sight.',
+    vibe: 'Boat trips to sea caves, evenings on a clifftop, and starry nights that feel made for this island.',
+    icon: 'sun',
+  },
+
+  // ── City Breaks ──────────────────────────────────────────────────────────
+  VLC: {
+    bestSeason: 'Spring',
+    temperatureRange: '20–26°C',
+    summary: 'Warm, sunny, and comfortable — one of Spain\'s most consistently pleasant climates.',
+    vibe: 'Paella on a terrace, a swim before sunset, and an evening stroll that goes as long as you want.',
+    icon: 'cloud-sun',
+  },
+  SVQ: {
+    bestSeason: 'Spring',
+    temperatureRange: '22–28°C',
+    summary: 'Spring warmth and orange blossom — Seville at its absolute best.',
+    vibe: 'Flamenco rhythms drifting through warm evenings and tapas that taste better outdoors.',
+    icon: 'sun',
+  },
+  DUB: {
+    bestSeason: 'Summer',
+    temperatureRange: '15–19°C',
+    summary: 'Mild and green, with showers that make the pub feel like exactly the right call.',
+    vibe: 'Brisk morning walks along the coast, pints in a creaking pub, and the craic that doesn\'t need sunshine.',
+    icon: 'cloud-rain',
+  },
+  AMS: {
+    bestSeason: 'Spring',
+    temperatureRange: '14–20°C',
+    summary: 'Bright spring days with tulip fields in bloom and the canals at their most photogenic.',
+    vibe: 'Cycle along the waterways, duck into a brown café, and stay until the light turns gold over the Jordaan.',
+    icon: 'cloud-sun',
+  },
+  BVA: {
+    bestSeason: 'Spring',
+    temperatureRange: '15–20°C',
+    summary: 'Crisp spring mornings that warm into perfect café weather by afternoon.',
+    vibe: 'Paris in spring is a cliché because it\'s earned — blossom on the boulevards and evenings worth lingering over.',
+    icon: 'cloud-sun',
+  },
+  CRL: {
+    bestSeason: 'Spring',
+    temperatureRange: '12–18°C',
+    summary: 'Mild spring days that suit long market walks and museum afternoons.',
+    vibe: 'Grey skies only make the golden interiors — beer halls, Art Nouveau cafés, and heated squares — feel warmer.',
+    icon: 'cloud-rain',
+  },
+  BCN: {
+    bestSeason: 'Spring',
+    temperatureRange: '18–24°C',
+    summary: 'Warm Mediterranean spring with long evenings and zero regrets.',
+    vibe: 'Architecture in the morning, beach in the afternoon, and a dinner reservation that starts at 10pm.',
+    icon: 'cloud-sun',
+  },
+  MAD: {
+    bestSeason: 'Spring',
+    temperatureRange: '16–22°C',
+    summary: 'Warm, dry spring days ideal for exploring the city on foot.',
+    vibe: 'Museum mornings, long lunch al fresco, and a nightlife that forgets Madrid has working days.',
+    icon: 'cloud-sun',
+  },
+  LIS: {
+    bestSeason: 'Spring',
+    temperatureRange: '17–22°C',
+    summary: 'Europe\'s sunniest capital, warm almost year-round.',
+    vibe: 'Tram rides up sun-warmed hills, fado drifting through tiled streets, and a pastel de nata to make sense of it all.',
+    icon: 'cloud-sun',
+  },
+  OPO: {
+    bestSeason: 'Spring',
+    temperatureRange: '14–20°C',
+    summary: 'Atlantic warmth with a gentle breeze — beautiful spring light on azulejo tiles.',
+    vibe: 'Port wine at sunset on the Douro, mist rolling off the river, and mornings that smell of fresh bread.',
+    icon: 'cloud-sun',
+  },
+  CIA: {
+    bestSeason: 'Spring',
+    temperatureRange: '16–22°C',
+    summary: 'Spring in Rome is warm, manageable, and exactly right.',
+    vibe: 'Wander ancient streets before the summer crowds, eat outside every night, and let the fountains cool the afternoon.',
+    icon: 'cloud-sun',
+  },
+  BGY: {
+    bestSeason: 'Spring',
+    temperatureRange: '15–21°C',
+    summary: 'Pleasant spring warmth before the summer heat sets in.',
+    vibe: 'Aperitivo hour on a sunny piazza, Last Supper in the cool morning light, and dinner as the city finally slows.',
+    icon: 'cloud-sun',
+  },
+  NAP: {
+    bestSeason: 'Spring',
+    temperatureRange: '17–23°C',
+    summary: 'Warm Mediterranean spring with Vesuvius as an ever-present backdrop.',
+    vibe: 'Pizza at a marble counter, ruins in the soft morning light, and evenings that taste of limoncello.',
+    icon: 'cloud-sun',
+  },
+  TSF: {
+    bestSeason: 'Autumn',
+    temperatureRange: '13–18°C',
+    summary: 'Crisp autumn air brings Venice\'s famous light at its most photographic.',
+    vibe: 'Mist on the lagoon, empty calli at dawn, and the city\'s quiet magic when the summer crowds have gone.',
+    icon: 'cloud-sun',
+  },
+  PSA: {
+    bestSeason: 'Spring',
+    temperatureRange: '16–22°C',
+    summary: 'Warm Tuscan spring with long golden afternoons.',
+    vibe: 'Lean into Tuscany\'s easy rhythm — an espresso, a slow train to Florence, and sunshine that flatters everything.',
+    icon: 'cloud-sun',
+  },
+  BLQ: {
+    bestSeason: 'Spring',
+    temperatureRange: '16–22°C',
+    summary: 'Warm spring days perfect for eating under the porticos.',
+    vibe: 'Bologna rewards the unhurried — a covered city built for strolling, eating, and staying out late.',
+    icon: 'cloud-sun',
+  },
+  PRG: {
+    bestSeason: 'Spring',
+    temperatureRange: '12–18°C',
+    summary: 'Cool, clear spring days with the old town at its most magical.',
+    vibe: 'Charles Bridge before the crowds, a svíčková for lunch, and an afternoon beer garden as the city warms.',
+    icon: 'cloud-sun',
+  },
+  BUD: {
+    bestSeason: 'Spring',
+    temperatureRange: '14–20°C',
+    summary: 'Warm spring days and long evenings beside the Danube.',
+    vibe: 'Thermal pools steaming in the morning, ruin bars humming at midnight, and a parliament that glows gold on the river.',
+    icon: 'cloud-sun',
+  },
+  KRK: {
+    bestSeason: 'Spring',
+    temperatureRange: '12–18°C',
+    summary: 'Mild spring weather ideal for exploring the historic squares on foot.',
+    vibe: 'Medieval streets, great coffee, and evenings in the Kazimierz district that always go longer than planned.',
+    icon: 'cloud-sun',
+  },
+  WMI: {
+    bestSeason: 'Summer',
+    temperatureRange: '20–26°C',
+    summary: 'Warm Polish summers with long daylight and lively outdoor dining.',
+    vibe: 'Parks, riverside terraces, and a rebuilt city that buzzes with surprising energy.',
+    icon: 'cloud-sun',
+  },
+  WRO: {
+    bestSeason: 'Summer',
+    temperatureRange: '20–25°C',
+    summary: 'Warm central European summer, ideal for exploring on foot.',
+    vibe: 'Canal-side coffee in the morning, a gnome hunt through the old town, and long evenings on the market square.',
+    icon: 'cloud-sun',
+  },
+  BER: {
+    bestSeason: 'Summer',
+    temperatureRange: '22–27°C',
+    summary: 'Brilliant Berlin summers — open-air culture and long golden light.',
+    vibe: 'Museums in the afternoon, a cold beer in a Biergarten, and then a night that refuses to end.',
+    icon: 'cloud-sun',
+  },
+  ATH: {
+    bestSeason: 'Spring',
+    temperatureRange: '20–26°C',
+    summary: 'Warm spring light illuminates the Acropolis at its golden best.',
+    vibe: 'Ancient stones in the morning cool, souvlaki by the market, and rooftop cocktails with a Parthenon view.',
+    icon: 'sun',
+  },
+  SKG: {
+    bestSeason: 'Autumn',
+    temperatureRange: '18–24°C',
+    summary: 'Warm golden autumn with the waterfront at its most relaxed.',
+    vibe: 'Seafood lunch on the promenade, Byzantine churches in the afternoon, and ouzo as the harbour lights come on.',
+    icon: 'cloud-sun',
+  },
+  TLL: {
+    bestSeason: 'Summer',
+    temperatureRange: '18–23°C',
+    summary: 'Short but glorious Baltic summer with almost endless daylight.',
+    vibe: 'Cobblestones warmed by long evening light and a rooftop beer over the medieval skyline.',
+    icon: 'cloud-sun',
+  },
+  RIX: {
+    bestSeason: 'Summer',
+    temperatureRange: '18–24°C',
+    summary: 'Warm Baltic summer with evening light that barely dims.',
+    vibe: 'Art Nouveau facades in long golden light, a cold Latvian beer on the old town terrace, and summer nights that feel earned.',
+    icon: 'cloud-sun',
+  },
+  VNO: {
+    bestSeason: 'Spring',
+    temperatureRange: '13–19°C',
+    summary: 'Gentle spring warmth brings the Baroque old town alive.',
+    vibe: 'Cobbled courtyards thick with blossom, the smell of coffee through an open doorway, and a city that feels like a secret.',
+    icon: 'cloud-sun',
+  },
+
+  // ── Cultural ─────────────────────────────────────────────────────────────
+  MLA: {
+    bestSeason: 'Spring',
+    temperatureRange: '20–26°C',
+    summary: 'Warm Mediterranean spring — the best season before summer heat builds.',
+    vibe: 'Ancient temples in morning light, a swim off a limestone ledge, and evenings on a Valletta rooftop.',
+    icon: 'sun',
+  },
+  DBV: {
+    bestSeason: 'Spring',
+    temperatureRange: '18–24°C',
+    summary: 'Spring sunshine and a sparkling Adriatic before the summer crowds.',
+    vibe: 'Walk the city walls at dawn when the old town belongs only to you and the sea.',
+    icon: 'cloud-sun',
+  },
+  SPU: {
+    bestSeason: 'Spring',
+    temperatureRange: '18–24°C',
+    summary: 'Warm Dalmatian spring — perfect for the palace, the islands, and the coast.',
+    vibe: 'Roman ruins warmed by afternoon sun, a boat to Hvar, and cold white wine as the harbour fills with boats.',
+    icon: 'cloud-sun',
+  },
+  RAK: {
+    bestSeason: 'Spring',
+    temperatureRange: '22–28°C',
+    summary: 'Warm and dry spring — the souk heat is manageable and the rose valleys are in bloom.',
+    vibe: 'Spice markets at dusk, mint tea on a riad rooftop, and a city that shifts register completely after sundown.',
+    icon: 'sun',
+  },
+
+  // ── Skiing ────────────────────────────────────────────────────────────────
+  SZG: {
+    bestSeason: 'Winter',
+    temperatureRange: '−2–4°C',
+    summary: 'Cold, crisp, and snowy — Alpine winter at its most cinematic.',
+    vibe: 'Ski runs in the morning, hot chocolate in the afternoon, and a Baroque skyline lit by snow.',
+    icon: 'snowflake',
+  },
+  GVA: {
+    bestSeason: 'Winter',
+    temperatureRange: '0–5°C',
+    summary: 'Cold and crystal-clear — the Alps visible from the lake on a good day.',
+    vibe: 'Ski Chamonix in the morning, fondue by the lake at night, and a city that\'s effortlessly elegant in the cold.',
+    icon: 'snowflake',
+  },
+
+  // ── Adventure ────────────────────────────────────────────────────────────
+  EDI: {
+    bestSeason: 'Summer',
+    temperatureRange: '15–19°C',
+    summary: 'Mild Scottish summer — genuinely lovely when the sun decides to cooperate.',
+    vibe: 'Hike Arthur\'s Seat at dawn, explore the Royal Mile, and find a pub that doesn\'t need an excuse to be excellent.',
+    icon: 'cloud-rain',
+  },
+  TLV: {
+    bestSeason: 'Spring',
+    temperatureRange: '22–27°C',
+    summary: 'Warm Mediterranean spring before the summer heat arrives.',
+    vibe: 'Beach breakfast, Bauhaus architecture in the afternoon light, and hummus at 2am you\'ll still think about next week.',
+    icon: 'sun',
+  },
+}
