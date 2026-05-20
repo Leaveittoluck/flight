@@ -7,7 +7,7 @@ function Spinner() {
     <div className="flex flex-col items-center justify-center gap-4 py-16">
       <div className="w-10 h-10 rounded-full border-4 border-slate-200 border-t-blue-500 animate-spin" />
       <div className="text-center">
-        <p className="text-sm font-medium text-slate-700">Finding estimated trips…</p>
+        <p className="text-sm font-medium text-slate-700">Finding your destination…</p>
         <p className="text-xs text-slate-500 mt-0.5">This may take a moment</p>
       </div>
     </div>
@@ -43,11 +43,8 @@ export default function DestinationResults({
   return (
     <section>
       {status === 'success' && (
-        <div className="flex items-baseline gap-2 mb-2">
-          <SectionHeading>Your destinations</SectionHeading>
-          <span className="text-sm text-slate-400 -mt-4">
-            {destinations.length} match{destinations.length === 1 ? '' : 'es'}
-          </span>
+        <div className="mb-2">
+          <SectionHeading>Your destination</SectionHeading>
         </div>
       )}
 
@@ -68,8 +65,8 @@ export default function DestinationResults({
       {status === 'empty' && (
         <StatusMessage
           variant="empty"
-          title="No destinations found"
-          body="No estimated trips matched your search. Try a higher budget, fewer travellers, or a different trip mood."
+          title="No destination found"
+          body="No estimated trip matched your search. Try a higher budget, fewer travellers, or a different trip mood."
         />
       )}
 

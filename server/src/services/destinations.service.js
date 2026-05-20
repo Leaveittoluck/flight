@@ -1,6 +1,6 @@
 const repo = require("../repositories/destinations.repository");
 
-const MAX_RESULTS = 3;
+const MAX_RESULTS = 1;
 const SIMILARITY_MIN_SCORE = 6;
 const BUDGET_FLEX = 1.1;
 

@@ -99,7 +99,7 @@ export default function GeneratorForm({ onSubmit, isLoading }) {
           {/* Submit row */}
           <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center gap-4">
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Searching…' : 'Find my destination'}
+              {isLoading ? 'Searching…' : 'Reveal my destination'}
             </Button>
             {isLoading && (
               <span className="text-sm text-slate-500">Hang tight, this takes a moment</span>
