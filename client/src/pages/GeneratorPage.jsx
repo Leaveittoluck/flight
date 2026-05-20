@@ -28,6 +28,7 @@ export default function GeneratorPage() {
       departureDate: formValues.departure_date,
       returnDate: formValues.return_date || null,
       originIata: DEPARTURE_AIRPORT_IATA,
+      season: formValues.season || '',
     })
 
     try {

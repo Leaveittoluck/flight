@@ -3,8 +3,10 @@ import { trackClick } from '../../services/clicksApi'
 import { buildSkyscannerUrl, buildBookingUrl } from '../../utils/buildProviderUrls'
 import DestinationWeather from './DestinationWeather'
 import DestinationVibes from './DestinationVibes'
+import SeasonalCardAccent from './SeasonalCardAccent'
 import { weatherEnrichment } from '../../data/weatherEnrichment'
 import { destinationVibes } from '../../data/destinationVibes'
+import { useSeasonTheme } from '../../hooks/useSeasonTheme'
 
 function formatGBP(amount) {
   if (amount == null) return null
@@ -39,6 +41,12 @@ function resolveCtaError(err) {
 export default function DestinationCard({ destination: d, clicksRemaining, onClickUsed, tripInput }) {
   const weather = weatherEnrichment[d.iata_code] ?? null
   const vibes = destinationVibes[d.iata_code] ?? null
+  const theme = useSeasonTheme(d, tripInput)
+  const resolvedSeason = (
+    tripInput?.season?.toLowerCase?.() ||
+    weather?.bestSeason?.toLowerCase?.() ||
+    'spring'
+  )
 
   // pending: null | 'flight' | 'hotel'
   const [pending, setPending] = useState(null)
@@ -112,9 +120,23 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
     : 'Search flights first to unlock hotels'
 
   return (
-    <article className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <article className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition-shadow duration-300 hover:shadow-md">
+      {/* ── SEASONAL ACCENT BAR ── */}
+      <div
+        aria-hidden="true"
+        className="h-0.5 w-full"
+        style={{ background: theme.accentGradient }}
+      />
+
       {/* ── HERO: city, cost, hook ── */}
-      <div className="p-6 pb-5">
+      <div className="p-6 pb-5 relative overflow-hidden">
+        {/* Seasonal gradient wash — purely atmospheric */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: theme.heroGradient }}
+        />
+        <SeasonalCardAccent season={resolvedSeason} color={theme.color} />
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="flex-1 min-w-0">
             {(d.city || d.country) && (
