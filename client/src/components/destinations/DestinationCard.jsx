@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { trackClick } from '../../services/clicksApi'
 import { buildSkyscannerUrl, buildBookingUrl } from '../../utils/buildProviderUrls'
 import DestinationWeather from './DestinationWeather'
+import DestinationVibes from './DestinationVibes'
 import { weatherEnrichment } from '../../data/weatherEnrichment'
+import { destinationVibes } from '../../data/destinationVibes'
 
 function formatGBP(amount) {
   if (amount == null) return null
@@ -36,6 +38,7 @@ function resolveCtaError(err) {
 
 export default function DestinationCard({ destination: d, clicksRemaining, onClickUsed, tripInput }) {
   const weather = weatherEnrichment[d.iata_code] ?? null
+  const vibes = destinationVibes[d.iata_code] ?? null
 
   // pending: null | 'flight' | 'hotel'
   const [pending, setPending] = useState(null)
@@ -201,6 +204,9 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
 
       {/* ── WEATHER ── */}
       <DestinationWeather weather={weather} fallbackSummary={d.weather_summary} />
+
+      {/* ── VIBES ── */}
+      <DestinationVibes vibes={vibes} />
 
       {/* ── FUN FACT ── */}
       {d.fun_fact && (
