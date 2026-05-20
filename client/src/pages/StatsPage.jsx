@@ -7,6 +7,8 @@ import MoodBar from '../components/stats/MoodBar'
 import TrendingDestinationCard from '../components/stats/TrendingDestinationCard'
 import FeedItem from '../components/stats/FeedItem'
 import WorldExploration from '../components/stats/WorldExploration'
+import DiscoveryActivityChart from '../components/stats/DiscoveryActivityChart'
+import MoodDistributionChart from '../components/stats/MoodDistributionChart'
 
 export default function StatsPage() {
   const [range, setRange] = useState('month')
@@ -35,6 +37,12 @@ export default function StatsPage() {
           {data.hero.map((s) => (
             <HeroStatCard key={s.label} {...s} />
           ))}
+        </div>
+
+        {/* Charts */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <DiscoveryActivityChart data={data.activity} />
+          <MoodDistributionChart moods={data.moods} />
         </div>
 
         {/* Popular moods + Trending */}
