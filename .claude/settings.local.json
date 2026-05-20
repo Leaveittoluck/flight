@@ -4,7 +4,11 @@
       "Bash(npm install *)",
       "Bash(Get-ChildItem -Path \"c:\\\\LeaveItToLuck\\\\flight\" -Recurse -Directory)",
       "Bash(Select-Object -ExpandProperty FullName)",
-      "Bash(Sort-Object)"
+      "Bash(Sort-Object)",
+      "Bash(Get-ChildItem -Path \"C:\\\\LeaveItToLuck\\\\flight\\\\client\\\\src\" -Recurse -Directory)",
+      "Bash(Select-Object FullName)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\LeaveItToLuck\\\\flight\\\\client\\\\src\" -Recurse | Where-Object { $_.PSIsContainer } | ForEach-Object { $_.FullName })",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\LeaveItToLuck\\\\flight\\\\client\\\\src\" -Recurse -File | Select-Object FullName | ForEach-Object { $_.FullName.Replace\\('C:\\\\LeaveItToLuck\\\\flight\\\\client\\\\src\\\\', ''\\) } | Sort-Object)"
     ]
   }
 }

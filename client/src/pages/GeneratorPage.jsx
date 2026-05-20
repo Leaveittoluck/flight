@@ -3,6 +3,9 @@ import GeneratorForm from '../components/form/GeneratorForm'
 import DestinationResults from '../components/destinations/DestinationResults'
 import { generateDestinations } from '../services/destinationsApi'
 import { normalizeDestination } from '../utils/normalizeDestination'
+import { useActiveSeason } from '../context/SeasonContext'
+import { SEASON_THEMES } from '../data/seasonThemes'
+import { resolvePageSeason } from '../utils/resolvePageSeason'
 
 // Hardcoded to London Stansted (airport id 1) until a departure selector is added.
 const DEPARTURE_AIRPORT_ID = 1
@@ -14,6 +17,10 @@ export default function GeneratorPage() {
   const [errorMsg, setErrorMsg] = useState('')
   const [clicksRemaining, setClicksRemaining] = useState(null) // null until first click response
   const [tripInput, setTripInput] = useState(null) // { travellers, departureDate, returnDate, originIata }
+
+  const { season, setSeason } = useActiveSeason()
+  const pageSeasonKey = resolvePageSeason(tripInput?.season || season)
+  const pageTheme = SEASON_THEMES[pageSeasonKey]
 
   function handleClickUsed(remaining) {
     setClicksRemaining(remaining)
@@ -60,8 +67,14 @@ export default function GeneratorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200">
+    <div
+      className="min-h-screen"
+      style={{ background: `${pageTheme.pageGradient}, #f8fafc` }}
+    >
+      <header
+        className="border-b border-slate-200"
+        style={{ background: `${pageTheme.pageGradient}, white` }}
+      >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-5">
           <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">
             Leave It To Luck
@@ -73,7 +86,13 @@ export default function GeneratorPage() {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-10">
-        <GeneratorForm onSubmit={handleSubmit} isLoading={status === 'loading'} />
+        <GeneratorForm
+          onSubmit={handleSubmit}
+          isLoading={status === 'loading'}
+          onSeasonPreview={setSeason}
+          activeSeason={season}
+          pageTheme={pageTheme}
+        />
         <DestinationResults
           status={status}
           destinations={destinations}

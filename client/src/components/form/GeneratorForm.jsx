@@ -16,7 +16,7 @@ const DEFAULT_FORM = {
   return_date: '',
 }
 
-export default function GeneratorForm({ onSubmit, isLoading }) {
+export default function GeneratorForm({ onSubmit, isLoading, onSeasonPreview, activeSeason, pageTheme }) {
   const [form, setForm] = useState(DEFAULT_FORM)
   const [errors, setErrors] = useState({})
 
@@ -24,6 +24,7 @@ export default function GeneratorForm({ onSubmit, isLoading }) {
     return (value) => {
       setForm((prev) => ({ ...prev, [field]: value }))
       if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }))
+      if (field === 'season') onSeasonPreview?.(value)
     }
   }
 
@@ -96,8 +97,15 @@ export default function GeneratorForm({ onSubmit, isLoading }) {
             />
           </div>
 
-          {/* Submit row */}
-          <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center gap-4">
+          {/* Submit row — subtle seasonal tint when a season is active */}
+          <div
+            className="px-6 py-4 border-t border-slate-100 flex items-center gap-4"
+            style={{
+              background: activeSeason && pageTheme
+                ? `${pageTheme.pageGradient}, #f8fafc`
+                : '#f8fafc',
+            }}
+          >
             <Button type="submit" disabled={isLoading}>
               {isLoading ? 'Searching…' : 'Reveal my destination'}
             </Button>
