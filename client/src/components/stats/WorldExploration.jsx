@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import {
   REGIONS,
   HOT_DESTINATIONS,
@@ -114,9 +115,17 @@ export default function WorldExploration({ countriesCount }) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center gap-2 mt-7">
-          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-          <p className="text-xs text-slate-600">Interactive world map · Phase 3</p>
+        <div className="flex items-center justify-between mt-7">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+            <p className="text-xs text-slate-600">Live data in Phase 3</p>
+          </div>
+          <Link
+            to="/stats/world-map"
+            className="text-xs font-semibold text-blue-400 hover:text-blue-300 transition-colors duration-150"
+          >
+            Explore full world map →
+          </Link>
         </div>
 
       </div>

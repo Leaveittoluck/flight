@@ -1,0 +1,35 @@
+export const MOOD_COLORS = {
+  'City Break': '#3b82f6',
+  'Adventure':  '#f59e0b',
+  'Relax':      '#14b8a6',
+  'Culture':    '#8b5cf6',
+}
+
+// TODO Phase 3: replace with real lat/lng from generations table
+export const WORLD_MAP_DESTINATIONS = [
+  { city: 'Tallinn',      country: 'Estonia',         lat: 59.437, lng: 24.754,  generatedCount: 142, rank: 1,  topMood: 'City Break' },
+  { city: 'Lisbon',       country: 'Portugal',         lat: 38.717, lng: -9.139,  generatedCount: 138, rank: 2,  topMood: 'City Break' },
+  { city: 'Krakow',       country: 'Poland',           lat: 50.062, lng: 19.945,  generatedCount: 121, rank: 3,  topMood: 'Adventure'  },
+  { city: 'Porto',        country: 'Portugal',         lat: 41.158, lng: -8.629,  generatedCount: 118, rank: 4,  topMood: 'Relax'      },
+  { city: 'Budapest',     country: 'Hungary',          lat: 47.498, lng: 19.040,  generatedCount: 109, rank: 5,  topMood: 'Culture'    },
+  { city: 'Reykjavik',    country: 'Iceland',          lat: 64.135, lng: -21.895, generatedCount: 98,  rank: 6,  topMood: 'Adventure'  },
+  { city: 'Valencia',     country: 'Spain',            lat: 39.470, lng: -0.376,  generatedCount: 94,  rank: 7,  topMood: 'Relax'      },
+  { city: 'Prague',       country: 'Czech Republic',   lat: 50.075, lng: 14.438,  generatedCount: 91,  rank: 8,  topMood: 'Culture'    },
+  { city: 'Vienna',       country: 'Austria',          lat: 48.208, lng: 16.373,  generatedCount: 88,  rank: 9,  topMood: 'Culture'    },
+  { city: 'Riga',         country: 'Latvia',           lat: 56.946, lng: 24.106,  generatedCount: 82,  rank: 10, topMood: 'City Break' },
+  { city: 'Copenhagen',   country: 'Denmark',          lat: 55.676, lng: 12.568,  generatedCount: 79,  rank: 11, topMood: 'City Break' },
+  { city: 'Edinburgh',    country: 'Scotland',         lat: 55.953, lng: -3.188,  generatedCount: 74,  rank: 12, topMood: 'Adventure'  },
+  { city: 'Dubrovnik',    country: 'Croatia',          lat: 42.651, lng: 18.094,  generatedCount: 71,  rank: 13, topMood: 'Relax'      },
+  { city: 'Thessaloniki', country: 'Greece',           lat: 40.640, lng: 22.944,  generatedCount: 68,  rank: 14, topMood: 'Culture'    },
+  { city: 'Stockholm',    country: 'Sweden',           lat: 59.333, lng: 18.065,  generatedCount: 65,  rank: 15, topMood: 'City Break' },
+  { city: 'Amsterdam',    country: 'Netherlands',      lat: 52.370, lng: 4.897,   generatedCount: 63,  rank: 16, topMood: 'City Break' },
+  { city: 'Gdansk',       country: 'Poland',           lat: 54.352, lng: 18.646,  generatedCount: 59,  rank: 17, topMood: 'Adventure'  },
+  { city: 'Barcelona',    country: 'Spain',            lat: 41.388, lng: 2.170,   generatedCount: 57,  rank: 18, topMood: 'City Break' },
+  { city: 'Malaga',       country: 'Spain',            lat: 36.721, lng: -4.421,  generatedCount: 52,  rank: 19, topMood: 'Relax'      },
+  { city: 'Dublin',       country: 'Ireland',          lat: 53.333, lng: -6.249,  generatedCount: 48,  rank: 20, topMood: 'City Break' },
+  { city: 'Vilnius',      country: 'Lithuania',        lat: 54.687, lng: 25.279,  generatedCount: 44,  rank: 21, topMood: 'City Break' },
+  { city: 'Ljubljana',    country: 'Slovenia',         lat: 46.056, lng: 14.505,  generatedCount: 38,  rank: 22, topMood: 'Culture'    },
+  { city: 'Bruges',       country: 'Belgium',          lat: 51.209, lng: 3.224,   generatedCount: 33,  rank: 23, topMood: 'Culture'    },
+  { city: 'Split',        country: 'Croatia',          lat: 43.508, lng: 16.440,  generatedCount: 29,  rank: 24, topMood: 'Relax'      },
+  { city: 'Bergen',       country: 'Norway',           lat: 60.393, lng: 5.324,   generatedCount: 24,  rank: 25, topMood: 'Adventure'  },
+]
