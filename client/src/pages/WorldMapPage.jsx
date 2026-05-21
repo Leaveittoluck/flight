@@ -39,8 +39,8 @@ export default function WorldMapPage() {
 
           {/* Map card */}
           <div
-            className="lg:col-span-2 rounded-2xl overflow-hidden"
-            style={{ backgroundColor: '#0f172a' }}
+            className="lg:col-span-2 rounded-2xl overflow-hidden border border-blue-100"
+            style={{ background: 'linear-gradient(160deg, #f0f9ff 0%, #e0f2fe 45%, #dbeafe 100%)' }}
           >
             <GeneratedWorldMap
               highlightCity={tooltip?.dest?.city ?? null}
@@ -49,7 +49,7 @@ export default function WorldMapPage() {
             {/* Mood legend */}
             <div className="px-6 pb-5 flex items-center gap-5 flex-wrap">
               {Object.entries(MOOD_COLORS).map(([mood, color]) => (
-                <span key={mood} className="flex items-center gap-1.5 text-xs text-slate-500">
+                <span key={mood} className="flex items-center gap-1.5 text-xs text-slate-600">
                   <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
                   {mood}
                 </span>
@@ -104,11 +104,11 @@ export default function WorldMapPage() {
           className="fixed z-50 pointer-events-none"
           style={{ left: tooltip.x + 16, top: tooltip.y - 10 }}
         >
-          <div className="bg-slate-900 text-white rounded-xl px-4 py-3 shadow-xl text-sm max-w-48">
-            <p className="font-bold leading-snug">
+          <div className="bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-lg text-sm max-w-48">
+            <p className="font-bold text-slate-900 leading-snug">
               {tooltip.dest.city}, {tooltip.dest.country}
             </p>
-            <p className="text-slate-400 text-xs mt-1.5">
+            <p className="text-slate-500 text-xs mt-1.5">
               Generated {tooltip.dest.generatedCount}×
             </p>
             <p className="text-slate-400 text-xs">#{tooltip.dest.rank} trending</p>
