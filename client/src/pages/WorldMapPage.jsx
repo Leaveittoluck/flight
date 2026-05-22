@@ -39,8 +39,8 @@ export default function WorldMapPage() {
 
           {/* Map card */}
           <div
-            className="lg:col-span-2 rounded-2xl overflow-hidden border border-blue-100"
-            style={{ background: 'linear-gradient(160deg, #f0f9ff 0%, #e0f2fe 45%, #dbeafe 100%)' }}
+            className="lg:col-span-2 rounded-2xl overflow-hidden border border-sky-200/60"
+            style={{ background: 'linear-gradient(160deg, #ddeef8 0%, #c6e0f4 45%, #b5d5f2 100%)' }}
           >
             <GeneratedWorldMap
               highlightCity={tooltip?.dest?.city ?? null}
@@ -49,7 +49,7 @@ export default function WorldMapPage() {
             {/* Mood legend */}
             <div className="px-6 pb-5 flex items-center gap-5 flex-wrap">
               {Object.entries(MOOD_COLORS).map(([mood, color]) => (
-                <span key={mood} className="flex items-center gap-1.5 text-xs text-slate-600">
+                <span key={mood} className="flex items-center gap-1.5 text-xs text-stone-500">
                   <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
                   {mood}
                 </span>
@@ -98,22 +98,27 @@ export default function WorldMapPage() {
         </div>
       </main>
 
-      {/* Floating tooltip */}
+      {/* Floating tooltip — editorial travel-magazine style */}
       {tooltip && (
         <div
           className="fixed z-50 pointer-events-none"
           style={{ left: tooltip.x + 16, top: tooltip.y - 10 }}
         >
-          <div className="bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-lg text-sm max-w-48">
-            <p className="font-bold text-slate-900 leading-snug">
-              {tooltip.dest.city}, {tooltip.dest.country}
-            </p>
-            <p className="text-slate-500 text-xs mt-1.5">
-              Generated {tooltip.dest.generatedCount}×
-            </p>
-            <p className="text-slate-400 text-xs">#{tooltip.dest.rank} trending</p>
+          <div className="bg-white/96 backdrop-blur-sm rounded-2xl px-5 py-4 w-52 shadow-xl shadow-black/[0.07] border border-stone-100">
+            <p className="font-semibold text-stone-900 text-[15px] leading-tight">{tooltip.dest.city}</p>
+            <p className="text-stone-400 text-[10px] mt-1 tracking-[0.12em] uppercase font-medium">{tooltip.dest.country}</p>
+            <div className="mt-3.5 pt-3 border-t border-stone-100 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-stone-400 text-xs">Generated</span>
+                <span className="text-stone-700 text-xs font-semibold tabular-nums">{tooltip.dest.generatedCount}×</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-stone-400 text-xs">Trending</span>
+                <span className="text-stone-700 text-xs font-semibold">#{tooltip.dest.rank}</span>
+              </div>
+            </div>
             <p
-              className="text-xs font-semibold mt-1.5"
+              className="text-xs font-semibold mt-3 pt-2.5 border-t border-stone-100"
               style={{ color: MOOD_COLORS[tooltip.dest.topMood] }}
             >
               {tooltip.dest.topMood}
