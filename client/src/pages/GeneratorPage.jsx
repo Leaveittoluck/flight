@@ -39,9 +39,11 @@ export default function GeneratorPage() {
     })
 
     try {
+      const budgetPerPerson = Number(formValues.budget)
       const payload = {
         departure_airport_id: DEPARTURE_AIRPORT_ID,
-        budget: Number(formValues.budget),
+        budget: budgetPerPerson * formValues.travellers,
+        budget_per_person: budgetPerPerson,
         travellers: formValues.travellers,
         trip_type_slug: formValues.mood,
         departure_date: formValues.departure_date,

@@ -160,10 +160,13 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
           {d.total_trip_cost_estimate != null && (
             <div className="shrink-0 text-right">
               <div className="text-3xl font-extrabold text-blue-600 leading-none">
-                {formatGBP(d.total_trip_cost_estimate)}
+                {formatGBP(Math.ceil(d.total_trip_cost_estimate / (tripInput?.travellers ?? 1)))}
               </div>
-              <p className="text-xs text-slate-400 mt-1 font-medium uppercase tracking-wide">
-                estimated total
+              <p className="text-xs text-slate-400 mt-0.5 font-medium">
+                per person (est.)
+              </p>
+              <p className="text-xs text-slate-400 mt-0.5">
+                {formatGBP(d.total_trip_cost_estimate)} est. total
               </p>
             </div>
           )}

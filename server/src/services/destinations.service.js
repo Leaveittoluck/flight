@@ -59,9 +59,13 @@ function buildCostBreakdown(d, budget) {
   };
 }
 
-async function generateDestinations({ departure_airport_id, budget, travellers, trip_type_slug, departure_date, return_date }) {
+async function generateDestinations({ departure_airport_id, budget, budget_per_person, travellers, trip_type_slug, departure_date, return_date }) {
+  const requestMeta = {
+    departure_airport_id, budget, travellers, trip_type_slug, departure_date, return_date,
+    ...(budget_per_person != null ? { budget_per_person } : {}),
+  }
   const emptyResult = (meta = {}) => ({
-    request: { departure_airport_id, budget, travellers, trip_type_slug, departure_date, return_date },
+    request: requestMeta,
     meta: { results_count: 0, fallback_used: false, tiers_hit: [], ...meta },
     destinations: [],
   });
@@ -141,7 +145,7 @@ async function generateDestinations({ departure_airport_id, budget, travellers, 
   }));
 
   return {
-    request: { departure_airport_id, budget, travellers, trip_type_slug, departure_date, return_date },
+    request: requestMeta,
     meta: {
       results_count: destinations.length,
       fallback_used: !tiersHit.includes("tier1_exact"),

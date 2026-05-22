@@ -31,7 +31,7 @@ export default function GeneratorForm({ onSubmit, isLoading, onSeasonPreview, ac
   function validate() {
     const errs = {}
     if (!form.budget || Number(form.budget) <= 0) {
-      errs.budget = 'Please enter a budget greater than £0'
+      errs.budget = 'Please enter a budget per person greater than £0'
     }
     if (!form.mood) {
       errs.mood = 'Please select a trip mood'
