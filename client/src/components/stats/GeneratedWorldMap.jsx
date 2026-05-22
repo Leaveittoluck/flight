@@ -14,6 +14,19 @@ const INITIAL = { k: 1, x: 0, y: 0 }
 
 function markerR(count) { return 3.5 + (count / MAX_COUNT) * 7 }
 
+// Returns next if all three values are finite and k is in bounds; otherwise
+// returns fallback so NaN/Infinity can never enter transform state.
+function guardTf(next, fallback) {
+  if (
+    !Number.isFinite(next.k) || !Number.isFinite(next.x) || !Number.isFinite(next.y) ||
+    next.k < MIN_K || next.k > MAX_K
+  ) {
+    console.warn('[WorldMap] rejected invalid transform', next)
+    return fallback
+  }
+  return next
+}
+
 const BTN_CLS = [
   'w-8 h-8 rounded-lg',
   'bg-white/80 backdrop-blur-sm border border-stone-200 shadow-sm',
@@ -28,10 +41,11 @@ export default function GeneratedWorldMap({ highlightCity, onMarkerHover }) {
   const [countryTip, setCountryTip] = useState(null)
 
   const containerRef = useRef(null)
-  const drag = useRef(null)
+  const drag = useRef(null)   // { sx, sy, bx, by } — set while mouse is held
   const tfRef = useRef(tf)
   tfRef.current = tf
 
+  // ── Wheel zoom ──────────────────────────────────────────────────────────
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
@@ -40,52 +54,90 @@ export default function GeneratedWorldMap({ highlightCity, onMarkerHover }) {
       const svgEl = el.querySelector('svg')
       if (!svgEl) return
       const rect = svgEl.getBoundingClientRect()
+      // Guard: zero-size rect produces Infinity when dividing
+      if (!rect.width || !rect.height) return
       const cx = (e.clientX - rect.left) * (W / rect.width)
       const cy = (e.clientY - rect.top)  * (H / rect.height)
+      // Guard: cursor coords must be finite (can be NaN if clientX is strange)
+      if (!Number.isFinite(cx) || !Number.isFinite(cy)) return
       const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12
       setTf(t => {
+        // Fallback if prior state is already invalid
+        if (!Number.isFinite(t.k) || t.k <= 0) return INITIAL
         const newK = Math.max(MIN_K, Math.min(MAX_K, t.k * factor))
-        const r    = newK / t.k
-        return { k: newK, x: cx - r * (cx - t.x), y: cy - r * (cy - t.y) }
+        const r    = newK / t.k  // safe: t.k > 0 guaranteed above
+        const next = { k: newK, x: cx - r * (cx - t.x), y: cy - r * (cy - t.y) }
+        return guardTf(next, t)
       })
     }
     el.addEventListener('wheel', onWheel, { passive: false })
     return () => el.removeEventListener('wheel', onWheel)
   }, [])
 
+  // ── Release drag when mouse exits the browser window ──────────────────
   useEffect(() => {
-    const release = () => { drag.current = null; setDragging(false) }
+    const release = () => {
+      drag.current = null
+      setDragging(false)
+      setCountryTip(null)
+    }
     window.addEventListener('mouseup', release)
     return () => window.removeEventListener('mouseup', release)
-  }, [])
+  }, []) // setCountryTip/setDragging are stable React setter refs — safe in []
 
+  // ── Pan (drag) ──────────────────────────────────────────────────────────
   const onMouseDown = (e) => {
     if (e.button !== 0 || e.target.closest('button')) return
     drag.current = { sx: e.clientX, sy: e.clientY, bx: tfRef.current.x, by: tfRef.current.y }
     setDragging(true)
+    setCountryTip(null) // Clear any tooltip that was showing before drag started
   }
+
   const onMouseMove = (e) => {
     if (!drag.current) return
+    // ── CRITICAL: snapshot drag values as primitives NOW, before calling setTf.
+    // React's useState updater functions run during the next render cycle, not
+    // immediately. If window.mouseup fires between here and the render, drag.current
+    // is set to null and accessing drag.current.bx inside the updater would throw
+    // TypeError → component crash → blank page.
+    const { sx: startX, sy: startY, bx, by } = drag.current
     const svgEl = containerRef.current?.querySelector('svg')
     const rect  = svgEl?.getBoundingClientRect()
-    const sx = rect ? W / rect.width  : 1
-    const sy = rect ? H / rect.height : 1
-    setTf(t => ({
-      ...t,
-      x: drag.current.bx + (e.clientX - drag.current.sx) * sx,
-      y: drag.current.by + (e.clientY - drag.current.sy) * sy,
-    }))
+    if (!rect?.width || !rect?.height) return // Guard: zero rect
+    const scaleX = W / rect.width
+    const scaleY = H / rect.height
+    setTf(t => {
+      const next = {
+        ...t,
+        x: bx + (e.clientX - startX) * scaleX,
+        y: by + (e.clientY - startY) * scaleY,
+      }
+      return guardTf(next, t)
+    })
   }
-  const onDragEnd = () => { drag.current = null; setDragging(false) }
 
+  const onDragEnd = () => {
+    drag.current = null
+    setDragging(false)
+    setCountryTip(null) // Clear tooltip; next hover will set it fresh
+  }
+
+  // ── Button zoom toward viewport center ─────────────────────────────────
   const zoomBtn = (factor) => setTf(t => {
+    if (!Number.isFinite(t.k) || !Number.isFinite(t.x) || !Number.isFinite(t.y)) return INITIAL
     const newK = Math.max(MIN_K, Math.min(MAX_K, t.k * factor))
     const r    = newK / t.k
-    return { k: newK, x: W / 2 - r * (W / 2 - t.x), y: H / 2 - r * (H / 2 - t.y) }
+    const next = { k: newK, x: W / 2 - r * (W / 2 - t.x), y: H / 2 - r * (H / 2 - t.y) }
+    return guardTf(next, t)
   })
 
-  const tfStr = `translate(${tf.x}, ${tf.y}) scale(${tf.k})`
-  const invK  = 1 / tf.k
+  // ── Safe render values ─────────────────────────────────────────────────
+  // If tf is somehow invalid, fall back to INITIAL so the SVG always has a
+  // valid transform string and invK is never 0 or Infinity.
+  const isValidTf = Number.isFinite(tf.k) && Number.isFinite(tf.x) && Number.isFinite(tf.y) && tf.k > 0
+  const safe  = isValidTf ? tf : INITIAL
+  const tfStr = `translate(${safe.x}, ${safe.y}) scale(${safe.k})`
+  const invK  = 1 / safe.k
 
   return (
     <div
@@ -103,24 +155,19 @@ export default function GeneratedWorldMap({ highlightCity, onMarkerHover }) {
         projectionConfig={{ scale: 150, center: [10, 48] }}
         style={{ width: '100%', height: 'auto' }}
       >
-        {/* ── Atmospheric SVG overlays (outside the panning <g>) ── */}
+        {/* ── Atmospheric overlays (outside panning <g>, always static) ── */}
         <defs>
-          {/* Subtle paper grain for tactile texture */}
           <filter id="paper-grain" x="0%" y="0%" width="100%" height="100%">
             <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="4" stitchTiles="stitch" result="noise"/>
             <feColorMatrix type="saturate" values="0" in="noise"/>
           </filter>
-          {/* Soft edge vignette */}
           <radialGradient id="vignette" cx="50%" cy="50%" r="72%">
             <stop offset="0%"   stopColor="transparent" stopOpacity="0"/>
             <stop offset="100%" stopColor="#2a1f0e"     stopOpacity="0.18"/>
           </radialGradient>
         </defs>
-
-        {/* Paper grain overlay — very low opacity, purely textural */}
         <rect width={W} height={H} filter="url(#paper-grain)" opacity={0.04} style={{ pointerEvents: 'none' }}/>
-        {/* Warm edge vignette */}
-        <rect width={W} height={H} fill="url(#vignette)" style={{ pointerEvents: 'none' }}/>
+        <rect width={W} height={H} fill="url(#vignette)"      style={{ pointerEvents: 'none' }}/>
 
         {/* ── Geography + Markers inside the pan/zoom transform ── */}
         <g transform={tfStr}>
@@ -175,7 +222,6 @@ export default function GeneratedWorldMap({ highlightCity, onMarkerHover }) {
                 onMouseLeave={() => onMarkerHover(null)}
                 style={{ cursor: 'pointer' }}
               >
-                {/* Three-ring glow — diffuse halo, soft ring, solid core */}
                 <circle r={(active ? r + 16 : r + 8)  * invK} fill={color} opacity={active ? 0.10 : 0.06} />
                 <circle r={(active ? r + 9  : r + 4)  * invK} fill={color} opacity={active ? 0.24 : 0.15} />
                 <circle r={(active ? r * 1.5 : r)      * invK} fill={color} opacity={active ? 1   : 0.86} />
@@ -193,7 +239,7 @@ export default function GeneratedWorldMap({ highlightCity, onMarkerHover }) {
         <button onClick={() => setTf(INITIAL)} aria-label="Reset view" title="Reset view" className={`${BTN_CLS} text-base`}>↺</button>
       </div>
 
-      {/* Minimal compass — bottom-left, static overlay */}
+      {/* Minimal compass */}
       <div className="absolute bottom-3 left-3 z-10 pointer-events-none opacity-30">
         <svg width="30" height="30" viewBox="-15 -15 30 30">
           <line x1="0" y1="-13" x2="0" y2="-6"  stroke="#5c4a30" strokeWidth="1.5" strokeLinecap="round"/>
