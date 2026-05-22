@@ -1,29 +1,21 @@
 import { useState, useRef, useEffect } from 'react'
-import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 'react-simple-maps'
+import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps'
 import { WORLD_MAP_DESTINATIONS, MOOD_COLORS } from '../../data/worldMapStats'
 
-const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
+const GEO_URL   = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 const MAX_COUNT = Math.max(...WORLD_MAP_DESTINATIONS.map(d => d.generatedCount))
 
-const INITIAL_ZOOM   = 1
-const INITIAL_CENTER = [10, 48]
+// SVG canvas size — 2:1 matches the Equal Earth projection's natural aspect ratio
+const W = 800
+const H = 400
 
-// react-simple-maps v1: ZoomableGroup only zooms on Ctrl+wheel via a native SVG
-// listener. Plain wheel events are ignored by the library.
-//
-// Our wheel handler:
-//   - calls preventDefault() on every wheel over the container → no page scroll
-//   - if not Ctrl+wheel, forwards a synthetic Ctrl+wheel to the SVG so
-//     ZoomableGroup handles it natively (smooth zoom, pan preserved, no remount)
-//
-// Button zoom uses key={resetKey} to force a ZoomableGroup remount at the new
-// zoom level; this resets the pan center to INITIAL_CENTER.
+const MIN_K   = 0.5
+const MAX_K   = 8
+const INITIAL = { k: 1, x: 0, y: 0 }
 
-function markerR(count) {
-  return 3.5 + (count / MAX_COUNT) * 7
-}
+function markerR(count) { return 3.5 + (count / MAX_COUNT) * 7 }
 
-const BTN = [
+const BTN_CLS = [
   'w-8 h-8 rounded-lg',
   'bg-white/90 backdrop-blur-sm border border-slate-200 shadow-sm',
   'flex items-center justify-center',
@@ -32,55 +24,97 @@ const BTN = [
 ].join(' ')
 
 export default function GeneratedWorldMap({ highlightCity, onMarkerHover }) {
-  const [zoom,     setZoom]     = useState(INITIAL_ZOOM)
-  const [resetKey, setResetKey] = useState(0)
+  const [tf,         setTf]         = useState(INITIAL)
+  const [dragging,   setDragging]   = useState(false)
   const [countryTip, setCountryTip] = useState(null)
-  const containerRef = useRef(null)
 
+  const containerRef = useRef(null)
+  const drag = useRef(null)   // { sx, sy, bx, by } set while mouse is held
+  const tfRef = useRef(tf)
+  tfRef.current = tf
+
+  // ── Wheel zoom ──────────────────────────────────────────────────────────
+  // Non-passive so we can call preventDefault and stop page scroll while
+  // the cursor is inside the map container.
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
-
     const onWheel = (e) => {
-      e.preventDefault() // always block page scroll / browser Ctrl+zoom
-
-      if (!e.ctrlKey) {
-        // Forward as Ctrl+wheel so ZoomableGroup's native SVG listener zooms smoothly
-        const svg = el.querySelector('svg')
-        svg?.dispatchEvent(new WheelEvent('wheel', {
-          deltaY: e.deltaY,
-          ctrlKey: true,
-          bubbles: true,
-          cancelable: true,
-        }))
-      }
-      // Real Ctrl+wheel: already handled by ZoomableGroup's SVG listener before
-      // this handler fires; we just needed to prevent browser page-zoom above.
+      e.preventDefault()
+      const svgEl = el.querySelector('svg')
+      if (!svgEl) return
+      const rect = svgEl.getBoundingClientRect()
+      // Cursor position in SVG user-space
+      const cx = (e.clientX - rect.left) * (W / rect.width)
+      const cy = (e.clientY - rect.top)  * (H / rect.height)
+      const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12
+      setTf(t => {
+        const newK = Math.max(MIN_K, Math.min(MAX_K, t.k * factor))
+        const r    = newK / t.k
+        // Zoom toward cursor: keep the point under the cursor stationary
+        return { k: newK, x: cx - r * (cx - t.x), y: cy - r * (cy - t.y) }
+      })
     }
-
     el.addEventListener('wheel', onWheel, { passive: false })
     return () => el.removeEventListener('wheel', onWheel)
   }, [])
 
-  const zoomIn    = () => { setZoom(z => Math.min(z * 1.6, 6));   setResetKey(k => k + 1) }
-  const zoomOut   = () => { setZoom(z => Math.max(z / 1.6, 0.5)); setResetKey(k => k + 1) }
-  const resetView = () => { setZoom(INITIAL_ZOOM);                  setResetKey(k => k + 1) }
+  // Release drag if the mouse exits the browser window
+  useEffect(() => {
+    const release = () => { drag.current = null; setDragging(false) }
+    window.addEventListener('mouseup', release)
+    return () => window.removeEventListener('mouseup', release)
+  }, [])
+
+  // ── Pan (drag) ──────────────────────────────────────────────────────────
+  const onMouseDown = (e) => {
+    if (e.button !== 0 || e.target.closest('button')) return
+    drag.current = { sx: e.clientX, sy: e.clientY, bx: tfRef.current.x, by: tfRef.current.y }
+    setDragging(true)
+  }
+  const onMouseMove = (e) => {
+    if (!drag.current) return
+    const svgEl = containerRef.current?.querySelector('svg')
+    const rect  = svgEl?.getBoundingClientRect()
+    // Scale screen-pixel delta to SVG-user-space delta
+    const sx = rect ? W / rect.width  : 1
+    const sy = rect ? H / rect.height : 1
+    setTf(t => ({
+      ...t,
+      x: drag.current.bx + (e.clientX - drag.current.sx) * sx,
+      y: drag.current.by + (e.clientY - drag.current.sy) * sy,
+    }))
+  }
+  const onDragEnd = () => { drag.current = null; setDragging(false) }
+
+  // ── Button zoom (toward viewport center, no recentering snap) ──────────
+  const zoomBtn = (factor) => setTf(t => {
+    const newK = Math.max(MIN_K, Math.min(MAX_K, t.k * factor))
+    const r    = newK / t.k
+    // Zoom toward the center of the visible area
+    return { k: newK, x: W / 2 - r * (W / 2 - t.x), y: H / 2 - r * (H / 2 - t.y) }
+  })
+
+  const tfStr = `translate(${tf.x}, ${tf.y}) scale(${tf.k})`
+  const invK  = 1 / tf.k  // keeps markers the same visual size regardless of zoom
 
   return (
-    <div ref={containerRef} className="relative">
+    <div
+      ref={containerRef}
+      className="relative select-none"
+      onMouseDown={onMouseDown}
+      onMouseMove={onMouseMove}
+      onMouseUp={onDragEnd}
+      onMouseLeave={onDragEnd}
+      style={{ cursor: dragging ? 'grabbing' : 'grab' }}
+    >
       <ComposableMap
-        width={800}
-        height={400}
-        projectionConfig={{ scale: 150 }}
+        width={W}
+        height={H}
+        projectionConfig={{ scale: 150, center: [10, 48] }}
         style={{ width: '100%', height: 'auto' }}
       >
-        <ZoomableGroup
-          key={resetKey}
-          zoom={zoom}
-          center={INITIAL_CENTER}
-          minZoom={0.5}
-          maxZoom={6}
-        >
+        <g transform={tfStr}>
           <Geographies geography={GEO_URL}>
             {({ geographies }) =>
               geographies.map((geo) => {
@@ -97,9 +131,15 @@ export default function GeneratedWorldMap({ highlightCity, onMarkerHover }) {
                       hover:   { outline: 'none', fill: '#c8d2e0' },
                       pressed: { outline: 'none' },
                     }}
-                    onMouseEnter={(e) => name && setCountryTip({ name, x: e.clientX, y: e.clientY })}
-                    onMouseMove={(e)  => setCountryTip(t => t ? { ...t, x: e.clientX, y: e.clientY } : null)}
-                    onMouseLeave={()  => setCountryTip(null)}
+                    onMouseEnter={(e) => {
+                      if (drag.current) return
+                      name && setCountryTip({ name, x: e.clientX, y: e.clientY })
+                    }}
+                    onMouseMove={(e) => {
+                      if (drag.current) return
+                      setCountryTip(c => c ? { ...c, x: e.clientX, y: e.clientY } : null)
+                    }}
+                    onMouseLeave={() => setCountryTip(null)}
                   />
                 )
               })
@@ -107,32 +147,39 @@ export default function GeneratedWorldMap({ highlightCity, onMarkerHover }) {
           </Geographies>
 
           {WORLD_MAP_DESTINATIONS.map((dest) => {
-            const r = markerR(dest.generatedCount)
+            const r      = markerR(dest.generatedCount)
             const active = highlightCity === dest.city
             const color  = MOOD_COLORS[dest.topMood] ?? '#3b82f6'
             return (
               <Marker
                 key={dest.city}
                 coordinates={[dest.lng, dest.lat]}
-                onMouseEnter={(e) => onMarkerHover(dest, e)}
-                onMouseMove={(e)  => onMarkerHover(dest, e)}
-                onMouseLeave={()  => onMarkerHover(null)}
+                onMouseEnter={(e) => {
+                  if (drag.current) return
+                  setCountryTip(null)
+                  onMarkerHover(dest, e)
+                }}
+                onMouseMove={(e) => {
+                  if (drag.current) return
+                  onMarkerHover(dest, e)
+                }}
+                onMouseLeave={() => onMarkerHover(null)}
                 style={{ cursor: 'pointer' }}
               >
-                <circle r={active ? r + 9   : r + 5} fill={color} opacity={active ? 0.28 : 0.18} />
-                <circle r={active ? r * 1.5 : r}     fill={color} opacity={active ? 1   : 0.88} />
+                <circle r={(active ? r + 9   : r + 5) * invK} fill={color} opacity={active ? 0.28 : 0.18} />
+                <circle r={(active ? r * 1.5 : r)     * invK} fill={color} opacity={active ? 1   : 0.88} />
               </Marker>
             )
           })}
-        </ZoomableGroup>
+        </g>
       </ComposableMap>
 
       {/* Zoom + Reset controls */}
       <div className="absolute bottom-3 right-3 flex flex-col gap-1 z-10">
-        <button onClick={zoomIn}    aria-label="Zoom in"    className={`${BTN} text-lg font-light`}>+</button>
-        <button onClick={zoomOut}   aria-label="Zoom out"   className={`${BTN} text-lg font-light`}>−</button>
+        <button onClick={() => zoomBtn(1.5)}   aria-label="Zoom in"    className={`${BTN_CLS} text-lg font-light`}>+</button>
+        <button onClick={() => zoomBtn(1/1.5)} aria-label="Zoom out"   className={`${BTN_CLS} text-lg font-light`}>−</button>
         <div className="h-px bg-slate-200/80 mx-0.5 my-0.5" />
-        <button onClick={resetView} aria-label="Reset view" title="Reset view" className={`${BTN} text-base`}>↺</button>
+        <button onClick={() => setTf(INITIAL)} aria-label="Reset view" title="Reset view" className={`${BTN_CLS} text-base`}>↺</button>
       </div>
 
       {/* Country name tooltip */}
