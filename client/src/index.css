@@ -74,26 +74,8 @@ body {
   to   { stroke-dashoffset: 0; }
 }
 
-/* ─── Season form animations ─── */
+/* ─── Season form interior animations (Phase 4D, kept for SVG classes) ─── */
 
-/* Illustration slides in from inside the card toward the top-left corner.
-   animation-fill-mode:forwards keeps it at the corner after slide completes. */
-@keyframes seasonSlideIn {
-  from {
-    opacity: 0;
-    transform: translate(22px, 22px) scale(0.75);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-20%, -20%);
-  }
-}
-
-.season-enter {
-  animation: seasonSlideIn 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-/* Spring petals drifting down and sideways */
 @keyframes petalDrift {
   0%   { transform: translateY(0)    translateX(0)    rotate(0deg);   opacity: 0; }
   12%  { opacity: 1; }
@@ -101,7 +83,6 @@ body {
   100% { transform: translateY(52px) translateX(20px) rotate(95deg);  opacity: 0; }
 }
 
-/* Autumn leaves falling with a slight sway */
 @keyframes leafFall {
   0%   { transform: translateY(-4px)  translateX(0)     rotate(0deg);   opacity: 0; }
   10%  { opacity: 1; }
@@ -109,7 +90,6 @@ body {
   100% { transform: translateY(62px)  translateX(-24px) rotate(-115deg); opacity: 0; }
 }
 
-/* Winter snowflakes drifting down */
 @keyframes snowFall {
   0%   { transform: translateY(-4px)  translateX(0)    rotate(0deg);   opacity: 0; }
   14%  { opacity: 0.9; }
@@ -117,19 +97,16 @@ body {
   100% { transform: translateY(56px)  translateX(14px) rotate(180deg); opacity: 0; }
 }
 
-/* Sun rays slow spin — applied to SVG <g> via className */
 @keyframes sunRayRotate {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
 
-/* Sun glow rings pulsing opacity */
 @keyframes sunBreathe {
   0%, 100% { opacity: 0.45; }
   50%       { opacity: 0.85; }
 }
 
-/* Classes for SVG transform animations */
 .sun-rays-spin {
   transform-box: fill-box;
   transform-origin: center;
@@ -146,4 +123,38 @@ body {
   transform-box: fill-box;
   transform-origin: center;
   animation: sunBreathe 4s ease-in-out infinite 0.6s;
+}
+
+/* ─── Season PAGE accent (Phase 4E) ─────────────────────────────────
+   Illustration enters from the left page edge and slides toward
+   the outside upper-left of the form card.
+   ──────────────────────────────────────────────────────────────── */
+
+@keyframes seasonPageEnter {
+  from {
+    opacity: 0;
+    transform: translateX(-350px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.season-page-enter {
+  animation: seasonPageEnter 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Breeze / wind-streak sweep — used by spring & autumn environmental lines */
+@keyframes windSweep {
+  0%, 100% { opacity: 0; transform: translateX(-8px); }
+  40%, 60% { opacity: 0.55; transform: translateX(8px); }
+}
+
+/* Cold wind line for winter — slightly different feel */
+@keyframes coldWindSweep {
+  0%   { opacity: 0; transform: scaleX(0); transform-origin: left; }
+  20%  { opacity: 0.5; transform: scaleX(1); transform-origin: left; }
+  70%  { opacity: 0.5; }
+  100% { opacity: 0; }
 }

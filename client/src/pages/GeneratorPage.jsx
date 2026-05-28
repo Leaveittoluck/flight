@@ -1,42 +1,49 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import GeneratorForm from '../components/form/GeneratorForm'
-import DestinationResults from '../components/destinations/DestinationResults'
+import SeasonPageAccent from '../components/form/SeasonPageAccent'
 import { generateDestinations } from '../services/destinationsApi'
 import { normalizeDestination } from '../utils/normalizeDestination'
 import { useActiveSeason } from '../context/SeasonContext'
 import { SEASON_THEMES } from '../data/seasonThemes'
 import { resolvePageSeason } from '../utils/resolvePageSeason'
 
-// Hardcoded to London Stansted (airport id 1) until a departure selector is added.
 const DEPARTURE_AIRPORT_ID = 1
 const DEPARTURE_AIRPORT_IATA = 'STN'
+const SESSION_KEY = 'litl_last_result'
 
 export default function GeneratorPage() {
-  const [status, setStatus] = useState('idle') // idle | loading | error | empty | success
-  const [destinations, setDestinations] = useState([])
+  const navigate = useNavigate()
+
+  const [status, setStatus]     = useState('idle') // idle | loading | error | empty
   const [errorMsg, setErrorMsg] = useState('')
-  const [clicksRemaining, setClicksRemaining] = useState(null)
   const [tripInput, setTripInput] = useState(null)
+
+  // formSeason: tracks the season field from the form for SeasonPageAccent
+  const [formSeason, setFormSeason] = useState('')
 
   const { season, setSeason } = useActiveSeason()
   const pageSeasonKey = resolvePageSeason(tripInput?.season || season)
   const pageTheme = SEASON_THEMES[pageSeasonKey]
 
-  function handleClickUsed(remaining) {
-    setClicksRemaining(remaining)
+  // Called by GeneratorForm when the season field changes
+  function handleSeasonChange(s) {
+    setSeason(s)       // keeps global season context in sync (drives page gradients)
+    setFormSeason(s)   // drives SeasonPageAccent
   }
 
   async function handleSubmit(formValues) {
     setStatus('loading')
-    setDestinations([])
     setErrorMsg('')
-    setTripInput({
+
+    const tripInputData = {
       travellers: formValues.travellers,
       departureDate: formValues.departure_date,
       returnDate: formValues.return_date || null,
       originIata: DEPARTURE_AIRPORT_IATA,
       season: formValues.season || '',
-    })
+    }
+    setTripInput(tripInputData)
 
     try {
       const budgetPerPerson = Number(formValues.budget)
@@ -56,10 +63,23 @@ export default function GeneratorPage() {
 
       if (dests.length === 0) {
         setStatus('empty')
-      } else {
-        setDestinations(dests.map(normalizeDestination))
-        setStatus('success')
+        return
       }
+
+      const firstDest = normalizeDestination(dests[0])
+
+      // Persist to sessionStorage as fallback for page refresh on result page
+      try {
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify({
+          destination: firstDest,
+          tripInput: tripInputData,
+        }))
+      } catch { /* ignore storage errors */ }
+
+      // Navigate to dedicated result page
+      navigate('/travel/result', {
+        state: { destination: firstDest, tripInput: tripInputData },
+      })
     } catch (err) {
       setErrorMsg(
         err?.response?.data?.message || 'Something went wrong. Please try again.'
@@ -76,7 +96,6 @@ export default function GeneratorPage() {
       {/* Orange gradient page header */}
       <header style={{ background: 'linear-gradient(135deg, #c2410c 0%, #ea580c 45%, #f97316 80%, #fb923c 100%)' }}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 relative overflow-hidden">
-          {/* Subtle sun glow in header */}
           <div
             aria-hidden="true"
             className="absolute -top-8 right-8 w-32 h-32 rounded-full pointer-events-none"
@@ -86,9 +105,7 @@ export default function GeneratorPage() {
             }}
           />
           <div className="relative">
-            <h1 className="text-2xl font-bold text-white tracking-tight">
-              Leave It To Luck
-            </h1>
+            <h1 className="text-2xl font-bold text-white tracking-tight">Leave It To Luck</h1>
             <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.7)' }}>
               Tell us your budget and vibe — we'll handle the rest
             </p>
@@ -96,26 +113,53 @@ export default function GeneratorPage() {
         </div>
       </header>
 
-      {/* Main content — fades in on mount */}
+      {/* Main content */}
       <main
-        className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-10"
+        className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6"
         style={{ animation: 'fadeInUp 0.45s ease forwards' }}
       >
-        <GeneratorForm
-          onSubmit={handleSubmit}
-          isLoading={status === 'loading'}
-          onSeasonPreview={setSeason}
-          activeSeason={season}
-          pageTheme={pageTheme}
-        />
-        <DestinationResults
-          status={status}
-          destinations={destinations}
-          errorMsg={errorMsg}
-          clicksRemaining={clicksRemaining}
-          onClickUsed={handleClickUsed}
-          tripInput={tripInput}
-        />
+        {/* Form section — seasonal illustration appears OUTSIDE this at top-left */}
+        <div className="relative" style={{ overflow: 'visible' }}>
+
+          {/* SeasonPageAccent: enters from left page edge, settles behind form corner.
+              Form card (z-index:20) sits on top — illustration peeks from behind. */}
+          {formSeason && (
+            <div
+              className="absolute hidden sm:block pointer-events-none"
+              style={{ top: '-24px', left: '-24px', zIndex: 5 }}
+            >
+              <SeasonPageAccent key={formSeason} season={formSeason} />
+            </div>
+          )}
+
+          <div style={{ position: 'relative', zIndex: 20 }}>
+            <GeneratorForm
+              onSubmit={handleSubmit}
+              isLoading={status === 'loading'}
+              onSeasonPreview={handleSeasonChange}
+              activeSeason={season}
+              pageTheme={pageTheme}
+            />
+          </div>
+        </div>
+
+        {/* Inline status messages — only for error/empty (success navigates away) */}
+        {status === 'error' && (
+          <div
+            className="rounded-2xl p-4 text-sm font-medium"
+            style={{ backgroundColor: '#fff1f2', border: '1px solid #fecdd3', color: '#be123c' }}
+          >
+            {errorMsg || 'Something went wrong. Please try again.'}
+          </div>
+        )}
+        {status === 'empty' && (
+          <div
+            className="rounded-2xl p-4 text-sm"
+            style={{ backgroundColor: 'rgba(255,255,255,0.8)', border: '1px solid rgba(251,146,60,0.2)', color: '#78716c' }}
+          >
+            No destinations found for your preferences. Try adjusting your budget, mood, or dates.
+          </div>
+        )}
       </main>
     </div>
   )

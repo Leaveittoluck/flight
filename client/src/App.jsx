@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Layout from './components/layout/Layout'
 import HomePage from './pages/HomePage'
 import GeneratorPage from './pages/GeneratorPage'
+import DestinationResultPage from './pages/DestinationResultPage'
 import DashboardPage from './pages/DashboardPage'
 import StatsPage from './pages/StatsPage'
 import WorldMapPage from './pages/WorldMapPage'
@@ -17,6 +18,7 @@ export default function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/travel" element={<GeneratorPage />} />
+            <Route path="/travel/result" element={<DestinationResultPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/stats" element={<StatsPage />} />
             <Route path="/stats/world-map" element={<WorldMapPage />} />
