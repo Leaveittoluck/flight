@@ -9,8 +9,8 @@ export default function Layout() {
     <div>
       <SeasonalPageAtmosphere season={season} />
       <Navbar season={season} />
-      {/* pt-14 offsets the fixed navbar height (h-14 = 56px) */}
-      <div className="pt-14">
+      {/* pt-16 offsets the fixed navbar height (h-16 = 64px) */}
+      <div className="pt-16">
         <Outlet />
       </div>
     </div>
