@@ -1,195 +1,250 @@
 /* ──────────────────────────────────────────────────────────────────────
    destinationImages.js
-   Maps destination city names to representative background images.
+   Maps seed destination city names → representative background photos.
 
-   Strategy:
-   - Major test cities: specific Unsplash photo ID (city-specific photo)
-   - All other cities:  picsum.photos with a city-name seed
-     → always loads, consistent per city, beautiful landscape/travel photo
-   - Fallback: picsum seed "travel-destination" (for unknown cities)
+   All 126 seed destinations are mapped. Keys are produced by
+   normalizeDestinationKey(): lowercase, accents stripped, spaces → hyphens,
+   punctuation removed. The same function is used to build keys AND to look
+   up incoming city names, so they always match exactly.
 
-   getDestinationImage(destination) → string URL, always resolves.
+   URL strategy per city:
+   ▸ Unsplash photo ID  — city-representative landmark photo.
+     If the photo ID is wrong, the <img onError> in DestinationResultPage
+     falls back to a picsum seed (guaranteed to load).
+   ▸ picsum seed URL    — consistent, beautiful travel photo per city.
+     Same photo every time for the same seed; not city-specific but always
+     loads and never fails.
    ────────────────────────────────────────────────────────────────────── */
 
-const UNS_BASE   = 'https://images.unsplash.com/photo-'
-const UNS_PARAMS = '?auto=format&fit=crop&w=1200&q=80'
+const UNS = id   => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=1200&q=80`
+const PIC = seed => `https://picsum.photos/seed/${seed}/1600/900`
 
-/** Specific Unsplash photo by ID (city-representative, may fail → onError handles) */
-const uns = id => `${UNS_BASE}${id}${UNS_PARAMS}`
+/* ── Normalise ──────────────────────────────────────────────────────── */
 
-/** Picsum with seeded slug — always loads, consistent per seed */
-const pic = seed => `https://picsum.photos/seed/${seed}/1600/900`
+function stripAccents(str) {
+  try { return str.normalize('NFD').replace(/[̀-ͯ]/g, '') }
+  catch { return str }
+}
+
+/**
+ * Normalise a city name to a stable map key.
+ * "Gran Canaria" → "gran-canaria"
+ * "Sharm El Sheikh" → "sharm-el-sheikh"
+ * "Cluj-Napoca" → "cluj-napoca"
+ */
+export function normalizeDestinationKey(raw) {
+  return stripAccents(raw || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s]/g, '')  // strip punctuation (keeps spaces)
+    .replace(/\s+/g, '-')          // spaces → hyphens
+    .replace(/-+/g, '-')           // collapse consecutive hyphens
+    .replace(/^-|-$/g, '')         // trim leading/trailing hyphens
+}
 
 /* ── Image map ──────────────────────────────────────────────────────── */
+// Keys: normalizeDestinationKey(city) for every seed destination.
+// Exact match only — no fuzzy/partial logic to avoid wrong matches.
 
 const IMAGES = {
 
-  // ── Specific Unsplash photos for top test cities ─────────────────────
-  // These may show the real landmark if the photo ID is valid.
-  // If they 404, the <img onError> in DestinationResultPage falls back
-  // to picsum with the city name as seed (always loads).
-  paris:     uns('1502602898657-3e91760cbb34'),  // Eiffel Tower
-  rome:      uns('1552832230-c0197dd311b5'),      // Colosseum
-  barcelona: uns('1539037116277-4db20889f2d4'),   // Sagrada Familia / skyline
-  amsterdam: uns('1534351590666-13e3e96b5017'),   // Canal / bridge
-  santorini: uns('1570077188670-e3a8d69ac5ff'),   // Blue domes / cliffs
+  // ── Landmark photos (Unsplash photo IDs) ─────────────────────────────
+  // onError in DestinationResultPage falls back to picsum if ID is wrong.
+  'paris':       UNS('1499856608851-79397a83c21f'),  // Eiffel Tower
+  'rome':        UNS('1552832230-c0197dd311b5'),      // Colosseum
+  'barcelona':   UNS('1539037116277-4db20889f2d4'),   // Sagrada Família
+  'amsterdam':   UNS('1534351590666-13e3e96b5017'),   // Canals
+  'santorini':   UNS('1570077188670-e3a8d69ac5ff'),   // Blue domes
+  'venice':      UNS('1523906834658-6e24ef2386f9'),   // Grand Canal
+  'prague':      UNS('1541849546-216549ae216d'),      // Old Town Square
+  'athens':      UNS('1533105079-a84978a59ab4'),      // Acropolis
+  'dubrovnik':   UNS('1555990538-1db75e95a571'),      // Old town walls
+  'lisbon':      UNS('1548707668-7b9b57d03d76'),      // Tram / Alfama
+  'istanbul':    UNS('1524231757912-21f4fe3a7200'),   // Hagia Sophia
+  'budapest':    UNS('1549737221-bef65e2b2061'),      // Parliament
 
-  // ── Reliable picsum for all other cities ─────────────────────────────
-  // Seed = city slug → same photo every time for each city (not city-specific
-  // but guaranteed to be a beautiful travel/landscape/architecture photo).
+  // ── Spain ────────────────────────────────────────────────────────────
+  'alicante':                  PIC('alicante-spain-coast'),
+  'malaga':                    PIC('malaga-costa-del-sol'),
+  'palma':                     PIC('palma-mallorca-cathedral'),
+  'ibiza':                     PIC('ibiza-dalt-vila-sunset'),
+  'lanzarote':                 PIC('lanzarote-volcanic-landscape'),
+  'fuerteventura':             PIC('fuerteventura-white-dunes-canary'),
+  'gran-canaria':              PIC('gran-canaria-maspalomas-dunes'),
+  'tenerife':                  PIC('tenerife-teide-volcano-canary'),
+  'valencia':                  PIC('valencia-city-arts-sciences'),
+  'seville':                   PIC('seville-alcazar-andalusia'),
+  'madrid':                    PIC('madrid-prado-gran-via'),
+  'menorca':                   PIC('menorca-cala-macarella-cove'),
+  'almeria':                   PIC('almeria-tabernas-desert-spain'),
+  'girona':                    PIC('girona-medieval-walls-cathedral'),
+  'santander':                 PIC('santander-bay-cantabria'),
+  'santiago-de-compostela':    PIC('santiago-compostela-cathedral'),
+  'zaragoza':                  PIC('zaragoza-basilica-pilar'),
 
-  // UK & Ireland
-  london:       pic('london-city'),
-  edinburgh:    pic('edinburgh-scotland'),
-  dublin:       pic('dublin-ireland'),
+  // ── Portugal ─────────────────────────────────────────────────────────
+  'faro':                      PIC('faro-algarve-cliffs-portugal'),
+  'porto':                     PIC('porto-ribeira-douro-valley'),
+  'ponta-delgada':             PIC('ponta-delgada-azores-crater'),
 
-  // France
-  nice:         pic('nice-france'),
-  marseille:    pic('marseille-france'),
-  lyon:         pic('lyon-france'),
+  // ── France ───────────────────────────────────────────────────────────
+  'nice':                      PIC('nice-promenade-cote-azur'),
+  'marseille':                 PIC('marseille-vieux-port-calanques'),
+  'biarritz':                  PIC('biarritz-beach-basque-coast'),
+  'toulouse':                  PIC('toulouse-pink-city-garonne'),
 
-  // Spain
-  madrid:       pic('madrid-spain'),
-  seville:      pic('seville-spain'),
-  alicante:     pic('alicante-coast'),
-  malaga:       pic('malaga-coast'),
-  palma:        pic('palma-mallorca'),
-  ibiza:        pic('ibiza-island'),
-  granada:      pic('granada-spain'),
-  bilbao:       pic('bilbao-spain'),
-  tenerife:     pic('tenerife-island'),
-  lanzarote:    pic('lanzarote-island'),
-  fuerteventura:pic('fuerteventura-island'),
+  // ── Italy ────────────────────────────────────────────────────────────
+  'milan':                     PIC('milan-duomo-galleria-italy'),
+  'naples':                    PIC('naples-vesuvius-bay-italy'),
+  'pisa':                      PIC('pisa-leaning-tower-tuscany'),
+  'bologna':                   PIC('bologna-two-towers-italy'),
+  'florence':                  PIC('florence-duomo-ponte-vecchio'),
+  'verona':                    PIC('verona-arena-amphitheatre'),
+  'turin':                     PIC('turin-piazza-castello-italy'),
+  'cagliari':                  PIC('cagliari-sardinia-castle'),
+  'olbia':                     PIC('olbia-costa-smeralda-sardinia'),
+  'alghero':                   PIC('alghero-sardinia-sea-walls'),
+  'catania':                   PIC('catania-etna-volcano-sicily'),
+  'palermo':                   PIC('palermo-sicily-market-cathedral'),
+  'rimini':                    PIC('rimini-adriatic-roman-arch'),
+  'trapani':                   PIC('trapani-salt-pans-windmills'),
+  'reggio-calabria':           PIC('reggio-calabria-strait-messina'),
+  'lamezia-terme':             PIC('tropea-calabria-clifftop-sea'),
 
-  // Portugal
-  lisbon:       pic('lisbon-portugal'),
-  porto:        pic('porto-portugal'),
-  faro:         pic('faro-portugal'),
+  // ── Greece ───────────────────────────────────────────────────────────
+  'corfu':                     PIC('corfu-ionian-venetian-fortress'),
+  'rhodes':                    PIC('rhodes-walled-city-colossus'),
+  'zakynthos':                 PIC('zakynthos-navagio-shipwreck'),
+  'thessaloniki':              PIC('thessaloniki-white-tower-waterfront'),
+  'heraklion':                 PIC('heraklion-knossos-palace-crete'),
+  'chania':                    PIC('chania-venetian-harbour-crete'),
+  'kalamata':                  PIC('kalamata-mani-peninsula-greece'),
+  'skiathos':                  PIC('skiathos-pine-beach-greece'),
+  'preveza':                   PIC('preveza-ionian-nikopolis'),
+  'kos':                       PIC('kos-aegean-greece-hippocrates'),
+  'kefalonia':                 PIC('kefalonia-myrtos-beach-ionian'),
+  'aarhus':                    PIC('aarhus-aros-rainbow-museum'),
 
-  // Italy
-  venice:       uns('1523906834658-6e24ef2386f9'),  // Venice canal (high-confidence ID)
-  milan:        pic('milan-italy'),
-  naples:       pic('naples-italy'),
-  florence:     pic('florence-italy'),
-  amalfi:       pic('amalfi-coast'),
-  bologna:      pic('bologna-italy'),
-  turin:        pic('turin-italy'),
-  verona:       pic('verona-italy'),
+  // ── Croatia ──────────────────────────────────────────────────────────
+  'split':                     PIC('split-diocletian-palace-croatia'),
+  'zadar':                     PIC('zadar-sea-organ-sunset'),
+  'pula':                      PIC('pula-roman-arena-istria'),
+  'zagreb':                    PIC('zagreb-cathedral-upper-town'),
 
-  // Greece
-  athens:       pic('athens-greece'),
-  mykonos:      pic('mykonos-greece'),
-  thessaloniki: pic('thessaloniki-greece'),
-  corfu:        pic('corfu-island'),
-  rhodes:       pic('rhodes-greece'),
-  crete:        pic('crete-island'),
-  heraklion:    pic('heraklion-crete'),
+  // ── Turkey ───────────────────────────────────────────────────────────
+  'antalya':                   PIC('antalya-harbour-taurus-mountains'),
+  'dalaman':                   PIC('dalaman-oludeniz-blue-lagoon'),
+  'bodrum':                    PIC('bodrum-castle-aegean-turkey'),
+  'kayseri':                   PIC('kayseri-cappadocia-hot-air-balloons'),
 
-  // Netherlands
-  // (amsterdam handled above with specific photo)
+  // ── Germany ──────────────────────────────────────────────────────────
+  'berlin':                    PIC('berlin-brandenburger-tor'),
+  'munich':                    PIC('munich-marienplatz-beer-garden'),
+  'hamburg':                   PIC('hamburg-elbphilharmonie-speicherstadt'),
+  'cologne':                   PIC('cologne-dom-cathedral-rhine'),
+  'bremen':                    PIC('bremen-marktplatz-roland'),
 
-  // Germany
-  berlin:       pic('berlin-germany'),
-  munich:       pic('munich-germany'),
-  hamburg:      pic('hamburg-germany'),
-  frankfurt:    pic('frankfurt-germany'),
-  cologne:      pic('cologne-germany'),
+  // ── Austria ──────────────────────────────────────────────────────────
+  'vienna':                    PIC('vienna-schonbrunn-opera'),
+  'salzburg':                  PIC('salzburg-fortress-alps-mozart'),
+  'innsbruck':                 PIC('innsbruck-golden-roof-alps'),
 
-  // Czech Republic
-  prague:       uns('1541849546-216549ae216d'),  // Prague old town (high-confidence)
+  // ── Switzerland ──────────────────────────────────────────────────────
+  'zurich':                    PIC('zurich-lake-old-town-alps'),
+  'geneva':                    PIC('geneva-jet-deau-lake-alps'),
 
-  // Austria
-  vienna:       pic('vienna-austria'),
-  salzburg:     pic('salzburg-austria'),
-  innsbruck:    pic('innsbruck-austria'),
+  // ── Czech Republic ────────────────────────────────────────────────────
+  'brno':                      PIC('brno-spilberk-castle-moravia'),
 
-  // Hungary
-  budapest:     pic('budapest-hungary'),
+  // ── Poland ────────────────────────────────────────────────────────────
+  'krakow':                    PIC('krakow-wawel-cloth-hall'),
+  'warsaw':                    PIC('warsaw-old-town-rebuilt'),
+  'wroclaw':                   PIC('wroclaw-market-square-gnomes'),
 
-  // Poland
-  krakow:       pic('krakow-poland'),
-  warsaw:       pic('warsaw-poland'),
-  gdansk:       pic('gdansk-poland'),
+  // ── Slovakia ─────────────────────────────────────────────────────────
+  'bratislava':                PIC('bratislava-castle-danube'),
+  'poprad':                    PIC('poprad-high-tatras-peaks'),
 
-  // Croatia
-  dubrovnik:    pic('dubrovnik-croatia'),
-  split:        pic('split-croatia'),
-  zagreb:       pic('zagreb-croatia'),
+  // ── Romania ───────────────────────────────────────────────────────────
+  'bucharest':                 PIC('bucharest-parliament-palace'),
+  'cluj-napoca':               PIC('cluj-napoca-unirii-transylvania'),
 
-  // Turkey
-  istanbul:     pic('istanbul-turkey'),
-  antalya:      pic('antalya-turkey'),
-  bodrum:       pic('bodrum-turkey'),
+  // ── Bulgaria ──────────────────────────────────────────────────────────
+  'sofia':                     PIC('sofia-nevsky-cathedral-vitosha'),
+  'plovdiv':                   PIC('plovdiv-roman-amphitheatre-bulgaria'),
 
-  // Scandinavia
-  copenhagen:   pic('copenhagen-denmark'),
-  stockholm:    pic('stockholm-sweden'),
-  oslo:         pic('oslo-norway'),
-  reykjavik:    pic('reykjavik-iceland'),
-  helsinki:     pic('helsinki-finland'),
-  bergen:       pic('bergen-norway'),
-  gothenburg:   pic('gothenburg-sweden'),
+  // ── Baltic States ─────────────────────────────────────────────────────
+  'tallinn':                   PIC('tallinn-medieval-towers-estonia'),
+  'riga':                      PIC('riga-art-nouveau-latvia'),
+  'vilnius':                   PIC('vilnius-baroque-gediminas-castle'),
 
-  // Eastern Europe
-  sofia:        pic('sofia-bulgaria'),
-  bucharest:    pic('bucharest-romania'),
-  riga:         pic('riga-latvia'),
-  tallinn:      pic('tallinn-estonia'),
-  vilnius:      pic('vilnius-lithuania'),
-  bratislava:   pic('bratislava-slovakia'),
-  ljubljana:    pic('ljubljana-slovenia'),
-  belgrade:     pic('belgrade-serbia'),
-  sarajevo:     pic('sarajevo-bosnia'),
-  skopje:       pic('skopje-macedonia'),
+  // ── Scandinavia ───────────────────────────────────────────────────────
+  'oslo':                      PIC('oslo-fjord-opera-house'),
+  'bergen':                    PIC('bergen-bryggen-wharf-fjord'),
+  'reykjavik':                 PIC('reykjavik-hallgrimskirkja-iceland'),
+  'copenhagen':                PIC('copenhagen-nyhavn-colourful-canal'),
+  'helsinki':                  PIC('helsinki-cathedral-market-harbour'),
 
-  // Malta
-  malta:        pic('malta-island'),
-  valletta:     pic('valletta-malta'),
+  // ── Netherlands ───────────────────────────────────────────────────────
+  'eindhoven':                 PIC('eindhoven-design-strijp-netherlands'),
+  'rotterdam':                 PIC('rotterdam-markthal-cube-houses'),
 
-  // Morocco
-  marrakech:    pic('marrakech-morocco'),
-  casablanca:   pic('casablanca-morocco'),
-  fez:          pic('fez-morocco'),
+  // ── Belgium ───────────────────────────────────────────────────────────
+  'brussels':                  PIC('brussels-grand-place-guilds'),
 
-  // Middle East
-  dubai:        pic('dubai-cityscape'),
-  'abu dhabi':  pic('abudhabi-uae'),
+  // ── UK & Ireland ──────────────────────────────────────────────────────
+  'edinburgh':                 PIC('edinburgh-castle-royal-mile'),
+  'dublin':                    PIC('dublin-temple-bar-trinity'),
+  'belfast':                   PIC('belfast-titanic-quarter-museum'),
+  'cork':                      PIC('cork-english-market-ireland'),
+  'kerry':                     PIC('kerry-ring-skellig-atlantic'),
 
-  // Cyprus
-  cyprus:       pic('cyprus-island'),
-  paphos:       pic('paphos-cyprus'),
+  // ── Malta ─────────────────────────────────────────────────────────────
+  'malta':                     PIC('malta-valletta-grand-harbour'),
 
+  // ── Luxembourg ────────────────────────────────────────────────────────
+  'luxembourg':                PIC('luxembourg-casemates-gorge'),
+
+  // ── Albania ───────────────────────────────────────────────────────────
+  'tirana':                    PIC('tirana-skanderbeg-square'),
+
+  // ── Bosnia ────────────────────────────────────────────────────────────
+  'sarajevo':                  PIC('sarajevo-latin-bridge-bazaar'),
+
+  // ── Moldova ───────────────────────────────────────────────────────────
+  'chisinau':                  PIC('chisinau-moldova-wine-cellars'),
+
+  // ── Morocco ───────────────────────────────────────────────────────────
+  'marrakech':                 PIC('marrakech-jemaa-djemaa-fna'),
+  'agadir':                    PIC('agadir-atlantic-beach-morocco'),
+  'essaouira':                 PIC('essaouira-blue-medina-atlantic'),
+  'ouarzazate':                PIC('ouarzazate-ait-benhaddou-kasbah'),
+  'tangier':                   PIC('tangier-strait-casbah-morocco'),
+  'casablanca':                PIC('casablanca-hassan-ii-mosque'),
+  'rabat':                     PIC('rabat-hassan-tower-kasbah'),
+  'fes':                       PIC('fes-medina-tannery-morocco'),
+
+  // ── Egypt ─────────────────────────────────────────────────────────────
+  'sharm-el-sheikh':           PIC('sharm-el-sheikh-red-sea-coral'),
+
+  // ── Cyprus ────────────────────────────────────────────────────────────
+  'paphos':                    PIC('paphos-aphrodite-rock-cyprus'),
+  'larnaca':                   PIC('larnaca-salt-lake-flamingos'),
+
+  // ── Jordan ────────────────────────────────────────────────────────────
+  'amman':                     PIC('amman-petra-jordan-citadel'),
+
+  // ── Israel ────────────────────────────────────────────────────────────
+  'tel-aviv':                  PIC('tel-aviv-beach-bauhaus-israel'),
 }
 
-/* Always-works global fallback */
-const FALLBACK = pic('travel-destination-landscape')
-
-/* ── Normalise helpers ──────────────────────────────────────────────── */
-
-function removeAccents(str) {
-  try {
-    return str.normalize('NFD').replace(/[̀-ͯ]/g, '')
-  } catch {
-    return str
-  }
-}
-
-function toKey(raw) {
-  return removeAccents(raw)
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
+const FALLBACK = PIC('travel-golden-hour-landscape')
 
 /* ── Public API ─────────────────────────────────────────────────────── */
 
 /**
- * Returns a background image URL for the given destination.
- * Always returns a valid URL — falls back to a generic travel photo.
- *
- * Logs the lookup to the console for debugging (remove once confirmed).
+ * Returns a background image URL for the given destination object.
+ * Always returns a valid URL. Logs a warning in development for unknown cities.
  */
 export function getDestinationImage(destination) {
   if (!destination) return FALLBACK
@@ -202,26 +257,16 @@ export function getDestinationImage(destination) {
 
   if (!rawName) return FALLBACK
 
-  const key = toKey(rawName)
-  console.log('[destinationImages] rawName:', rawName, '→ key:', `"${key}"`)
+  const key = normalizeDestinationKey(rawName)
+  const url = IMAGES[key]
 
-  // Exact match
-  if (IMAGES[key]) {
-    console.log('[destinationImages] exact match →', IMAGES[key])
-    return IMAGES[key]
+  if (url) return url
+
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn('[LITL] Missing destination image for:', rawName, '(key:', `"${key}"` + ')')
   }
 
-  // Partial match: our slug is contained in the key (or vice versa)
-  for (const [slug, url] of Object.entries(IMAGES)) {
-    if (key.includes(slug) || slug.includes(key)) {
-      console.log('[destinationImages] partial match:', slug, '→', url)
-      return url
-    }
-  }
-
-  // No match — return picsum seeded with the city name for a consistent photo
-  const seed = key.replace(/\s/g, '-') || 'travel'
-  const fallbackUrl = pic(seed)
-  console.log('[destinationImages] no match, seed fallback →', fallbackUrl)
-  return fallbackUrl
+  // City not in map — use picsum seeded with the normalised city name.
+  // Consistent per city: same photo every time, always loads.
+  return PIC(key || 'travel')
 }

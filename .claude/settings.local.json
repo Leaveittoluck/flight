@@ -3,7 +3,9 @@
     "allow": [
       "Bash(Get-Content \"c:\\\\LeaveItToLuck\\\\flight\\\\client\\\\src\\\\data\\\\weatherEnrichment.js\")",
       "Bash(Measure-Object -Line)",
-      "PowerShell(\\(Get-Content \"c:\\\\LeaveItToLuck\\\\flight\\\\client\\\\src\\\\data\\\\weatherEnrichment.js\" | Measure-Object -Line\\).Lines; \\(Get-Content \"c:\\\\LeaveItToLuck\\\\flight\\\\client\\\\src\\\\data\\\\destinationVibes.js\" | Measure-Object -Line\\).Lines)"
+      "PowerShell(\\(Get-Content \"c:\\\\LeaveItToLuck\\\\flight\\\\client\\\\src\\\\data\\\\weatherEnrichment.js\" | Measure-Object -Line\\).Lines; \\(Get-Content \"c:\\\\LeaveItToLuck\\\\flight\\\\client\\\\src\\\\data\\\\destinationVibes.js\" | Measure-Object -Line\\).Lines)",
+      "Bash(Get-ChildItem -Path \"c:\\\\LeaveItToLuck\\\\flight\" -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)"
     ]
   }
 }

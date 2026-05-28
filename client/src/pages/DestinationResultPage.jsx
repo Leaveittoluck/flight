@@ -75,10 +75,6 @@ export default function DestinationResultPage() {
   const bgGradient = MOOD_BACKGROUNDS[primarySlug] ?? DEFAULT_BG
   const imageUrl   = getDestinationImage(d)
 
-  // Debug — remove once images confirmed working
-  console.log('[DestinationResult] destination.city:', d.city, '| d.name:', d.name)
-  console.log('[DestinationResult] imageUrl:', imageUrl)
-
   function resolveUrl(type) {
     if (type === 'flight') {
       return buildSkyscannerUrl({
