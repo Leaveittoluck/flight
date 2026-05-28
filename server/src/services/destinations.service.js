@@ -1,4 +1,5 @@
 const repo = require("../repositories/destinations.repository");
+const { generateTravelDatesForSeason } = require("../utils/seasonDates");
 
 const MAX_RESULTS = 1;
 const SIMILARITY_MIN_SCORE = 6;
@@ -59,9 +60,9 @@ function buildCostBreakdown(d, budget) {
   };
 }
 
-async function generateDestinations({ departure_airport_id, budget, budget_per_person, travellers, trip_type_slug, departure_date, return_date }) {
+async function generateDestinations({ departure_airport_id, budget, budget_per_person, travellers, trip_type_slug, season }) {
   const requestMeta = {
-    departure_airport_id, budget, travellers, trip_type_slug, departure_date, return_date,
+    departure_airport_id, budget, travellers, trip_type_slug, season,
     ...(budget_per_person != null ? { budget_per_person } : {}),
   }
   const emptyResult = (meta = {}) => ({
@@ -129,20 +130,29 @@ async function generateDestinations({ departure_airport_id, budget, budget_per_p
     placesByDest[row.destination_id].push({ name: row.name, description: row.description });
   }
 
-  const destinations = selected.map((d) => ({
-    destination_id: d.id,
-    city: d.city,
-    country: d.country,
-    hook: d.hook,
-    fun_fact: d.fun_fact,
-    weather_summary: d.weather_summary,
-    iata_code: d.iata_code || null,
-    ...buildCostBreakdown(d, budget),
-    trip_types: tripTypesByDest[d.id] || [],
-    recommended_places: placesByDest[d.id] || [],
-    skyscanner_url: d.skyscanner_url,
-    booking_com_url: d.booking_com_url,
-  }));
+  const destinations = selected.map((d) => {
+    const { departure_date, return_date } = generateTravelDatesForSeason(
+      season,
+      d.default_duration_nights
+    );
+    return {
+      destination_id: d.id,
+      city: d.city,
+      country: d.country,
+      hook: d.hook,
+      fun_fact: d.fun_fact,
+      weather_summary: d.weather_summary,
+      iata_code: d.iata_code || null,
+      ...buildCostBreakdown(d, budget),
+      departure_date,
+      return_date,
+      season,
+      trip_types: tripTypesByDest[d.id] || [],
+      recommended_places: placesByDest[d.id] || [],
+      skyscanner_url: d.skyscanner_url,
+      booking_com_url: d.booking_com_url,
+    };
+  });
 
   return {
     request: requestMeta,

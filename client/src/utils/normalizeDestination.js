@@ -24,6 +24,10 @@ export function normalizeDestination(dest = {}) {
     hotel_affordable_after_flight: dest.hotel_affordable_after_flight ?? null,
     total_trip_cost_estimate:     dest.total_trip_cost_estimate     ?? null,
     estimated_total_cost:         dest.estimated_total_cost         ?? null,
+    // Generated travel dates (set by the backend, not the user)
+    departure_date: dest.departure_date || null,
+    return_date:    dest.return_date    || null,
+    season:         dest.season         || null,
     trip_types: Array.isArray(dest.trip_types) ? dest.trip_types : [],
     recommended_places: Array.isArray(dest.recommended_places) ? dest.recommended_places : [],
     skyscanner_url: dest.skyscanner_url || null,

@@ -8,8 +8,8 @@ Built as a travel affiliate platform: destination cards link to Skyscanner and B
 
 ## Current MVP scope
 
-- Generator form: budget, travellers, mood, season, departure date, optional return date
-- Destination engine: selects up to 3 matching destinations using flight-first budget logic — a destination is eligible when its flight cost fits the budget; hotel affordability is shown separately
+- Generator form: budget, travellers, mood, season — no date entry; the app picks the dates
+- Destination engine: selects one matching destination using flight-first budget logic — a destination is eligible when its flight cost fits the budget; hotel affordability is shown separately
 - Destination cards: city, cost breakdown (flights + hotel), trip tags, fun fact, recommended places, CTA links
 - CTA flow: flight button always active; hotel button unlocks after the flight link is opened; remaining budget shown after flight click
 - CTA click tracking: every flight/hotel button click is recorded via backend before redirect; analytics failure never blocks the redirect
@@ -27,7 +27,7 @@ Third-party travel API integrations (live flight prices, hotel availability) are
 | Backend  | Node.js + Express                   |
 | Database | PostgreSQL (schema: `flight`)       |
 | Routing  | react-router-dom v7                 |
-| HTTP     | axios                               |
+| HTTP     | fetch (native)                      |
 | Validation | zod                               |
 
 ---
@@ -139,18 +139,22 @@ updates existing rows rather than creating duplicates.
 Health check. Returns `{ ok: true }`.
 
 ### `POST /api/destinations/generate`
-Generate up to 3 destination suggestions.
+Generate one destination suggestion with backend-chosen travel dates.
 
 **Request body:**
 ```json
 {
   "departure_airport_id": 1,
   "budget": 2000,
+  "budget_per_person": 1000,
   "travellers": 2,
   "trip_type_slug": "beach",
   "season": "summer"
 }
 ```
+
+`season` is required and must be one of: `spring`, `summer`, `autumn`, `fall`, `winter`.  
+`departure_date` and `return_date` are **not** accepted — the backend generates them.
 
 **Response:**
 ```json
@@ -158,8 +162,21 @@ Generate up to 3 destination suggestions.
   "ok": true,
   "message": "Destinations found",
   "data": {
-    "destinations": [...],
-    "meta": { "results_count": 3, "fallback_used": false, "tiers_hit": ["tier1_exact"] },
+    "destinations": [
+      {
+        "destination_id": 12,
+        "city": "Malaga",
+        "country": "Spain",
+        "departure_date": "2026-07-14",
+        "return_date": "2026-07-21",
+        "season": "summer",
+        "flight_total_cost": 88,
+        "hotel_total_cost": 560,
+        "total_trip_cost_estimate": 648,
+        "..."
+      }
+    ],
+    "meta": { "results_count": 1, "fallback_used": false, "tiers_hit": ["tier1_exact"] },
     "request": { ... }
   }
 }
