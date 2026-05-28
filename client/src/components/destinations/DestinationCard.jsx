@@ -21,10 +21,11 @@ function CtaTooltip({ message }) {
   return (
     <div
       role="tooltip"
-      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 bg-slate-800 text-white text-xs rounded-lg whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 text-white text-xs rounded-xl whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+      style={{ backgroundColor: '#431407', boxShadow: '0 2px 8px rgba(0,0,0,0.25)' }}
     >
       {message}
-      <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
+      <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent" style={{ borderTopColor: '#431407' }} />
     </div>
   )
 }
@@ -120,53 +121,70 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
     : 'Search flights first to unlock hotels'
 
   return (
-    <article className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition-shadow duration-300 hover:shadow-md">
+    <article
+      className="rounded-3xl overflow-hidden transition-all duration-300 hover:-translate-y-1.5"
+      style={{
+        backgroundColor: '#fff7ed',
+        border: '1.5px solid rgba(251,146,60,0.2)',
+        boxShadow: '0 2px 16px rgba(249,115,22,0.08)',
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 12px 36px rgba(249,115,22,0.18)')}
+      onMouseLeave={(e) => (e.currentTarget.style.boxShadow = '0 2px 16px rgba(249,115,22,0.08)')}
+    >
       {/* ── SEASONAL ACCENT BAR ── */}
       <div
         aria-hidden="true"
-        className="h-0.5 w-full"
+        className="h-1 w-full"
         style={{ background: theme.accentGradient }}
       />
 
       {/* ── HERO: city, cost, hook ── */}
       <div className="p-6 pb-5 relative overflow-hidden">
-        {/* Seasonal gradient wash — purely atmospheric */}
+        {/* Seasonal gradient wash */}
         <div
           aria-hidden="true"
           className="absolute inset-0 pointer-events-none"
           style={{ background: theme.heroGradient }}
         />
         <SeasonalCardAccent season={resolvedSeason} color={theme.color} />
+
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="flex-1 min-w-0">
             {(d.city || d.country) && (
-              <h3 className="text-2xl font-bold text-slate-900 leading-tight">
+              <h3 className="text-2xl font-bold text-stone-900 leading-tight">
                 {d.city && <span>{d.city}</span>}
                 {d.city && d.country && (
-                  <span className="text-slate-400 font-normal">, </span>
+                  <span className="text-stone-400 font-normal">, </span>
                 )}
                 {d.country && (
-                  <span className="text-slate-500 font-semibold text-xl">{d.country}</span>
+                  <span className="text-stone-500 font-semibold text-xl">{d.country}</span>
                 )}
               </h3>
             )}
             {d.hook && (
-              <p className="mt-2 text-slate-600 text-base leading-snug max-w-prose">
+              <p className="mt-2 text-stone-600 text-base leading-snug max-w-prose">
                 {d.hook}
               </p>
             )}
           </div>
 
+          {/* Price as vivid orange badge */}
           {d.total_trip_cost_estimate != null && (
-            <div className="shrink-0 text-right">
-              <div className="text-3xl font-extrabold text-blue-600 leading-none">
+            <div
+              className="shrink-0 text-center px-4 py-3 rounded-2xl text-white shadow-lg"
+              style={{
+                background: 'linear-gradient(135deg, #ea580c, #f97316)',
+                boxShadow: '0 4px 14px rgba(234,88,12,0.35)',
+              }}
+            >
+              <div className="text-2xl font-bold leading-none">
                 {formatGBP(Math.ceil(d.total_trip_cost_estimate / (tripInput?.travellers ?? 1)))}
               </div>
-              <p className="text-xs text-slate-400 mt-0.5 font-medium">
-                per person (est.)
+              <p className="text-xs mt-1 font-medium" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                per person
               </p>
-              <p className="text-xs text-slate-400 mt-0.5">
-                {formatGBP(d.total_trip_cost_estimate)} est. total
+              <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.55)' }}>
+                {formatGBP(d.total_trip_cost_estimate)} total
               </p>
             </div>
           )}
@@ -178,11 +196,12 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
             {d.trip_types.map((t) => (
               <span
                 key={t.id ?? t.slug}
-                className={`text-xs px-3 py-1 rounded-full font-semibold tracking-wide ${
+                className="text-xs px-3 py-1 rounded-full font-bold tracking-wide"
+                style={
                   t.is_primary
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-slate-100 text-slate-500'
-                }`}
+                    ? { backgroundColor: 'rgba(249,115,22,0.12)', color: '#ea580c', border: '1px solid rgba(249,115,22,0.2)' }
+                    : { backgroundColor: 'rgba(120,113,108,0.08)', color: '#78716c', border: '1px solid rgba(120,113,108,0.15)' }
+                }
               >
                 {t.label}
               </span>
@@ -193,19 +212,18 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
 
       {/* ── COST BREAKDOWN ── */}
       {(d.flight_total_cost != null || d.hotel_total_cost != null) && (
-        <div className="border-t border-slate-100 bg-slate-50 px-6 py-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-600">
+        <div
+          className="px-6 py-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-stone-600"
+          style={{ borderTop: '1px solid rgba(251,146,60,0.15)', backgroundColor: 'rgba(254,243,199,0.5)' }}
+        >
           {d.flight_total_cost != null && (
             <span className="flex items-center gap-1.5">
               <span className="text-base">✈</span>
               <span>
-                <span className="font-semibold text-slate-800">
-                  {formatGBP(d.flight_total_cost)}
-                </span>{' '}
+                <span className="font-semibold text-stone-800">{formatGBP(d.flight_total_cost)}</span>{' '}
                 Estimated flights
                 {d.flight_cost_per_person_gbp != null && tripInput?.travellers > 1 && (
-                  <span className="text-slate-400">
-                    {' '}({formatGBP(d.flight_cost_per_person_gbp)}/person)
-                  </span>
+                  <span className="text-stone-400"> ({formatGBP(d.flight_cost_per_person_gbp)}/person)</span>
                 )}
               </span>
             </span>
@@ -214,12 +232,10 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
             <span className="flex items-center gap-1.5">
               <span className="text-base">🏨</span>
               <span>
-                <span className="font-semibold text-slate-800">
-                  {formatGBP(d.hotel_total_cost)}
-                </span>{' '}
+                <span className="font-semibold text-stone-800">{formatGBP(d.hotel_total_cost)}</span>{' '}
                 Estimated hotel &middot; {d.default_duration_nights} nights
                 {d.hotel_rooms_needed > 1 && (
-                  <span className="text-slate-400"> ({d.hotel_rooms_needed} rooms)</span>
+                  <span className="text-stone-400"> ({d.hotel_rooms_needed} rooms)</span>
                 )}
               </span>
             </span>
@@ -235,8 +251,8 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
 
       {/* ── FUN FACT ── */}
       {d.fun_fact && (
-        <div className="border-t border-amber-100 bg-amber-50 px-6 py-4">
-          <p className="text-xs font-bold text-amber-600 uppercase tracking-widest mb-1">
+        <div style={{ borderTop: '1px solid rgba(251,146,60,0.15)', backgroundColor: '#fef9c3' }} className="px-6 py-4">
+          <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#d97706' }}>
             Fun fact
           </p>
           <p className="text-sm text-amber-900">{d.fun_fact}</p>
@@ -245,18 +261,18 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
 
       {/* ── RECOMMENDED PLACES ── */}
       {d.recommended_places.length > 0 && (
-        <div className="border-t border-slate-100 px-6 py-4">
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
+        <div style={{ borderTop: '1px solid rgba(251,146,60,0.12)' }} className="px-6 py-4">
+          <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-3">
             Worth visiting
           </p>
           <ul className="space-y-2">
             {d.recommended_places.map((place, i) => (
               <li key={i} className="text-sm flex gap-2">
-                <span className="text-blue-400 mt-0.5 shrink-0">•</span>
+                <span className="mt-0.5 shrink-0" style={{ color: '#f97316' }}>•</span>
                 <span>
-                  <span className="font-semibold text-slate-800">{place.name}</span>
+                  <span className="font-semibold text-stone-800">{place.name}</span>
                   {place.description && (
-                    <span className="text-slate-500"> — {place.description}</span>
+                    <span className="text-stone-500"> — {place.description}</span>
                   )}
                 </span>
               </li>
@@ -267,7 +283,7 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
 
       {/* ── CTA BUTTONS ── */}
       {(canSearchFlights || canFindHotels) && (
-        <div className="border-t border-slate-100 px-6 py-4">
+        <div style={{ borderTop: '1px solid rgba(251,146,60,0.15)' }} className="px-6 py-4">
           <div className="flex gap-3">
             {canSearchFlights && (
               <div className={`relative group ${limitReached ? 'cursor-not-allowed' : ''}`}>
@@ -275,9 +291,13 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
                   onClick={() => handleCtaClick('flight')}
                   disabled={!!pending || limitReached}
                   title={limitReached ? 'Upgrade to continue booking' : undefined}
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                  className="inline-flex items-center gap-1.5 text-sm font-bold text-white px-5 py-2.5 rounded-2xl transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none hover:-translate-y-0.5"
+                  style={{
+                    background: 'linear-gradient(135deg, #ea580c, #f97316)',
+                    boxShadow: '0 3px 12px rgba(234,88,12,0.3)',
+                  }}
                 >
-                  {pending === 'flight' ? 'Opening…' : flightClicked ? 'Search flights again →' : 'Search flights →'}
+                  {pending === 'flight' ? 'Opening…' : flightClicked ? 'Search again →' : 'Search flights →'}
                 </button>
                 {limitReached && <CtaTooltip message="Upgrade to continue booking" />}
               </div>
@@ -288,7 +308,12 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
                   onClick={() => handleCtaClick('hotel')}
                   disabled={hotelDisabled}
                   title={hotelDisabled ? hotelTooltipMessage : undefined}
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                  className="inline-flex items-center gap-1.5 text-sm font-bold px-5 py-2.5 rounded-2xl transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none hover:-translate-y-0.5"
+                  style={{
+                    backgroundColor: 'rgba(249,115,22,0.1)',
+                    color: '#ea580c',
+                    border: '1.5px solid rgba(249,115,22,0.25)',
+                  }}
                 >
                   {pending === 'hotel' ? 'Opening…' : 'Find hotels →'}
                 </button>
@@ -297,38 +322,36 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
             )}
           </div>
 
-          {/* Price estimate disclaimer — always visible */}
-          <p className="mt-3 text-xs text-slate-400">
+          {/* Price estimate disclaimer */}
+          <p className="mt-3 text-xs text-stone-400">
             Prices are estimates. Final live prices may vary on partner sites.
           </p>
 
-          {/* Passenger count caveat when dynamic Skyscanner URL unavailable */}
           {skyscannerPassengerCaveat && (
-            <p className="mt-1.5 text-xs text-slate-500">
+            <p className="mt-1.5 text-xs text-stone-500">
               Adjust passenger count on Skyscanner before booking
             </p>
           )}
 
-          {/* Remaining budget shown after user opens the flight link */}
           {flightClicked && d.remaining_budget_after_flight != null && (
             d.hotel_affordable_after_flight ? (
-              <p className="mt-2.5 text-xs text-green-700 font-medium">
+              <p className="mt-2.5 text-xs text-green-700 font-semibold">
                 {formatGBP(d.remaining_budget_after_flight)} left after flights — hotels fit your budget
               </p>
             ) : (
-              <p className="mt-2.5 text-xs text-amber-600 font-medium">
+              <p className="mt-2.5 text-xs font-semibold" style={{ color: '#f97316' }}>
                 {formatGBP(d.remaining_budget_after_flight)} left after flights — hotel cost may push over budget
               </p>
             )
           )}
 
           {limitReached && (
-            <p className="mt-2.5 text-xs text-amber-600 font-medium">
+            <p className="mt-2.5 text-xs font-semibold" style={{ color: '#f97316' }}>
               You've reached your limit. Upgrade to continue.
             </p>
           )}
           {!limitReached && ctaError.message && (
-            <p className="mt-2.5 text-xs text-red-600 font-medium">{ctaError.message}</p>
+            <p className="mt-2.5 text-xs text-red-600 font-semibold">{ctaError.message}</p>
           )}
         </div>
       )}

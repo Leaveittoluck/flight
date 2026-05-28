@@ -15,8 +15,8 @@ export default function GeneratorPage() {
   const [status, setStatus] = useState('idle') // idle | loading | error | empty | success
   const [destinations, setDestinations] = useState([])
   const [errorMsg, setErrorMsg] = useState('')
-  const [clicksRemaining, setClicksRemaining] = useState(null) // null until first click response
-  const [tripInput, setTripInput] = useState(null) // { travellers, departureDate, returnDate, originIata }
+  const [clicksRemaining, setClicksRemaining] = useState(null)
+  const [tripInput, setTripInput] = useState(null)
 
   const { season, setSeason } = useActiveSeason()
   const pageSeasonKey = resolvePageSeason(tripInput?.season || season)
@@ -71,23 +71,36 @@ export default function GeneratorPage() {
   return (
     <div
       className="min-h-screen"
-      style={{ background: `${pageTheme.pageGradient}, #f8fafc` }}
+      style={{ background: `${pageTheme.pageGradient}, #fff7ed` }}
     >
-      <header
-        className="border-b border-slate-200"
-        style={{ background: `${pageTheme.pageGradient}, white` }}
-      >
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-5">
-          <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">
-            Leave It To Luck
-          </h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Tell us your budget and vibe — we'll handle the rest
-          </p>
+      {/* Orange gradient page header */}
+      <header style={{ background: 'linear-gradient(135deg, #c2410c 0%, #ea580c 45%, #f97316 80%, #fb923c 100%)' }}>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 relative overflow-hidden">
+          {/* Subtle sun glow in header */}
+          <div
+            aria-hidden="true"
+            className="absolute -top-8 right-8 w-32 h-32 rounded-full pointer-events-none"
+            style={{
+              background: 'radial-gradient(circle, rgba(251,191,36,0.3) 0%, transparent 70%)',
+              animation: 'sunGlow 7s ease-in-out infinite',
+            }}
+          />
+          <div className="relative">
+            <h1 className="text-2xl font-bold text-white tracking-tight">
+              Leave It To Luck
+            </h1>
+            <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.7)' }}>
+              Tell us your budget and vibe — we'll handle the rest
+            </p>
+          </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-10">
+      {/* Main content — fades in on mount */}
+      <main
+        className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-10"
+        style={{ animation: 'fadeInUp 0.45s ease forwards' }}
+      >
         <GeneratorForm
           onSubmit={handleSubmit}
           isLoading={status === 'loading'}

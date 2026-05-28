@@ -8,20 +8,75 @@ body {
   margin: 0;
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
-  background-color: #f8fafc;
+  /* warm orange foundation */
+  background-color: #fff7ed;
 }
 
 #root {
   min-height: 100svh;
 }
 
+/* ─── Entrance ─── */
+
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Scroll reveal ─── */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.visible          { opacity: 1; transform: translateY(0); }
+.reveal-delay-1          { transition-delay: 0.10s; }
+.reveal-delay-2          { transition-delay: 0.20s; }
+.reveal-delay-3          { transition-delay: 0.30s; }
+.reveal-delay-4          { transition-delay: 0.40s; }
+
+/* ─── Weather & travel animations ─── */
+
+/* Clouds drifting gently left and right */
+@keyframes cloudDrift {
+  0%, 100% { transform: translateX(0px); }
+  50%       { transform: translateX(22px); }
+}
+
+@keyframes cloudDriftLeft {
+  0%, 100% { transform: translateX(0px); }
+  50%       { transform: translateX(-18px); }
+}
+
+/* Sun glow pulse */
+@keyframes sunGlow {
+  0%, 100% { opacity: 0.45; transform: scale(1); }
+  50%       { opacity: 0.72; transform: scale(1.08); }
+}
+
+/* Animated dashed route line — dash offset slides right */
+@keyframes slideDash {
+  from { background-position: 0 0; }
+  to   { background-position: 20px 0; }
+}
+
+/* Sparkle stars appear and fade */
+@keyframes sparkle {
+  0%, 100%  { opacity: 0; transform: scale(0) rotate(0deg); }
+  40%, 60%  { opacity: 1; transform: scale(1) rotate(180deg); }
+}
+
+/* Gentle float for decorative icons */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+
+/* Hero SVG path draw-on */
+@keyframes drawRoute {
+  from { stroke-dashoffset: 1200; }
+  to   { stroke-dashoffset: 0; }
 }
