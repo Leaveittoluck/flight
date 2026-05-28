@@ -9,7 +9,7 @@
        {formSeason && (
          <div
            className="absolute hidden sm:block pointer-events-none"
-           style={{ top:'-24px', left:'-24px', zIndex: 5 }}
+           style={{ top:'-60px', left:'-70px', zIndex: 8 }}
          >
            <SeasonPageAccent key={formSeason} season={formSeason} />
          </div>
@@ -18,6 +18,13 @@
          <GeneratorForm … />
        </div>
      </div>
+
+   Visible zone:
+   - Wrapper at left:-70px → ~70px of the container sticks out left of form.
+   - Container widths ~165-170px → ~42% of illustration is visible.
+   - Everything at top < ~30% of container height is ABOVE the form top
+     edge and visible at any x.
+   - Particles are placed in these two zones to remain visible.
    ────────────────────────────────────────────────────────────────────── */
 
 /* ── Shared particle helpers ──────────────────────────────────────────── */
@@ -29,8 +36,8 @@ function Petal({ top, left, delay, dur, color }) {
       style={{
         position: 'absolute',
         top, left,
-        width: '8px',
-        height: '12px',
+        width: '9px',
+        height: '13px',
         backgroundColor: color,
         borderRadius: '50% 50% 50% 50% / 70% 70% 30% 30%',
         animation: `petalDrift ${dur} ease-in-out infinite ${delay}`,
@@ -46,8 +53,8 @@ function Leaf({ top, left, delay, dur, color }) {
       style={{
         position: 'absolute',
         top, left,
-        width: '11px',
-        height: '15px',
+        width: '12px',
+        height: '16px',
         backgroundColor: color,
         borderRadius: '50% 5% 50% 5%',
         animation: `leafFall ${dur} ease-in-out infinite ${delay}`,
@@ -110,24 +117,25 @@ function SpringVisual() {
         <circle cx="53" cy="50" r="4"  fill="white"  opacity="0.75" />
       </svg>
 
-      {/* Floating petals */}
-      <Petal top="25%" left="55%" delay="0s"   dur="3.1s" color="#f9a8d4" />
-      <Petal top="14%" left="72%" delay="0.7s" dur="2.8s" color="#fbcfe8" />
-      <Petal top="40%" left="65%" delay="1.4s" dur="3.4s" color="#f9a8d4" />
-      <Petal top="10%" left="44%" delay="2.0s" dur="2.7s" color="#fce7f3" />
-      <Petal top="48%" left="80%" delay="2.7s" dur="3.2s" color="#f9a8d4" />
-      <Petal top="20%" left="88%" delay="1.0s" dur="3.0s" color="#fbcfe8" />
+      {/* Petals — above-form zone (top < 32%): any x OK
+                   side zone (top ≥ 32%): left must be < 42% */}
+      <Petal top="8%"  left="58%" delay="0s"   dur="3.1s" color="#f9a8d4" />
+      <Petal top="18%" left="74%" delay="0.7s" dur="2.8s" color="#fbcfe8" />
+      <Petal top="25%" left="46%" delay="1.4s" dur="3.4s" color="#f9a8d4" />
+      <Petal top="38%" left="16%" delay="2.0s" dur="2.7s" color="#fce7f3" />
+      <Petal top="52%" left="28%" delay="2.7s" dur="3.2s" color="#f9a8d4" />
+      <Petal top="66%" left="10%" delay="1.0s" dur="3.0s" color="#fbcfe8" />
 
-      {/* Breeze lines */}
-      <svg aria-hidden="true" style={{ position:'absolute', top:'60%', left:'70%', width:'55px', height:'22px',
+      {/* Breeze lines — above zone & left side */}
+      <svg aria-hidden="true" style={{ position:'absolute', top:'20%', left:'48%', width:'55px', height:'22px',
         animation:'windSweep 4s ease-in-out infinite', overflow:'visible' }}>
         <path d="M0 11 Q14 3 28 11 Q42 19 55 11"
-          stroke="#f9a8d4" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeDasharray="3 5" />
+          stroke="#f9a8d4" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeDasharray="3 5" />
       </svg>
-      <svg aria-hidden="true" style={{ position:'absolute', top:'38%', left:'82%', width:'40px', height:'16px',
+      <svg aria-hidden="true" style={{ position:'absolute', top:'60%', left:'5%', width:'40px', height:'16px',
         animation:'windSweep 5s ease-in-out infinite 1.5s', overflow:'visible' }}>
         <path d="M0 8 Q10 2 20 8 Q30 14 40 8"
-          stroke="#fce7f3" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeDasharray="2 4" />
+          stroke="#fce7f3" strokeWidth="1.4" fill="none" strokeLinecap="round" strokeDasharray="2 4" />
       </svg>
     </>
   )
@@ -157,12 +165,13 @@ function SummerVisual() {
         <circle cx="47" cy="47" r="6.5" fill="rgba(255,255,255,0.28)" />
       </svg>
 
-      {/* Sparkles around the sun */}
-      <GlowStar top="5%"  left="62%" delay="0s"   size="12px" color="#fde68a" />
-      <GlowStar top="72%" left="70%" delay="0.8s" size="10px" color="#fde68a" />
-      <GlowStar top="30%" left="88%" delay="1.5s" size="14px" color="#fbbf24" />
-      <GlowStar top="80%" left="50%" delay="2.2s" size="9px"  color="#fde68a" />
-      <GlowStar top="12%" left="82%" delay="2.9s" size="11px" color="#fde68a" />
+      {/* Sparkles — above-form zone (top < 36%): any x
+                    side zone (top ≥ 36%): left < 41% */}
+      <GlowStar top="8%"  left="62%" delay="0s"   size="13px" color="#fde68a" />
+      <GlowStar top="22%" left="80%" delay="0.8s" size="11px" color="#fde68a" />
+      <GlowStar top="15%" left="35%" delay="1.5s" size="15px" color="#fbbf24" />
+      <GlowStar top="72%" left="14%" delay="2.2s" size="10px" color="#fde68a" />
+      <GlowStar top="82%" left="5%"  delay="2.9s" size="12px" color="#fde68a" />
     </>
   )
 }
@@ -191,24 +200,25 @@ function AutumnVisual() {
         <circle cx="73" cy="37" r="11" fill="#f59e0b" opacity="0.72" />
       </svg>
 
-      {/* Falling leaves */}
-      <Leaf top="22%" left="57%" delay="0s"   dur="3.3s" color="#f97316" />
-      <Leaf top="14%" left="76%" delay="0.8s" dur="2.9s" color="#dc2626" />
-      <Leaf top="36%" left="69%" delay="1.6s" dur="3.6s" color="#f59e0b" />
-      <Leaf top="8%"  left="48%" delay="2.4s" dur="3.1s" color="#ea580c" />
-      <Leaf top="50%" left="83%" delay="3.0s" dur="3.4s" color="#f97316" />
-      <Leaf top="28%" left="92%" delay="0.4s" dur="3.8s" color="#dc2626" />
+      {/* Leaves — above-form zone (top < 31%): any x
+                   side zone (top ≥ 31%): left < 42% */}
+      <Leaf top="10%" left="60%" delay="0s"   dur="3.3s" color="#f97316" />
+      <Leaf top="22%" left="76%" delay="0.8s" dur="2.9s" color="#dc2626" />
+      <Leaf top="28%" left="82%" delay="0.4s" dur="3.8s" color="#f59e0b" />
+      <Leaf top="12%" left="40%" delay="2.4s" dur="3.1s" color="#ea580c" />
+      <Leaf top="40%" left="18%" delay="1.6s" dur="3.6s" color="#f59e0b" />
+      <Leaf top="55%" left="8%"  delay="3.0s" dur="3.4s" color="#f97316" />
 
-      {/* Wind gust */}
-      <svg aria-hidden="true" style={{ position:'absolute', top:'18%', left:'74%', width:'60px', height:'24px',
+      {/* Wind gust — above zone */}
+      <svg aria-hidden="true" style={{ position:'absolute', top:'18%', left:'44%', width:'60px', height:'24px',
         animation:'windSweep 3.5s ease-in-out infinite', overflow:'visible' }}>
         <path d="M0 12 Q15 3 30 12 Q45 21 60 12"
-          stroke="#f97316" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeDasharray="4 6" opacity="0.6" />
+          stroke="#f97316" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeDasharray="4 6" opacity="0.7" />
       </svg>
-      <svg aria-hidden="true" style={{ position:'absolute', top:'5%', left:'62%', width:'44px', height:'16px',
+      <svg aria-hidden="true" style={{ position:'absolute', top:'8%', left:'58%', width:'44px', height:'16px',
         animation:'windSweep 4.5s ease-in-out infinite 1.2s', overflow:'visible' }}>
         <path d="M0 8 Q11 2 22 8 Q33 14 44 8"
-          stroke="#ea580c" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeDasharray="3 5" opacity="0.5" />
+          stroke="#ea580c" strokeWidth="1.4" fill="none" strokeLinecap="round" strokeDasharray="3 5" opacity="0.6" />
       </svg>
     </>
   )
@@ -244,26 +254,27 @@ function WinterVisual() {
         <path d="M58 57 Q67 48 70 41" stroke="#78350f" strokeWidth="2"   strokeLinecap="round" />
       </svg>
 
-      {/* Snowflakes */}
-      <Flake top="6%"   left="58%" delay="0s"   dur="3.6s" size="10px" />
-      <Flake top="0%"   left="76%" delay="0.6s" dur="3.1s" size="8px"  />
-      <Flake top="15%"  left="42%" delay="1.3s" dur="4.0s" size="9px"  />
-      <Flake top="-4%"  left="65%" delay="1.9s" dur="3.3s" size="7px"  />
-      <Flake top="22%"  left="85%" delay="2.5s" dur="3.8s" size="8px"  />
-      <Flake top="5%"   left="51%" delay="3.1s" dur="3.5s" size="9px"  />
-      <Flake top="-2%"  left="88%" delay="0.3s" dur="4.2s" size="7px"  />
-      <Flake top="32%"  left="92%" delay="1.7s" dur="3.9s" size="8px"  />
+      {/* Snowflakes — above-form zone (top < 29%): any x
+                      side zone (top ≥ 29%): left < 45% */}
+      <Flake top="5%"  left="55%" delay="0s"   dur="3.6s" size="11px" />
+      <Flake top="0%"  left="72%" delay="0.6s" dur="3.1s" size="9px"  />
+      <Flake top="15%" left="38%" delay="1.3s" dur="4.0s" size="10px" />
+      <Flake top="24%" left="78%" delay="1.9s" dur="3.3s" size="8px"  />
+      <Flake top="36%" left="32%" delay="2.5s" dur="3.8s" size="9px"  />
+      <Flake top="8%"  left="18%" delay="3.1s" dur="3.5s" size="10px" />
+      <Flake top="48%" left="12%" delay="0.3s" dur="4.2s" size="8px"  />
+      <Flake top="62%" left="40%" delay="1.7s" dur="3.9s" size="9px"  />
 
-      {/* Cold wind streaks */}
-      <div aria-hidden="true" style={{ position:'absolute', top:'55%', left:'72%', width:'48px', height:'2px',
+      {/* Cold wind streaks — side zone */}
+      <div aria-hidden="true" style={{ position:'absolute', top:'65%', left:'15%', width:'48px', height:'2px',
         backgroundColor:'#bae6fd', borderRadius:'999px',
-        animation:'windSweep 3s ease-in-out infinite', opacity:0.6 }} />
-      <div aria-hidden="true" style={{ position:'absolute', top:'65%', left:'60%', width:'32px', height:'1.5px',
+        animation:'windSweep 3s ease-in-out infinite', opacity:0.7 }} />
+      <div aria-hidden="true" style={{ position:'absolute', top:'74%', left:'5%', width:'32px', height:'1.5px',
         backgroundColor:'#bae6fd', borderRadius:'999px',
-        animation:'windSweep 3.8s ease-in-out infinite 1.2s', opacity:0.4 }} />
-      <div aria-hidden="true" style={{ position:'absolute', top:'45%', left:'80%', width:'26px', height:'1.5px',
+        animation:'windSweep 3.8s ease-in-out infinite 1.2s', opacity:0.55 }} />
+      <div aria-hidden="true" style={{ position:'absolute', top:'52%', left:'25%', width:'26px', height:'1.5px',
         backgroundColor:'#93c5fd', borderRadius:'999px',
-        animation:'windSweep 4.5s ease-in-out infinite 2.4s', opacity:0.35 }} />
+        animation:'windSweep 4.5s ease-in-out infinite 2.4s', opacity:0.5 }} />
     </>
   )
 }
@@ -271,10 +282,10 @@ function WinterVisual() {
 /* ── Sizes ────────────────────────────────────────────────────────────── */
 
 const SIZES = {
-  spring: { w: '140px', h: '165px' },
-  summer: { w: '150px', h: '150px' },
-  autumn: { w: '145px', h: '170px' },
-  winter: { w: '130px', h: '180px' },
+  spring: { w: '165px', h: '190px' },
+  summer: { w: '170px', h: '165px' },
+  autumn: { w: '168px', h: '195px' },
+  winter: { w: '155px', h: '205px' },
 }
 
 /* ── Export ───────────────────────────────────────────────────────────── */

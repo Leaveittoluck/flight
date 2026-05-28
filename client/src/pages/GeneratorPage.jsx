@@ -126,7 +126,7 @@ export default function GeneratorPage() {
           {formSeason && (
             <div
               className="absolute hidden sm:block pointer-events-none"
-              style={{ top: '-24px', left: '-24px', zIndex: 5 }}
+              style={{ top: '-60px', left: '-70px', zIndex: 8 }}
             >
               <SeasonPageAccent key={formSeason} season={formSeason} />
             </div>

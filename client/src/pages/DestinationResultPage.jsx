@@ -3,6 +3,7 @@ import { useLocation, useNavigate, Link } from 'react-router-dom'
 import { trackClick } from '../services/clicksApi'
 import { buildSkyscannerUrl, buildBookingUrl } from '../utils/buildProviderUrls'
 import { weatherEnrichment } from '../data/weatherEnrichment'
+import { getDestinationImage } from '../data/destinationImages'
 
 const SESSION_KEY = 'litl_last_result'
 
@@ -72,6 +73,11 @@ export default function DestinationResultPage() {
                    ?? d.trip_types?.[0]?.slug
                    ?? 'default'
   const bgGradient = MOOD_BACKGROUNDS[primarySlug] ?? DEFAULT_BG
+  const imageUrl   = getDestinationImage(d)
+
+  // Debug — remove once images confirmed working
+  console.log('[DestinationResult] destination.city:', d.city, '| d.name:', d.name)
+  console.log('[DestinationResult] imageUrl:', imageUrl)
 
   function resolveUrl(type) {
     if (type === 'flight') {
@@ -128,25 +134,44 @@ export default function DestinationResultPage() {
       {/* ══════════ HERO ══════════ */}
       <section
         className="relative overflow-hidden"
-        style={{ background: bgGradient, minHeight: '72vh' }}
+        style={{ minHeight: '72vh', backgroundColor: '#1c1917' }}
       >
-        {/* Atmospheric light overlay */}
-        <div
+        {/* Background photo — z:0, behind all overlays */}
+        <img
+          src={imageUrl}
+          alt={`${d.city ?? 'destination'} landscape`}
           aria-hidden="true"
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: 'radial-gradient(ellipse 60% 50% at 70% 25%, rgba(255,255,255,0.06) 0%, transparent 60%)',
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ zIndex: 0 }}
+          onError={(e) => {
+            e.currentTarget.onerror = null
+            const seed = (d.city || 'destination').toLowerCase().replace(/[^a-z]/g, '')
+            e.currentTarget.src = `https://picsum.photos/seed/${seed}/1600/900`
           }}
         />
-        {/* Text-readability gradient at bottom */}
+
+        {/* Overlays — z:1, light enough to show the photo through */}
+        {/* Base cinematic veil */}
         <div
           aria-hidden="true"
           className="absolute inset-0 pointer-events-none"
-          style={{ background: 'linear-gradient(to bottom, transparent 35%, rgba(0,0,0,0.65) 100%)' }}
+          style={{ background: 'rgba(0,0,0,0.22)', zIndex: 1 }}
+        />
+        {/* Warm rust tint at top-left */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: 'linear-gradient(160deg, rgba(120,53,15,0.28) 0%, transparent 50%)', zIndex: 1 }}
+        />
+        {/* Bottom gradient — strong only near the bottom for text */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: 'linear-gradient(to bottom, transparent 35%, rgba(0,0,0,0.72) 100%)', zIndex: 1 }}
         />
 
-        {/* Back button */}
-        <div className="absolute top-6 left-6 z-10">
+        {/* Back button — z:20, above everything */}
+        <div className="absolute top-6 left-6" style={{ zIndex: 20 }}>
           <Link
             to="/travel"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold text-white transition-all hover:-translate-y-px"
@@ -160,10 +185,10 @@ export default function DestinationResultPage() {
           </Link>
         </div>
 
-        {/* Hero content */}
+        {/* Hero content — z:20, above overlays */}
         <div
           className="absolute bottom-0 left-0 right-0 px-6 sm:px-8 pb-10 max-w-4xl mx-auto"
-          style={{ animation: 'fadeInUp 0.65s ease forwards' }}
+          style={{ animation: 'fadeInUp 0.65s ease forwards', zIndex: 20 }}
         >
           {/* Trip type badges */}
           {d.trip_types?.length > 0 && (
