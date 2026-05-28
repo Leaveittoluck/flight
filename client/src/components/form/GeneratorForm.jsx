@@ -5,6 +5,7 @@ import MoodSelect from './MoodSelect'
 import SeasonSelect from './SeasonSelect'
 import DateInputPair from './DateInputPair'
 import Button from '../ui/Button'
+import SeasonVisualAccent from './SeasonVisualAccent'
 
 const DEFAULT_FORM = {
   budget: '',
@@ -13,6 +14,16 @@ const DEFAULT_FORM = {
   season: '',
   departure_date: '',
   return_date: '',
+}
+
+/* Soft gradient overlays that cross-fade when the user switches seasons.
+   Each div is always present; only the active one has opacity:1.
+   CSS transition on opacity gives a smooth background colour shift. */
+const SEASON_OVERLAYS = {
+  spring: 'linear-gradient(160deg, rgba(252,231,243,0.55) 0%, rgba(220,252,231,0.35) 55%, transparent 80%)',
+  summer: 'linear-gradient(160deg, rgba(254,240,138,0.52) 0%, rgba(251,191,36,0.22) 55%, transparent 80%)',
+  autumn: 'linear-gradient(160deg, rgba(253,186,116,0.52) 0%, rgba(251,146,60,0.28) 55%, transparent 80%)',
+  winter: 'linear-gradient(160deg, rgba(186,230,253,0.52) 0%, rgba(199,210,254,0.3) 55%, transparent 80%)',
 }
 
 export default function GeneratorForm({ onSubmit, isLoading, onSeasonPreview, activeSeason, pageTheme }) {
@@ -67,7 +78,7 @@ export default function GeneratorForm({ onSubmit, isLoading, onSeasonPreview, ac
             boxShadow: '0 4px 24px rgba(249,115,22,0.12)',
           }}
         >
-          {/* Orange header strip */}
+          {/* ── Orange header strip ── */}
           <div
             className="px-6 py-5 relative overflow-hidden"
             style={{ background: 'linear-gradient(135deg, #ea580c 0%, #f97316 60%, #fb923c 100%)' }}
@@ -86,56 +97,86 @@ export default function GeneratorForm({ onSubmit, isLoading, onSeasonPreview, ac
             </p>
           </div>
 
-          {/* Form body */}
-          <div style={{ backgroundColor: '#fff7ed' }}>
-            {/* Budget + travellers */}
-            <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <BudgetInput
-                value={form.budget}
-                onChange={set('budget')}
-                error={errors.budget}
-                travellers={form.travellers}
+          {/* ── Form body ──
+              position:relative + overflow:hidden so SeasonVisualAccent
+              can slide toward the corner and get cleanly clipped there. */}
+          <div
+            className="relative overflow-hidden"
+            style={{ backgroundColor: '#fff7ed' }}
+          >
+            {/* Seasonal colour overlays — one per season, cross-fade via opacity */}
+            {Object.entries(SEASON_OVERLAYS).map(([s, bg]) => (
+              <div
+                key={s}
+                aria-hidden="true"
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background: bg,
+                  opacity: form.season === s ? 1 : 0,
+                  transition: 'opacity 0.55s ease',
+                  zIndex: 2,
+                }}
               />
-              <TravellersSelect value={form.travellers} onChange={set('travellers')} />
-            </div>
+            ))}
 
-            <div className="border-t border-dashed" style={{ borderColor: 'rgba(251,146,60,0.2)' }} />
+            {/* Seasonal illustration — key change triggers re-mount + re-animation */}
+            {form.season && (
+              <SeasonVisualAccent key={form.season} season={form.season} />
+            )}
 
-            {/* Mood + season */}
-            <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <MoodSelect value={form.mood} onChange={set('mood')} error={errors.mood} />
-              <SeasonSelect value={form.season} onChange={set('season')} />
-            </div>
+            {/* Form rows — above all decorative layers */}
+            <div className="relative" style={{ zIndex: 10 }}>
 
-            <div className="border-t border-dashed" style={{ borderColor: 'rgba(251,146,60,0.2)' }} />
+              {/* Budget + travellers */}
+              <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <BudgetInput
+                  value={form.budget}
+                  onChange={set('budget')}
+                  error={errors.budget}
+                  travellers={form.travellers}
+                />
+                <TravellersSelect value={form.travellers} onChange={set('travellers')} />
+              </div>
 
-            {/* Dates */}
-            <div className="p-6">
-              <DateInputPair
-                departureDate={form.departure_date}
-                returnDate={form.return_date}
-                onDepartureChange={set('departure_date')}
-                onReturnChange={set('return_date')}
-                errors={errors}
-              />
-            </div>
+              <div className="border-t border-dashed" style={{ borderColor: 'rgba(251,146,60,0.2)' }} />
 
-            {/* Submit */}
-            <div
-              className="px-6 py-4 flex items-center gap-4"
-              style={{
-                borderTop: '1.5px solid rgba(251,146,60,0.15)',
-                background: activeSeason && pageTheme
-                  ? `${pageTheme.pageGradient}, #fef3c7`
-                  : '#fef3c7',
-              }}
-            >
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Searching…' : 'Reveal my destination'}
-              </Button>
-              {isLoading && (
-                <span className="text-sm text-stone-500">Hang tight, this takes a moment</span>
-              )}
+              {/* Mood + season */}
+              <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <MoodSelect value={form.mood} onChange={set('mood')} error={errors.mood} />
+                <SeasonSelect value={form.season} onChange={set('season')} />
+              </div>
+
+              <div className="border-t border-dashed" style={{ borderColor: 'rgba(251,146,60,0.2)' }} />
+
+              {/* Dates */}
+              <div className="p-6">
+                <DateInputPair
+                  departureDate={form.departure_date}
+                  returnDate={form.return_date}
+                  onDepartureChange={set('departure_date')}
+                  onReturnChange={set('return_date')}
+                  errors={errors}
+                />
+              </div>
+
+              {/* Submit */}
+              <div
+                className="px-6 py-4 flex items-center gap-4"
+                style={{
+                  borderTop: '1.5px solid rgba(251,146,60,0.15)',
+                  background: activeSeason && pageTheme
+                    ? `${pageTheme.pageGradient}, #fef3c7`
+                    : '#fef3c7',
+                }}
+              >
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? 'Searching…' : 'Reveal my destination'}
+                </Button>
+                {isLoading && (
+                  <span className="text-sm text-stone-500">Hang tight, this takes a moment</span>
+                )}
+              </div>
+
             </div>
           </div>
         </div>
