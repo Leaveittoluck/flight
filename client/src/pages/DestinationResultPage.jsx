@@ -147,9 +147,12 @@ export default function DestinationResultPage() {
           className="absolute inset-0 w-full h-full object-cover"
           style={{ zIndex: 0 }}
           onError={(e) => {
-            e.currentTarget.onerror = null
-            const seed = (d.city || 'destination').toLowerCase().replace(/[^a-z]/g, '')
-            e.currentTarget.src = `https://picsum.photos/seed/${seed}/1600/900`
+            // If the city image is missing, try the generic fallback once.
+            // The data attribute prevents an infinite retry loop if _fallback.jpg is also absent.
+            if (!e.currentTarget.dataset.fallbackUsed) {
+              e.currentTarget.dataset.fallbackUsed = '1'
+              e.currentTarget.src = '/images/destinations/_fallback.jpg'
+            }
           }}
         />
 
