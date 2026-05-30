@@ -4,6 +4,7 @@ import { trackClick } from '../services/clicksApi'
 import { buildSkyscannerUrl, buildBookingUrl } from '../utils/buildProviderUrls'
 import { weatherEnrichment } from '../data/weatherEnrichment'
 import { getDestinationImage } from '../data/destinationImages'
+import { fetchDestinationImage } from '../services/imagesApi'
 
 const SESSION_KEY = 'litl_last_result'
 
@@ -66,6 +67,26 @@ export default function DestinationResultPage() {
   const [flightClicked, setFlightClicked] = useState(false)
   const [clicksRemaining, setClicksRemaining] = useState(null)
 
+  // imageUrl: null while fetching → Pexels URL on success → local curated path on failure
+  const [imageUrl, setImageUrl] = useState(null)
+
+  useEffect(() => {
+    if (!resultData?.destination) return
+    const { city, country } = resultData.destination
+    console.log('[LITL:images] destination:', { city, country })
+    console.log(`[LITL:images] calling GET /api/images/destination?city=${city}&country=${country ?? ''}`)
+    fetchDestinationImage(city, country).then((url) => {
+      console.log('[LITL:images] received imageUrl:', url ?? 'null — falling back to local path')
+      if (url) {
+        setImageUrl(url)
+      } else {
+        const localPath = getDestinationImage(resultData.destination)
+        console.warn(`[LITL:images] no Pexels result — trying local: ${localPath}`)
+        setImageUrl(localPath)
+      }
+    })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!resultData) return null
 
   const { destination: d, tripInput } = resultData
@@ -80,7 +101,6 @@ export default function DestinationResultPage() {
                    ?? d.trip_types?.[0]?.slug
                    ?? 'default'
   const bgGradient = MOOD_BACKGROUNDS[primarySlug] ?? DEFAULT_BG
-  const imageUrl   = getDestinationImage(d)
 
   function resolveUrl(type) {
     if (type === 'flight') {
@@ -139,22 +159,25 @@ export default function DestinationResultPage() {
         className="relative overflow-hidden"
         style={{ minHeight: '72vh', backgroundColor: '#1c1917' }}
       >
-        {/* Background photo — z:0, behind all overlays */}
-        <img
-          src={imageUrl}
-          alt={`${d.city ?? 'destination'} landscape`}
-          aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ zIndex: 0 }}
-          onError={(e) => {
-            // If the city image is missing, try the generic fallback once.
-            // The data attribute prevents an infinite retry loop if _fallback.jpg is also absent.
-            if (!e.currentTarget.dataset.fallbackUsed) {
-              e.currentTarget.dataset.fallbackUsed = '1'
-              e.currentTarget.src = '/images/destinations/_fallback.jpg'
-            }
-          }}
-        />
+        {/* Background photo — z:0, behind all overlays.
+            Hidden while the Pexels URL is still loading (imageUrl is null). */}
+        {imageUrl && (
+          <img
+            src={imageUrl}
+            alt={`${d.city ?? 'destination'} landscape`}
+            aria-hidden="true"
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ zIndex: 0 }}
+            onError={(e) => {
+              if (!e.currentTarget.dataset.fallbackUsed) {
+                e.currentTarget.dataset.fallbackUsed = '1'
+                const filename = imageUrl.split('/').pop()
+                console.warn(`[LITL] Missing local destination image: ${filename}`)
+                e.currentTarget.src = '/images/destinations/_fallback.jpg'
+              }
+            }}
+          />
+        )}
 
         {/* Overlays — z:1, light enough to show the photo through */}
         {/* Base cinematic veil */}

@@ -12,7 +12,7 @@ const DEFAULT_FORM = {
   season: '',
 }
 
-export default function GeneratorForm({ onSubmit, isLoading, onSeasonPreview, activeSeason, pageTheme }) {
+export default function GeneratorForm({ onSubmit, isLoading, onSeasonPreview, onMoodPreview, activeSeason, pageTheme }) {
   const [form, setForm] = useState(DEFAULT_FORM)
   const [errors, setErrors] = useState({})
 
@@ -21,6 +21,7 @@ export default function GeneratorForm({ onSubmit, isLoading, onSeasonPreview, ac
       setForm((prev) => ({ ...prev, [field]: value }))
       if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }))
       if (field === 'season') onSeasonPreview?.(value)
+      if (field === 'mood')   onMoodPreview?.(value)
     }
   }
 

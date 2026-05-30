@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import GeneratorForm from '../components/form/GeneratorForm'
 import SeasonPageAccent from '../components/form/SeasonPageAccent'
+import MoodPageAccent from '../components/form/MoodPageAccent'
 import { generateDestinations } from '../services/destinationsApi'
 import { normalizeDestination } from '../utils/normalizeDestination'
 import { useActiveSeason } from '../context/SeasonContext'
@@ -19,17 +20,21 @@ export default function GeneratorPage() {
   const [errorMsg, setErrorMsg] = useState('')
   const [tripInput, setTripInput] = useState(null)
 
-  // formSeason: tracks the season field from the form for SeasonPageAccent
+  // formSeason / formMood: drive the external page accents
   const [formSeason, setFormSeason] = useState('')
+  const [formMood,   setFormMood]   = useState('')
 
   const { season, setSeason } = useActiveSeason()
   const pageSeasonKey = resolvePageSeason(tripInput?.season || season)
   const pageTheme = SEASON_THEMES[pageSeasonKey]
 
-  // Called by GeneratorForm when the season field changes
   function handleSeasonChange(s) {
-    setSeason(s)       // keeps global season context in sync (drives page gradients)
-    setFormSeason(s)   // drives SeasonPageAccent
+    setSeason(s)
+    setFormSeason(s)
+  }
+
+  function handleMoodChange(m) {
+    setFormMood(m)
   }
 
   async function handleSubmit(formValues) {
@@ -117,15 +122,26 @@ export default function GeneratorPage() {
         className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6"
         style={{ animation: 'fadeInUp 0.45s ease forwards' }}
       >
-        {/* Form section — seasonal illustration appears OUTSIDE this at top-left */}
+        {/* Form section — mood accent left, season accent right, form on top */}
         <div className="relative" style={{ overflow: 'visible' }}>
 
-          {/* SeasonPageAccent: enters from left page edge, settles behind form corner.
-              Form card (z-index:20) sits on top — illustration peeks from behind. */}
+          {/* MoodPageAccent: enters from left, settles behind upper-left form corner */}
+          {formMood && (
+            <div
+              className="absolute hidden sm:block pointer-events-none"
+              style={{ top: '50px', left: '-70px', zIndex: 8 }}
+            >
+              <MoodPageAccent key={formMood} mood={formMood} />
+            </div>
+          )}
+
+          {/* SeasonPageAccent: enters from right, settles behind upper-right form corner.
+              scaleX(-1) mirrors the illustration + reverses the entrance animation direction,
+              so the left-facing entrance keyframe becomes a right-facing entrance visually. */}
           {formSeason && (
             <div
               className="absolute hidden sm:block pointer-events-none"
-              style={{ top: '-60px', left: '-70px', zIndex: 8 }}
+              style={{ top: '-60px', right: '-70px', zIndex: 8, transform: 'scaleX(-1)' }}
             >
               <SeasonPageAccent key={formSeason} season={formSeason} />
             </div>
@@ -136,6 +152,7 @@ export default function GeneratorPage() {
               onSubmit={handleSubmit}
               isLoading={status === 'loading'}
               onSeasonPreview={handleSeasonChange}
+              onMoodPreview={handleMoodChange}
               activeSeason={season}
               pageTheme={pageTheme}
             />

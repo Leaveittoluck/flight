@@ -158,3 +158,76 @@ body {
   70%  { opacity: 0.5; }
   100% { opacity: 0; }
 }
+
+/* ─── Mood PAGE accent (Phase 4G) ───────────────────────────────────
+   Illustration enters from the left page edge.
+   ──────────────────────────────────────────────────────────────── */
+
+@keyframes moodPageEnterLeft {
+  from { opacity: 0; transform: translateX(-350px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.mood-page-enter-left {
+  animation: moodPageEnterLeft 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ─── Mood particle animations ─── */
+
+/* Beach: gentle wave oscillation */
+@keyframes waveDrift {
+  0%, 100% { transform: translateX(0); }
+  50%       { transform: translateX(5px); }
+}
+
+/* Adventure: compass needle searching */
+@keyframes compassSpin {
+  0%   { transform: rotate(0deg); }
+  20%  { transform: rotate(130deg); }
+  40%  { transform: rotate(105deg); }
+  70%  { transform: rotate(290deg); }
+  90%  { transform: rotate(335deg); }
+  100% { transform: rotate(335deg); }
+}
+
+/* City break: window lights flickering */
+@keyframes cityTwinkle {
+  0%, 100% { opacity: 0.15; }
+  50%       { opacity: 0.95; }
+}
+
+/* Cultural: steam rising from artifacts */
+@keyframes steamRise {
+  0%   { opacity: 0;    transform: translateY(0)     scaleX(1); }
+  25%  { opacity: 0.6; }
+  100% { opacity: 0;    transform: translateY(-22px) scaleX(0.5); }
+}
+
+/* Romantic/float: hearts drifting upward */
+@keyframes heartFloat {
+  0%   { opacity: 0;    transform: translateY(0)     scale(1);    }
+  20%  { opacity: 0.75; }
+  85%  { opacity: 0.4; }
+  100% { opacity: 0;    transform: translateY(-38px) scale(0.75); }
+}
+
+/* Relaxation: slow breathing pulse */
+@keyframes calmBreathe {
+  0%, 100% { transform: scale(1);     opacity: 0.55; }
+  50%       { transform: scale(1.06); opacity: 0.88; }
+}
+
+/* Skiing: trail line drawing in */
+@keyframes skiGlide {
+  0%   { stroke-dashoffset: 160; opacity: 0; }
+  12%  { opacity: 1; }
+  100% { stroke-dashoffset: 0;   opacity: 0.65; }
+}
+
+/* Nature / adventure: small particles drifting */
+@keyframes natureDrift {
+  0%   { transform: translateY(0)     translateX(0)     rotate(0deg);    opacity: 0; }
+  12%  { opacity: 0.8; }
+  88%  { opacity: 0.55; }
+  100% { transform: translateY(46px)  translateX(14px)  rotate(75deg);   opacity: 0; }
+}
