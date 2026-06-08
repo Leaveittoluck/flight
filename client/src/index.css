@@ -243,3 +243,20 @@ body {
   opacity: 0;
   animation: resultReveal 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
+
+/* ─── CTA primary button glow (Phase 4H.3) ─── */
+@keyframes ctaPulse {
+  0%, 100% { box-shadow: 0 6px 24px rgba(234,88,12,0.38); }
+  50%       { box-shadow: 0 8px 32px rgba(234,88,12,0.55), 0 0 0 4px rgba(234,88,12,0.07); }
+}
+
+.cta-primary:not(:disabled) {
+  box-shadow: 0 6px 24px rgba(234,88,12,0.38);
+  animation: ctaPulse 3.5s ease-in-out infinite;
+}
+
+.cta-primary:not(:disabled):hover {
+  transform: translateY(-3px);
+  animation: none;
+  box-shadow: 0 12px 36px rgba(234,88,12,0.50);
+}

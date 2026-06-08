@@ -569,66 +569,72 @@ export default function DestinationResultPage() {
             </div>
           )}
 
-          {/* CTA buttons — unchanged */}
+          {/* ── CTA — adventure launch ── */}
           {(canSearchFlights || canFindHotels) && (
-            <div
-              className="rounded-2xl p-5"
-              style={{ backgroundColor: 'rgba(255,255,255,0.85)', border: '1px solid rgba(251,146,60,0.15)' }}
-            >
-              <div className="flex flex-wrap gap-3 mb-3">
-                {canSearchFlights && (
-                  <button
-                    onClick={() => handleCtaClick('flight')}
-                    disabled={!!pending || limitReached}
-                    className="flex-1 min-w-35 py-3 px-5 rounded-2xl text-sm font-bold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-0.5"
-                    style={{
-                      background: 'linear-gradient(135deg, #ea580c, #f97316)',
-                      boxShadow: '0 3px 12px rgba(234,88,12,0.3)',
-                    }}
-                  >
-                    {pending === 'flight' ? 'Opening…' : flightClicked ? 'Search flights again →' : 'Search flights →'}
-                  </button>
-                )}
-                {canFindHotels && (
-                  <button
-                    onClick={() => handleCtaClick('hotel')}
-                    disabled={hotelDisabled}
-                    title={!flightClicked && !limitReached ? 'Search flights first to unlock hotels' : undefined}
-                    className="flex-1 min-w-35 py-3 px-5 rounded-2xl text-sm font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-0.5"
-                    style={{
-                      backgroundColor: 'rgba(249,115,22,0.1)',
-                      border: '1.5px solid rgba(249,115,22,0.25)',
-                      color: '#ea580c',
-                    }}
-                  >
-                    {pending === 'hotel' ? 'Opening…' : 'Find hotels →'}
-                  </button>
-                )}
+            <div className="reveal pt-6">
+              <div className="text-center mb-7">
+                <p className="text-xl sm:text-2xl font-bold" style={{ color: '#1c1917' }}>
+                  Ready for your next adventure?
+                </p>
+                <p className="mt-2 text-sm" style={{ color: '#a8a29e' }}>
+                  Start planning — your destination is waiting.
+                </p>
               </div>
 
-              <p className="text-xs text-stone-400">
+              {canSearchFlights && (
+                <button
+                  onClick={() => handleCtaClick('flight')}
+                  disabled={!!pending || limitReached}
+                  className="cta-primary w-full py-4 px-6 rounded-2xl font-bold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{
+                    fontSize: '1.05rem',
+                    background: 'linear-gradient(135deg, #b91c1c 0%, #ea580c 50%, #f97316 100%)',
+                  }}
+                >
+                  {pending === 'flight' ? 'Opening…' : flightClicked ? 'Plan This Adventure Again →' : 'Plan This Adventure →'}
+                </button>
+              )}
+
+              {canFindHotels && (
+                <button
+                  onClick={() => handleCtaClick('hotel')}
+                  disabled={hotelDisabled}
+                  title={!flightClicked && !limitReached ? 'Plan your flights first to unlock accommodation' : undefined}
+                  className="w-full mt-3 py-3.5 px-5 rounded-2xl text-sm font-semibold transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed hover:-translate-y-0.5"
+                  style={{
+                    backgroundColor: 'rgba(255,255,255,0.9)',
+                    border: '1.5px solid rgba(234,88,12,0.22)',
+                    color: '#ea580c',
+                    boxShadow: '0 2px 8px rgba(234,88,12,0.10)',
+                  }}
+                >
+                  {pending === 'hotel' ? 'Opening…' : 'Find Accommodation →'}
+                </button>
+              )}
+
+              <p className="text-xs text-center mt-5" style={{ color: '#d6d3d1' }}>
                 Prices are estimates. Final live prices may vary on partner sites.
               </p>
 
               {flightClicked && d.remaining_budget_after_flight != null && (
                 d.hotel_affordable_after_flight ? (
-                  <p className="mt-2 text-xs text-green-700 font-semibold">
+                  <p className="mt-3 text-xs text-center text-green-700 font-semibold">
                     {formatGBP(d.remaining_budget_after_flight)} left after flights — hotels fit your budget
                   </p>
                 ) : (
-                  <p className="mt-2 text-xs font-semibold" style={{ color: '#f97316' }}>
+                  <p className="mt-3 text-xs text-center font-semibold" style={{ color: '#f97316' }}>
                     {formatGBP(d.remaining_budget_after_flight)} left after flights — hotel may push over budget
                   </p>
                 )
               )}
 
               {limitReached && (
-                <p className="mt-2 text-xs font-semibold" style={{ color: '#f97316' }}>
+                <p className="mt-3 text-xs text-center font-semibold" style={{ color: '#f97316' }}>
                   You've reached your monthly limit. Upgrade to continue.
                 </p>
               )}
               {!limitReached && ctaError.message && (
-                <p className="mt-2 text-xs text-red-600 font-semibold">{ctaError.message}</p>
+                <p className="mt-3 text-xs text-center text-red-600 font-semibold">{ctaError.message}</p>
               )}
             </div>
           )}
@@ -636,19 +642,31 @@ export default function DestinationResultPage() {
         </div>
       </div>
 
-      {/* ══════════ TRY ANOTHER ══════════ */}
-      <div className="max-w-4xl mx-auto px-6 sm:px-8 py-10 text-center">
-        <p className="text-sm text-stone-500 mb-3">Not feeling this destination?</p>
-        <Link
-          to="/travel"
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold text-white transition-all hover:-translate-y-0.5"
-          style={{
-            background: 'linear-gradient(135deg, #ea580c, #f97316)',
-            boxShadow: '0 3px 12px rgba(234,88,12,0.25)',
-          }}
+      {/* ══════════ LEAVE IT TO LUCK AGAIN ══════════ */}
+      <div className="max-w-4xl mx-auto px-6 sm:px-8 pt-6 pb-14">
+        <div
+          className="text-center py-10 rounded-3xl"
+          style={{ borderTop: '1px solid rgba(231,229,228,0.7)' }}
         >
-          ← Try another destination
-        </Link>
+          <p className="text-base font-bold text-stone-700 mb-1">
+            Not feeling this destination?
+          </p>
+          <p className="text-sm mb-6" style={{ color: '#a8a29e' }}>
+            The algorithm has more surprises in store.
+          </p>
+          <Link
+            to="/travel"
+            className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-bold transition-all duration-200 hover:-translate-y-0.5"
+            style={{
+              backgroundColor: '#fff7ed',
+              border: '1.5px solid rgba(234,88,12,0.22)',
+              color: '#ea580c',
+              boxShadow: '0 3px 12px rgba(234,88,12,0.10)',
+            }}
+          >
+            ✦ Leave It To Luck Again
+          </Link>
+        </div>
       </div>
 
     </div>
