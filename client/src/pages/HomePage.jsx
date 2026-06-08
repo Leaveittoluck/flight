@@ -96,8 +96,8 @@ const HOW_IT_WORKS = [
   },
   {
     step: '02',
-    title: 'We Map Your Match',
-    desc: 'Our platform searches real flight data and destination profiles to surface your perfect escape.',
+    title: 'Luck Does the Work',
+    desc: 'Leave It To Luck scans real flights and destination profiles to find somewhere unexpected — somewhere you\'d never have searched for yourself.',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" />
@@ -229,17 +229,17 @@ export default function HomePage() {
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-widest uppercase mb-8"
             style={{ backgroundColor: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.75)' }}>
             <span className="w-1.5 h-1.5 rounded-full bg-yellow-300 inline-block" />
-            Travel Discovery Platform
+            ✦ Let luck choose.
           </div>
 
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold text-white tracking-tight leading-[1.05] mb-5">
-            Let the world
+            Leave It
             <br />
-            <span className="text-yellow-300">surprise you.</span>
+            <span className="text-yellow-300">To Luck.</span>
           </h1>
 
           <p className="text-lg sm:text-xl max-w-lg mx-auto leading-relaxed mb-10 font-light" style={{ color: 'rgba(255,255,255,0.65)' }}>
-            Tell us your mood and budget — we'll surface destinations you'd never have chosen yourself.
+            Stop overthinking your next trip. Tell us your mood and budget — we'll find a destination you'd never have chosen yourself.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -554,7 +554,7 @@ export default function HomePage() {
             Where will luck take you?
           </h2>
           <p className="text-orange-100/75 text-sm mb-8 leading-relaxed">
-            Set your budget. Pick your mood. Let our platform find a destination that surprises you.
+            Set your budget. Pick your mood. Leave the rest to Leave It To Luck.
           </p>
           <Link
             to="/travel"

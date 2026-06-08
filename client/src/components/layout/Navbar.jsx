@@ -57,10 +57,21 @@ export default function Navbar({ season }) {
           <div className="flex items-center gap-4">
             <Link
               to="/"
-              className="text-sm font-bold tracking-tight shrink-0 transition-colors hover:opacity-80"
-              style={{ color: '#ea580c' }}
+              className="flex items-center gap-1.5 shrink-0 transition-opacity hover:opacity-80"
             >
-              LITL
+              <span
+                className="hidden md:block text-sm font-bold tracking-tight"
+                style={{ color: '#ea580c' }}
+              >
+                Leave It To Luck
+              </span>
+              <span
+                className="md:hidden text-sm font-bold tracking-tight"
+                style={{ color: '#ea580c' }}
+              >
+                LITL
+              </span>
+              <span className="text-xs font-bold" style={{ color: 'rgba(234,88,12,0.4)' }}>✦</span>
             </Link>
 
             <div className="hidden md:flex items-center gap-0.5">

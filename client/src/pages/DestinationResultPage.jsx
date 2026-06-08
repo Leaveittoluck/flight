@@ -208,6 +208,16 @@ export default function DestinationResultPage() {
           </Link>
         </div>
 
+        {/* Brand signature — subtle watermark top-right */}
+        <div className="absolute top-5 right-5 sm:top-6 sm:right-7" style={{ zIndex: 20 }}>
+          <span
+            className="text-xs font-semibold tracking-widest uppercase"
+            style={{ color: 'rgba(255,255,255,0.22)' }}
+          >
+            Leave It To Luck ✦
+          </span>
+        </div>
+
         {/* Hero content — anchored to bottom */}
         <div
           className="absolute bottom-0 left-0 right-0 max-w-4xl mx-auto px-6 sm:px-10 pb-12 sm:pb-16"
