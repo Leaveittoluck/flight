@@ -73,16 +73,11 @@ export default function DestinationResultPage() {
   useEffect(() => {
     if (!resultData?.destination) return
     const { city, country } = resultData.destination
-    console.log('[LITL:images] destination:', { city, country })
-    console.log(`[LITL:images] calling GET /api/images/destination?city=${city}&country=${country ?? ''}`)
     fetchDestinationImage(city, country).then((url) => {
-      console.log('[LITL:images] received imageUrl:', url ?? 'null — falling back to local path')
       if (url) {
         setImageUrl(url)
       } else {
-        const localPath = getDestinationImage(resultData.destination)
-        console.warn(`[LITL:images] no Pexels result — trying local: ${localPath}`)
-        setImageUrl(localPath)
+        setImageUrl(getDestinationImage(resultData.destination))
       }
     })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -157,10 +152,9 @@ export default function DestinationResultPage() {
       {/* ══════════ HERO ══════════ */}
       <section
         className="relative overflow-hidden"
-        style={{ minHeight: '72vh', backgroundColor: '#1c1917' }}
+        style={{ minHeight: '100vh', backgroundColor: '#1c1917' }}
       >
-        {/* Background photo — z:0, behind all overlays.
-            Hidden while the Pexels URL is still loading (imageUrl is null). */}
+        {/* Background photo — hidden while Pexels URL is loading */}
         {imageUrl && (
           <img
             src={imageUrl}
@@ -171,65 +165,54 @@ export default function DestinationResultPage() {
             onError={(e) => {
               if (!e.currentTarget.dataset.fallbackUsed) {
                 e.currentTarget.dataset.fallbackUsed = '1'
-                const filename = imageUrl.split('/').pop()
-                console.warn(`[LITL] Missing local destination image: ${filename}`)
                 e.currentTarget.src = '/images/destinations/_fallback.jpg'
               }
             }}
           />
         )}
 
-        {/* Overlays — z:1, light enough to show the photo through */}
-        {/* Base cinematic veil */}
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 pointer-events-none"
-          style={{ background: 'rgba(0,0,0,0.22)', zIndex: 1 }}
-        />
-        {/* Warm rust tint at top-left */}
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 pointer-events-none"
-          style={{ background: 'linear-gradient(160deg, rgba(120,53,15,0.28) 0%, transparent 50%)', zIndex: 1 }}
-        />
-        {/* Bottom gradient — strong only near the bottom for text */}
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 pointer-events-none"
-          style={{ background: 'linear-gradient(to bottom, transparent 35%, rgba(0,0,0,0.72) 100%)', zIndex: 1 }}
-        />
+        {/* Layered overlays — keep the photo visible, darken bottom for text */}
+        <div aria-hidden="true" className="absolute inset-0 pointer-events-none"
+          style={{ background: 'rgba(0,0,0,0.28)', zIndex: 1 }} />
+        <div aria-hidden="true" className="absolute inset-0 pointer-events-none"
+          style={{ background: 'linear-gradient(160deg, rgba(120,53,15,0.32) 0%, transparent 52%)', zIndex: 1 }} />
+        <div aria-hidden="true" className="absolute inset-0 pointer-events-none"
+          style={{ background: 'linear-gradient(to bottom, transparent 22%, rgba(0,0,0,0.6) 68%, rgba(0,0,0,0.88) 100%)', zIndex: 1 }} />
 
-        {/* Back button — z:20, above everything */}
-        <div className="absolute top-6 left-6" style={{ zIndex: 20 }}>
+        {/* Back button — small glass pill, unobtrusive */}
+        <div className="absolute top-5 left-5 sm:top-6 sm:left-7" style={{ zIndex: 20 }}>
           <Link
             to="/travel"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold text-white transition-all hover:-translate-y-px"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-white transition-all hover:bg-white/20"
             style={{
-              backgroundColor: 'rgba(255,255,255,0.15)',
-              border: '1px solid rgba(255,255,255,0.25)',
-              backdropFilter: 'blur(8px)',
+              backgroundColor: 'rgba(255,255,255,0.12)',
+              border: '1px solid rgba(255,255,255,0.18)',
+              backdropFilter: 'blur(10px)',
             }}
           >
-            ← Back to form
+            ← Back
           </Link>
         </div>
 
-        {/* Hero content — z:20, above overlays */}
+        {/* Hero content — anchored to bottom */}
         <div
-          className="absolute bottom-0 left-0 right-0 px-6 sm:px-8 pb-10 max-w-4xl mx-auto"
-          style={{ animation: 'fadeInUp 0.65s ease forwards', zIndex: 20 }}
+          className="absolute bottom-0 left-0 right-0 max-w-4xl mx-auto px-6 sm:px-10 pb-12 sm:pb-16"
+          style={{ zIndex: 20 }}
         >
-          {/* Trip type badges */}
+          {/* Trip type badges — subtle, only primary types */}
           {d.trip_types?.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-5">
-              {d.trip_types.map((t) => (
+            <div
+              className="result-reveal flex flex-wrap gap-2 mb-4"
+              style={{ animationDelay: '0.1s' }}
+            >
+              {d.trip_types.filter(t => t.is_primary).slice(0, 2).map((t) => (
                 <span
                   key={t.id ?? t.slug}
-                  className="text-xs px-3 py-1 rounded-full font-bold tracking-widest uppercase"
+                  className="text-xs px-2.5 py-1 rounded-full font-semibold tracking-widest uppercase"
                   style={{
-                    backgroundColor: 'rgba(255,255,255,0.15)',
-                    border: '1px solid rgba(255,255,255,0.25)',
-                    color: 'white',
+                    backgroundColor: 'rgba(255,255,255,0.10)',
+                    border: '1px solid rgba(255,255,255,0.18)',
+                    color: 'rgba(255,255,255,0.65)',
                   }}
                 >
                   {t.label}
@@ -238,43 +221,101 @@ export default function DestinationResultPage() {
             </div>
           )}
 
-          {/* City + Country */}
-          <h1 className="font-bold text-white tracking-tight leading-tight mb-1" style={{ fontSize: 'clamp(2.5rem, 8vw, 5rem)' }}>
+          {/* Reveal label */}
+          <p
+            className="result-reveal text-xs sm:text-sm font-semibold uppercase tracking-widest mb-3"
+            style={{ color: 'rgba(251,191,36,0.88)', animationDelay: '0.2s' }}
+          >
+            ✦ Your next adventure is
+          </p>
+
+          {/* City — the emotional centrepiece */}
+          <h1
+            className="result-reveal font-black text-white leading-none tracking-tight mb-2"
+            style={{
+              fontSize: 'clamp(3.2rem, 11vw, 6.5rem)',
+              animationDelay: '0.38s',
+              textShadow: '0 2px 32px rgba(0,0,0,0.45)',
+            }}
+          >
             {d.city}
           </h1>
+
+          {/* Country */}
           {d.country && (
             <p
-              className="text-xl sm:text-2xl font-semibold mb-5"
-              style={{ color: 'rgba(255,255,255,0.6)' }}
+              className="result-reveal text-xl sm:text-2xl font-medium mb-5"
+              style={{ color: 'rgba(255,255,255,0.52)', animationDelay: '0.52s' }}
             >
+              <span style={{ color: 'rgba(251,191,36,0.65)', marginRight: '6px' }}>◦</span>
               {d.country}
             </p>
           )}
 
-          {/* Price badge + hook in a row */}
-          <div className="flex flex-wrap items-start gap-4">
-            {perPersonEst != null && (
+          {/* Hook — quote style */}
+          {d.hook && (
+            <p
+              className="result-reveal text-base sm:text-lg italic leading-relaxed mb-6"
+              style={{
+                color: 'rgba(255,255,255,0.68)',
+                maxWidth: '520px',
+                animationDelay: '0.66s',
+              }}
+            >
+              "{d.hook}"
+            </p>
+          )}
+
+          {/* Price badge — premium standalone card */}
+          {perPersonEst != null && (
+            <div
+              className="result-reveal inline-block mb-7"
+              style={{ animationDelay: '0.82s' }}
+            >
               <div
-                className="rounded-2xl px-4 py-3 text-white shadow-lg shrink-0"
+                className="rounded-2xl px-5 py-4 text-white shadow-2xl"
                 style={{
-                  background: 'linear-gradient(135deg, #ea580c, #f97316)',
-                  boxShadow: '0 4px 16px rgba(234,88,12,0.45)',
+                  background: 'linear-gradient(135deg, #b91c1c 0%, #ea580c 50%, #f97316 100%)',
+                  boxShadow: '0 6px 24px rgba(185,28,28,0.45)',
                 }}
               >
-                <div className="text-2xl font-bold leading-none">{formatGBP(perPersonEst)}</div>
-                <p className="text-xs mt-1 font-medium" style={{ color: 'rgba(255,255,255,0.8)' }}>
-                  per person (est.)
+                <p
+                  className="text-xs font-semibold uppercase tracking-widest mb-1"
+                  style={{ color: 'rgba(255,255,255,0.65)' }}
+                >
+                  Estimated from
                 </p>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl sm:text-4xl font-black leading-none">
+                    {formatGBP(perPersonEst)}
+                  </span>
+                  <span className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.72)' }}>
+                    / person
+                  </span>
+                </div>
+                {d.total_trip_cost_estimate != null && (tripInput?.travellers ?? 1) > 1 && (
+                  <p className="text-xs mt-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                    {formatGBP(d.total_trip_cost_estimate)} total for {tripInput.travellers}
+                  </p>
+                )}
               </div>
-            )}
-            {d.hook && (
-              <p
-                className="text-base sm:text-lg italic flex-1 min-w-0 leading-relaxed"
-                style={{ color: 'rgba(255,255,255,0.75)', maxWidth: '500px' }}
-              >
-                "{d.hook}"
-              </p>
-            )}
+            </div>
+          )}
+
+          {/* Scroll hint */}
+          <div
+            className="result-reveal flex items-center gap-2"
+            style={{ animationDelay: '1.0s' }}
+          >
+            <span className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.3)' }}>
+              Explore your trip details
+            </span>
+            <span
+              className="text-xs"
+              style={{ color: 'rgba(255,255,255,0.3)', animation: 'float 2.2s ease-in-out infinite' }}
+            >
+              ↓
+            </span>
           </div>
         </div>
       </section>

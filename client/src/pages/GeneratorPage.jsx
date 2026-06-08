@@ -125,23 +125,22 @@ export default function GeneratorPage() {
         {/* Form section — mood accent left, season accent right, form on top */}
         <div className="relative" style={{ overflow: 'visible' }}>
 
-          {/* MoodPageAccent: enters from left, settles behind upper-left form corner */}
+          {/* MoodPageAccent: enters from left, floats above form upper-left corner */}
           {formMood && (
             <div
               className="absolute hidden sm:block pointer-events-none"
-              style={{ top: '50px', left: '-70px', zIndex: 8 }}
+              style={{ top: '-60px', left: '-70px', zIndex: 30 }}
             >
               <MoodPageAccent key={formMood} mood={formMood} />
             </div>
           )}
 
-          {/* SeasonPageAccent: enters from right, settles behind upper-right form corner.
-              scaleX(-1) mirrors the illustration + reverses the entrance animation direction,
-              so the left-facing entrance keyframe becomes a right-facing entrance visually. */}
+          {/* SeasonPageAccent: enters from right, floats above form upper-right corner.
+              scaleX(-1) mirrors the illustration + reverses the entrance animation direction. */}
           {formSeason && (
             <div
               className="absolute hidden sm:block pointer-events-none"
-              style={{ top: '-60px', right: '-70px', zIndex: 8, transform: 'scaleX(-1)' }}
+              style={{ top: '-60px', right: '-70px', zIndex: 30, transform: 'scaleX(-1)' }}
             >
               <SeasonPageAccent key={formSeason} season={formSeason} />
             </div>
