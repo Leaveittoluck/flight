@@ -4,7 +4,7 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-stone-50 flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-sm">
-        <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-8">
+        <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-6 sm:p-8">
           <div className="text-center mb-8">
             <Link
               to="/"
@@ -24,7 +24,7 @@ export default function RegisterPage() {
               <input
                 type="text"
                 placeholder="Your name"
-                className="w-full px-4 py-2.5 rounded-xl border border-stone-200 bg-stone-50 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-400 focus:bg-white transition-colors"
+                className="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-400 focus:bg-white transition-colors"
               />
             </div>
 
@@ -35,7 +35,7 @@ export default function RegisterPage() {
               <input
                 type="email"
                 placeholder="you@example.com"
-                className="w-full px-4 py-2.5 rounded-xl border border-stone-200 bg-stone-50 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-400 focus:bg-white transition-colors"
+                className="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-400 focus:bg-white transition-colors"
               />
             </div>
 
@@ -46,7 +46,7 @@ export default function RegisterPage() {
               <input
                 type="password"
                 placeholder="••••••••"
-                className="w-full px-4 py-2.5 rounded-xl border border-stone-200 bg-stone-50 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-400 focus:bg-white transition-colors"
+                className="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-400 focus:bg-white transition-colors"
               />
             </div>
 

@@ -18,7 +18,7 @@ export default function SeasonSelect({ value, onChange, error }) {
         id="season"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-3 py-2.5 rounded-lg border text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+        className="w-full px-3 py-3 rounded-lg border text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
         style={{ borderColor: error ? '#f87171' : (seasonColor ?? '#cbd5e1') }}
       >
         <option value="">Select a season…</option>

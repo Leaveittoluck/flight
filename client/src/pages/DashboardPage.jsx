@@ -67,7 +67,7 @@ export default function DashboardPage() {
         {/* Rewards progress */}
         <DashboardCard>
           <CardLabel>Rewards progress</CardLabel>
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between flex-wrap gap-1 mb-2">
             <p className="text-sm font-medium text-slate-700">0 / 50 coins toward 5% discount</p>
             <p className="text-xs text-slate-400">0%</p>
           </div>

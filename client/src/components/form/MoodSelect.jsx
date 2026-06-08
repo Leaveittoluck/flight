@@ -11,7 +11,7 @@ export default function MoodSelect({ value, onChange, error }) {
         id="mood"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`w-full px-3 py-2.5 rounded-lg border text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+        className={`w-full px-3 py-3 rounded-lg border text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${
           error ? 'border-red-400' : 'border-slate-300'
         }`}
       >

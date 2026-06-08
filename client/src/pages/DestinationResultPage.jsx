@@ -166,7 +166,7 @@ export default function DestinationResultPage() {
       {/* ══════════ HERO ══════════ */}
       <section
         className="relative overflow-hidden"
-        style={{ minHeight: '100vh', backgroundColor: '#1c1917' }}
+        style={{ minHeight: 'calc(100vh - 4rem)', backgroundColor: '#1c1917' }}
       >
         {/* Background photo — hidden while Pexels URL is loading */}
         {imageUrl && (
@@ -257,9 +257,10 @@ export default function DestinationResultPage() {
           <h1
             className="result-reveal font-black text-white leading-none tracking-tight mb-2"
             style={{
-              fontSize: 'clamp(3.2rem, 11vw, 6.5rem)',
+              fontSize: 'clamp(2rem, 9vw, 6.5rem)',
               animationDelay: '0.38s',
               textShadow: '0 2px 32px rgba(0,0,0,0.45)',
+              overflowWrap: 'break-word',
             }}
           >
             {d.city}

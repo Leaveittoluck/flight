@@ -6,7 +6,7 @@ export default function Button({
   onClick,
 }) {
   const base =
-    'inline-flex items-center justify-center px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-px active:translate-y-0'
+    'inline-flex items-center justify-center px-6 py-3 rounded-xl font-bold text-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-px active:translate-y-0'
 
   const styles = {
     primary: {

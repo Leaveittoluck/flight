@@ -102,7 +102,7 @@ export default function GeneratorForm({ onSubmit, isLoading, onSeasonPreview, on
 
             {/* Submit */}
             <div
-              className="px-6 py-4 flex items-center gap-4"
+              className="px-6 py-4 flex flex-wrap items-center gap-4"
               style={{
                 borderTop: '1.5px solid rgba(251,146,60,0.15)',
                 background: activeSeason && pageTheme
