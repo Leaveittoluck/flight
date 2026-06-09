@@ -16,7 +16,10 @@ async function track(req, res, next) {
       });
     }
 
-    const data = await trackClick(parsed.data);
+    const data = await trackClick({
+      ...parsed.data,
+      user_id: req.user?.id || null,
+    });
 
     res.status(200).json({
       ok: true,
@@ -24,9 +27,6 @@ async function track(req, res, next) {
       data,
     });
   } catch (error) {
-    // Service errors (including future LIMIT_REACHED throws) pass through here.
-    // The global error handler reads err.status and err.message automatically,
-    // so a 429 with code: "LIMIT_REACHED" propagates to the frontend unchanged.
     next(error);
   }
 }

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { NavLink, Link } from 'react-router-dom'
 import { SEASON_THEMES } from '../../data/seasonThemes'
 import { resolvePageSeason } from '../../utils/resolvePageSeason'
+import { useAuth } from '../../context/AuthContext'
 
 const pillLink = ({ isActive }) =>
   `px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ${
@@ -20,6 +21,7 @@ const mobilePillLink = ({ isActive }) =>
 export default function Navbar({ season }) {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const { user, logout } = useAuth()
 
   const key = resolvePageSeason(season)
   const theme = SEASON_THEMES[key]
@@ -106,16 +108,33 @@ export default function Navbar({ season }) {
             </NavLink>
 
             <div className="hidden md:flex items-center gap-1 ml-1">
-              <Link to="/login" className="px-3 py-1.5 rounded-full text-sm font-semibold text-stone-500 hover:text-orange-600 hover:bg-orange-50 transition-all duration-200">
-                Login
-              </Link>
-              <Link
-                to="/register"
-                className="px-3 py-1.5 rounded-full text-sm font-bold transition-all duration-200 hover:-translate-y-px"
-                style={{ backgroundColor: '#fff7ed', border: '1.5px solid #fdba74', color: '#ea580c' }}
-              >
-                Register
-              </Link>
+              {user ? (
+                <>
+                  {user.avatar_url && (
+                    <img
+                      src={user.avatar_url}
+                      alt={user.display_name}
+                      className="w-7 h-7 rounded-full object-cover border border-orange-200"
+                    />
+                  )}
+                  <span className="text-sm font-medium text-stone-600 max-w-30 truncate">
+                    {user.display_name}
+                  </span>
+                  <button
+                    onClick={logout}
+                    className="px-3 py-1.5 rounded-full text-sm font-semibold text-stone-500 hover:text-orange-600 hover:bg-orange-50 transition-all duration-200"
+                  >
+                    Sign out
+                  </button>
+                </>
+              ) : (
+                <Link
+                  to="/login"
+                  className="px-3 py-1.5 rounded-full text-sm font-semibold text-stone-500 hover:text-orange-600 hover:bg-orange-50 transition-all duration-200"
+                >
+                  Sign in
+                </Link>
+              )}
             </div>
 
             {/* Mobile hamburger */}
@@ -160,16 +179,33 @@ export default function Navbar({ season }) {
               Pricing
             </a>
             <div className="h-px my-1" style={{ borderTop: '1px dashed rgba(251,146,60,0.3)' }} />
-            <Link to="/login" className="block px-4 py-3 rounded-2xl text-sm font-semibold text-stone-600 hover:bg-orange-50 hover:text-orange-600 transition-all duration-200">
-              Login
-            </Link>
-            <Link
-              to="/register"
-              className="block px-4 py-3.5 rounded-2xl text-sm font-bold text-white text-center mt-0.5"
-              style={{ background: 'linear-gradient(135deg, #ea580c, #f97316)' }}
-            >
-              Register
-            </Link>
+            {user ? (
+              <>
+                <div className="flex items-center gap-2 px-4 py-2">
+                  {user.avatar_url && (
+                    <img
+                      src={user.avatar_url}
+                      alt={user.display_name}
+                      className="w-7 h-7 rounded-full object-cover border border-orange-200"
+                    />
+                  )}
+                  <span className="text-sm font-medium text-stone-700 truncate">{user.display_name}</span>
+                </div>
+                <button
+                  onClick={() => { logout(); setMenuOpen(false) }}
+                  className="block w-full text-left px-4 py-3 rounded-2xl text-sm font-semibold text-stone-600 hover:bg-orange-50 hover:text-orange-600 transition-all duration-200"
+                >
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                className="block px-4 py-3 rounded-2xl text-sm font-semibold text-stone-600 hover:bg-orange-50 hover:text-orange-600 transition-all duration-200"
+              >
+                Sign in with Google
+              </Link>
+            )}
           </div>
         </div>
       )}
