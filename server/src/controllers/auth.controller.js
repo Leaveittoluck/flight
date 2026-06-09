@@ -1,7 +1,4 @@
 function me(req, res) {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({ ok: false, message: 'Not authenticated' });
-  }
   const { id, email, display_name, avatar_url, role, plan } = req.user;
   return res.json({ ok: true, data: { id, email, display_name, avatar_url, role, plan } });
 }

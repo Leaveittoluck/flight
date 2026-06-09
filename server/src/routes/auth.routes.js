@@ -1,5 +1,6 @@
 const { Router } = require('express');
-const passport = require('../config/passport');
+const passport   = require('../config/passport');
+const requireAuth = require('../middleware/requireAuth');
 const { me, logout } = require('../controllers/auth.controller');
 
 const router = Router();
@@ -18,7 +19,7 @@ router.get(
   }
 );
 
-router.get('/me', me);
+router.get('/me', requireAuth, me);
 router.post('/logout', logout);
 
 module.exports = router;
