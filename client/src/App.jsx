@@ -4,6 +4,7 @@ import HomePage from './pages/HomePage'
 import GeneratorPage from './pages/GeneratorPage'
 import DestinationResultPage from './pages/DestinationResultPage'
 import DashboardPage from './pages/DashboardPage'
+import ProfilePage from './pages/ProfilePage'
 import StatsPage from './pages/StatsPage'
 import WorldMapPage from './pages/WorldMapPage'
 import LoginPage from './pages/LoginPage'
@@ -27,6 +28,14 @@ export default function App() {
                 element={
                   <ProtectedRoute>
                     <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <ProfilePage />
                   </ProtectedRoute>
                 }
               />

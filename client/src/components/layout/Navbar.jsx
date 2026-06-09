@@ -110,16 +110,21 @@ export default function Navbar({ season }) {
             <div className="hidden md:flex items-center gap-1 ml-1">
               {user ? (
                 <>
-                  {user.avatar_url && (
-                    <img
-                      src={user.avatar_url}
-                      alt={user.display_name}
-                      className="w-7 h-7 rounded-full object-cover border border-orange-200"
-                    />
-                  )}
-                  <span className="text-sm font-medium text-stone-600 max-w-30 truncate">
-                    {user.display_name}
-                  </span>
+                  <Link
+                    to="/profile"
+                    className="flex items-center gap-1.5 px-2 py-1 rounded-full hover:bg-orange-50 transition-all duration-200"
+                  >
+                    {user.avatar_url && (
+                      <img
+                        src={user.avatar_url}
+                        alt={user.display_name}
+                        className="w-7 h-7 rounded-full object-cover border border-orange-200"
+                      />
+                    )}
+                    <span className="text-sm font-medium text-stone-600 max-w-30 truncate">
+                      {user.display_name}
+                    </span>
+                  </Link>
                   <button
                     onClick={logout}
                     className="px-3 py-1.5 rounded-full text-sm font-semibold text-stone-500 hover:text-orange-600 hover:bg-orange-50 transition-all duration-200"
@@ -191,6 +196,7 @@ export default function Navbar({ season }) {
                   )}
                   <span className="text-sm font-medium text-stone-700 truncate">{user.display_name}</span>
                 </div>
+                <NavLink to="/profile" className={mobilePillLink}>Profile</NavLink>
                 <button
                   onClick={() => { logout(); setMenuOpen(false) }}
                   className="block w-full text-left px-4 py-3 rounded-2xl text-sm font-semibold text-stone-600 hover:bg-orange-50 hover:text-orange-600 transition-all duration-200"
