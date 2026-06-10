@@ -145,7 +145,7 @@ export default function DestinationResultPage() {
     setCtaError({ type: null, message: '' })
     try {
       const res = await trackClick({ destination_id: d.id, click_type: type })
-      setClicksRemaining(res.data?.data?.remaining_clicks ?? 0)
+      setClicksRemaining(res.data?.data?.remaining_clicks ?? null)
     } catch (err) {
       setCtaError({ type, message: resolveCtaError(err) })
     } finally {

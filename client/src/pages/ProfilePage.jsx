@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { fetchProfile, patchProfile } from '../services/profileApi'
+import { fetchUsage } from '../services/usageApi'
 
 const PLAN_LABELS = {
   free:       { label: 'Free',       className: 'bg-blue-100 text-blue-700' },
@@ -31,23 +32,29 @@ function formatMemberSince(dateStr) {
 export default function ProfilePage() {
   const { setUser } = useAuth()
 
-  const [profile, setProfile]   = useState(null)
-  const [loading, setLoading]   = useState(true)
+  const [profile, setProfile]       = useState(null)
+  const [usage, setUsage]           = useState(null)
+  const [loading, setLoading]       = useState(true)
   const [fetchError, setFetchError] = useState(null)
 
-  const [editing, setEditing]   = useState(false)
-  const [editName, setEditName] = useState('')
-  const [saving, setSaving]     = useState(false)
+  const [editing, setEditing]     = useState(false)
+  const [editName, setEditName]   = useState('')
+  const [saving, setSaving]       = useState(false)
   const [saveError, setSaveError] = useState(null)
 
   useEffect(() => {
-    fetchProfile()
+    const profileReq = fetchProfile()
       .then((data) => {
         setProfile(data)
         setEditName(data.display_name)
       })
       .catch(() => setFetchError('Could not load profile. Please try again.'))
-      .finally(() => setLoading(false))
+
+    const usageReq = fetchUsage()
+      .then(setUsage)
+      .catch(() => {}) // usage silently fails — profile still renders
+
+    Promise.all([profileReq, usageReq]).finally(() => setLoading(false))
   }, [])
 
   function startEditing() {
@@ -90,7 +97,13 @@ export default function ProfilePage() {
     }
   }
 
-  const planConfig = profile ? (PLAN_LABELS[profile.plan] ?? { label: profile.plan, className: 'bg-slate-100 text-slate-600' }) : null
+  const planConfig = profile
+    ? (PLAN_LABELS[profile.plan] ?? { label: profile.plan, className: 'bg-slate-100 text-slate-600' })
+    : null
+
+  const usagePercent = usage?.clicksLimit
+    ? Math.min(100, Math.round((usage.clicksUsed / usage.clicksLimit) * 100))
+    : 0
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -101,7 +114,7 @@ export default function ProfilePage() {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-4">
         {loading && (
           <DashboardCard>
             <p className="text-sm text-slate-400">Loading profile…</p>
@@ -114,6 +127,7 @@ export default function ProfilePage() {
           </DashboardCard>
         )}
 
+        {/* ── Account card ── */}
         {!loading && profile && (
           <DashboardCard>
             <CardLabel>Account</CardLabel>
@@ -203,6 +217,60 @@ export default function ProfilePage() {
                 </p>
               </div>
             </div>
+          </DashboardCard>
+        )}
+
+        {/* ── Usage card ── */}
+        {!loading && usage && (
+          <DashboardCard>
+            <CardLabel>Monthly usage</CardLabel>
+
+            <div className="flex items-end gap-8">
+              <div>
+                <p className="text-xs text-slate-500 mb-1">Clicks used</p>
+                <p className="text-2xl font-extrabold text-slate-900">{usage.clicksUsed}</p>
+              </div>
+
+              <div>
+                <p className="text-xs text-slate-500 mb-1">Remaining</p>
+                <p className="text-2xl font-extrabold text-slate-900">
+                  {usage.clicksRemaining === null ? '∞' : usage.clicksRemaining}
+                </p>
+              </div>
+
+              {usage.clicksLimit !== null && (
+                <div>
+                  <p className="text-xs text-slate-500 mb-1">Limit</p>
+                  <p className="text-2xl font-extrabold text-slate-400">{usage.clicksLimit}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Progress bar — only for plans with a limit */}
+            {usage.clicksLimit !== null && (
+              <div className="mt-4">
+                <div className="w-full bg-slate-100 rounded-full h-1.5">
+                  <div
+                    className="h-1.5 rounded-full transition-all duration-500"
+                    style={{
+                      width: `${usagePercent}%`,
+                      background: usagePercent >= 100
+                        ? 'linear-gradient(90deg, #ea580c, #f97316)'
+                        : 'linear-gradient(90deg, #f97316, #fb923c)',
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-slate-400 mt-1.5">
+                  {usage.clicksUsed} / {usage.clicksLimit} clicks this month
+                </p>
+              </div>
+            )}
+
+            {usage.clicksRemaining === null && (
+              <p className="text-xs text-slate-400 mt-3">
+                Unlimited clicks on your plan
+              </p>
+            )}
           </DashboardCard>
         )}
       </main>

@@ -1,53 +1,32 @@
 const pool = require("../db/pool");
+const { PLAN_LIMITS } = require("../constants/auth");
+const { insertUserClick, countUserClicksThisMonth } = require("../repositories/user_clicks.repository");
 
-const MONTHLY_CLICK_LIMIT = 5;
+async function trackClick({ destination_id, click_type, anonymous_id, user }) {
+  const user_id = user?.id ?? null;
 
-async function trackClick({ destination_id, click_type, anonymous_id, user_id }) {
-  // Rate-limit by user_id for authenticated users, anonymous_id for guests.
-  let countResult;
-  if (user_id) {
-    countResult = await pool.query(
-      `SELECT COUNT(*)::int AS total
-       FROM flight.clicks
-       WHERE user_id = $1
-         AND created_at >= date_trunc('month', NOW())`,
-      [user_id]
-    );
-  } else {
-    countResult = await pool.query(
-      `SELECT COUNT(*)::int AS total
-       FROM flight.clicks
-       WHERE anonymous_id = $1
-         AND created_at >= date_trunc('month', NOW())`,
-      [anonymous_id]
-    );
-  }
-
-  const usedThisMonth = countResult.rows[0].total;
-
-  if (usedThisMonth >= MONTHLY_CLICK_LIMIT) {
-    const err = new Error("Monthly click limit reached. Upgrade to continue.");
-    err.status = 429;
-    err.code = "LIMIT_REACHED";
-    throw err;
-  }
-
+  // Always insert into the affiliate analytics table.
   await pool.query(
     `INSERT INTO flight.clicks (user_id, anonymous_id, destination_id, click_type)
      VALUES ($1, $2, $3, $4)`,
-    [user_id || null, anonymous_id, destination_id, click_type]
+    [user_id, anonymous_id || null, destination_id, click_type]
   );
 
-  // NOTE (provider caching): When live flight/hotel provider APIs are added,
-  // identical requests (same destination + click_type within a short window)
-  // should be served from cache to protect rate-limited API quotas. Add that
-  // caching layer here in the service, not in the controller or route.
+  // Track authenticated clicks in user_clicks for plan-based usage reporting.
+  // Guests are not tracked (business rule: unlimited, not tracked).
+  let remaining_clicks = null;
+  if (user_id && user) {
+    await insertUserClick({ user_id, destination_id });
 
-  return {
-    destination_id,
-    click_type,
-    remaining_clicks: MONTHLY_CLICK_LIMIT - (usedThisMonth + 1),
-  };
+    const limit = PLAN_LIMITS[user.plan] ?? null;
+    if (limit !== null) {
+      const used = await countUserClicksThisMonth(user_id);
+      remaining_clicks = Math.max(0, limit - used);
+    }
+    // null means unlimited — frontend treats null as no counter to show
+  }
+
+  return { destination_id, click_type, remaining_clicks };
 }
 
 module.exports = { trackClick };

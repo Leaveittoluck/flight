@@ -95,7 +95,7 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
     setCtaError({ type: null, message: '' })
     try {
       const res = await trackClick({ destination_id: d.id, click_type: type })
-      onClickUsed(res.data?.data?.remaining_clicks ?? 0)
+      onClickUsed(res.data?.data?.remaining_clicks ?? null)
     } catch (err) {
       setCtaError({ type, message: resolveCtaError(err) })
     } finally {

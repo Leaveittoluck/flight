@@ -12,4 +12,11 @@ const PLANS = Object.freeze({
 // Ordered lowest → highest for plan-hierarchy checks
 const PLAN_ORDER = [PLANS.FREE, PLANS.PRO, PLANS.ADVENTURER];
 
-module.exports = { ROLES, PLANS, PLAN_ORDER };
+// Monthly destination click limits. null = unlimited.
+const PLAN_LIMITS = Object.freeze({
+  free:       5,
+  pro:        50,
+  adventurer: null,
+});
+
+module.exports = { ROLES, PLANS, PLAN_ORDER, PLAN_LIMITS };

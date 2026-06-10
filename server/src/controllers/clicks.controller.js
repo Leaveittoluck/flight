@@ -18,7 +18,7 @@ async function track(req, res, next) {
 
     const data = await trackClick({
       ...parsed.data,
-      user_id: req.user?.id || null,
+      user: req.user || null,
     });
 
     res.status(200).json({
