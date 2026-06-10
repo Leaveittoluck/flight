@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 function DashboardCard({ children, className = '' }) {
   return (
     <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm p-6 ${className}`}>
@@ -81,7 +83,15 @@ export default function DashboardPage() {
 
         {/* Recent activity */}
         <DashboardCard>
-          <CardLabel>Recent activity</CardLabel>
+          <div className="flex items-center justify-between mb-3">
+            <CardLabel>Recent activity</CardLabel>
+            <Link
+              to="/discoveries"
+              className="text-xs font-semibold text-orange-500 hover:text-orange-600 transition-colors"
+            >
+              View discoveries →
+            </Link>
+          </div>
           <div className="py-8 text-center">
             <p className="text-sm text-slate-500">
               Your recent travel activity will appear here

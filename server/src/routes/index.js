@@ -6,12 +6,14 @@ const imagesRouter       = require("./images.routes");
 const authRouter         = require("./auth.routes");
 const profileRouter      = require("./profile.routes");
 const usageRouter        = require("./usage.routes");
+const discoveriesRouter  = require("./discoveries.routes");
 
 const router = Router();
 
 router.use("/auth", authRouter);
 router.use("/profile", profileRouter);
 router.use("/usage", usageRouter);
+router.use("/discoveries", discoveriesRouter);
 router.use(healthRouter);
 router.use("/destinations", destinationsRouter);
 router.use("/images", imagesRouter);

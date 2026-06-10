@@ -5,6 +5,7 @@ import GeneratorPage from './pages/GeneratorPage'
 import DestinationResultPage from './pages/DestinationResultPage'
 import DashboardPage from './pages/DashboardPage'
 import ProfilePage from './pages/ProfilePage'
+import DiscoveriesPage from './pages/DiscoveriesPage'
 import StatsPage from './pages/StatsPage'
 import WorldMapPage from './pages/WorldMapPage'
 import LoginPage from './pages/LoginPage'
@@ -36,6 +37,14 @@ export default function App() {
                 element={
                   <ProtectedRoute>
                     <ProfilePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/discoveries"
+                element={
+                  <ProtectedRoute>
+                    <DiscoveriesPage />
                   </ProtectedRoute>
                 }
               />

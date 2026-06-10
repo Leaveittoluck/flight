@@ -197,6 +197,7 @@ export default function Navbar({ season }) {
                   <span className="text-sm font-medium text-stone-700 truncate">{user.display_name}</span>
                 </div>
                 <NavLink to="/profile" className={mobilePillLink}>Profile</NavLink>
+                <NavLink to="/discoveries" className={mobilePillLink}>Discoveries</NavLink>
                 <button
                   onClick={() => { logout(); setMenuOpen(false) }}
                   className="block w-full text-left px-4 py-3 rounded-2xl text-sm font-semibold text-stone-600 hover:bg-orange-50 hover:text-orange-600 transition-all duration-200"
