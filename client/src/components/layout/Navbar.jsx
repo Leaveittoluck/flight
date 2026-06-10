@@ -125,6 +125,9 @@ export default function Navbar({ season }) {
                       {user.display_name}
                     </span>
                   </Link>
+                  <NavLink to="/discoveries" className={pillLink}>
+                    Discoveries
+                  </NavLink>
                   <button
                     onClick={logout}
                     className="px-3 py-1.5 rounded-full text-sm font-semibold text-stone-500 hover:text-orange-600 hover:bg-orange-50 transition-all duration-200"
