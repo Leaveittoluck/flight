@@ -10,12 +10,16 @@ const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
+app.set('trust proxy', 1);
+
 app.use(cors({
   origin:      process.env.CLIENT_ORIGIN || 'http://localhost:5173',
   credentials: true,
 }));
 
 app.use(express.json());
+
+const isProd = process.env.NODE_ENV === 'production';
 
 app.use(
   session({
@@ -26,13 +30,13 @@ app.use(
       createTableIfMissing: true,
     }),
     name:             'litl.sid',
-    secret:           process.env.SESSION_SECRET || 'dev-secret-change-me-in-production',
+    secret:           process.env.SESSION_SECRET,
     resave:           false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure:   process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure:   isProd,
+      sameSite: isProd ? 'none' : 'lax',
       maxAge:   30 * 24 * 60 * 60 * 1000, // 30 days
     },
   })
