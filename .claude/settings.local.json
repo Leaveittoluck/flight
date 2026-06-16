@@ -7,7 +7,10 @@
       "Bash(Get-ChildItem -Path \"c:\\\\LeaveItToLuck\\\\flight\" -Recurse -Directory)",
       "Bash(Select-Object -ExpandProperty FullName)",
       "Bash(Get-ChildItem -Path c:\\\\LeaveItToLuck\\\\flight -Depth 2)",
-      "Bash(Select-Object FullName)"
+      "Bash(Select-Object FullName)",
+      "Bash(xargs grep -l \"destinations\\\\|departure_airports\\\\|trip_types\")",
+      "Bash(grep -v \"//.*departure\")",
+      "Bash(grep -v \"//\\\\|node_modules\")"
     ]
   }
 }
