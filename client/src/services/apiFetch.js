@@ -1,5 +1,3 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
-
 /**
  * Thin fetch wrapper that mirrors the axios response/error shape used
  * throughout the app, so callers need no changes.
@@ -8,7 +6,7 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
  * Failure → throws Error with .response = { status, data }  (matches axios err.response)
  */
 export async function apiFetch(path, options = {}) {
-  const res = await fetch(`${BASE_URL}${path}`, {
+  const res = await fetch(path, {
     credentials: 'include',
     ...options,
     headers: {
