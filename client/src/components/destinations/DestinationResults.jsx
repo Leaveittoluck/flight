@@ -14,18 +14,18 @@ function Spinner() {
   )
 }
 
-function ClicksCounter({ remaining }) {
+function GenerationsCounter({ remaining }) {
   if (remaining == null) return null
   if (remaining > 0) {
     return (
       <p className="text-xs text-slate-500 mb-4">
-        {remaining} affiliate click{remaining === 1 ? '' : 's'} remaining this month
+        {remaining} destination reveal{remaining === 1 ? '' : 's'} remaining this month
       </p>
     )
   }
   return (
     <p className="text-xs font-medium text-amber-600 mb-4">
-      No clicks remaining this month — upgrade to continue booking
+      You've used all your destination reveals this month — upgrade for more
     </p>
   )
 }
@@ -34,8 +34,7 @@ export default function DestinationResults({
   status,
   destinations,
   errorMsg,
-  clicksRemaining,
-  onClickUsed,
+  remainingGenerations,
   tripInput,
 }) {
   if (status === 'idle') return null
@@ -49,7 +48,7 @@ export default function DestinationResults({
       )}
 
       {status === 'success' && (
-        <ClicksCounter remaining={clicksRemaining} />
+        <GenerationsCounter remaining={remainingGenerations} />
       )}
 
       {status === 'loading' && <Spinner />}
@@ -79,8 +78,6 @@ export default function DestinationResults({
             >
               <DestinationCard
                 destination={dest}
-                clicksRemaining={clicksRemaining}
-                onClickUsed={onClickUsed}
                 tripInput={tripInput}
               />
             </div>

@@ -6,6 +6,7 @@ const generateSchema = z.object({
   departure_airport_id: z.int().positive(),
   budget: z.number().positive(),
   budget_per_person: z.number().positive().optional(),
+  anonymous_id: z.string().uuid(),
   travellers: z.int().min(1).max(6),
   trip_type_slug: z.string().min(1),
   season: z

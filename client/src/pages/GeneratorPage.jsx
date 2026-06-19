@@ -19,6 +19,8 @@ export default function GeneratorPage() {
   const [status, setStatus]     = useState('idle') // idle | loading | error | empty
   const [errorMsg, setErrorMsg] = useState('')
   const [tripInput, setTripInput] = useState(null)
+  // Sticky for the session once hit — generation quota only resets monthly server-side.
+  const [generationLimitReached, setGenerationLimitReached] = useState(false)
 
   // formSeason / formMood: drive the external page accents
   const [formSeason, setFormSeason] = useState('')
@@ -54,6 +56,7 @@ export default function GeneratorPage() {
 
       const res = await generateDestinations(payload)
       const dests = res.data?.data?.destinations ?? []
+      const remainingGenerations = res.data?.data?.meta?.remaining_generations ?? null
 
       if (dests.length === 0) {
         setStatus('empty')
@@ -77,14 +80,18 @@ export default function GeneratorPage() {
         sessionStorage.setItem(SESSION_KEY, JSON.stringify({
           destination: firstDest,
           tripInput: tripInputData,
+          remainingGenerations,
         }))
       } catch { /* ignore storage errors */ }
 
       // Navigate to dedicated result page
       navigate('/travel/result', {
-        state: { destination: firstDest, tripInput: tripInputData },
+        state: { destination: firstDest, tripInput: tripInputData, remainingGenerations },
       })
     } catch (err) {
+      if (err?.response?.data?.code === 'GENERATION_LIMIT_REACHED') {
+        setGenerationLimitReached(true)
+      }
       setErrorMsg(
         err?.response?.data?.message || 'Something went wrong. Please try again.'
       )
@@ -150,6 +157,7 @@ export default function GeneratorPage() {
             <GeneratorForm
               onSubmit={handleSubmit}
               isLoading={status === 'loading'}
+              disabled={generationLimitReached}
               onSeasonPreview={handleSeasonChange}
               onMoodPreview={handleMoodChange}
               activeSeason={season}

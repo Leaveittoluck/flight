@@ -38,11 +38,9 @@ function formatTripDate(isoString) {
     .format(new Date(y, m - 1, day))
 }
 
-function resolveCtaError(err) {
-  const code = err?.response?.data?.code
-  if (err?.response?.status === 429 || code === 'LIMIT_REACHED') {
-    return "You've reached your monthly limit. Upgrade to continue."
-  }
+function resolveCtaError() {
+  // CTA clicks (flight/hotel) are analytics-only and carry no quota of
+  // their own — any failure here just means tracking didn't save.
   return "Click tracking failed — your link still opened."
 }
 
@@ -66,7 +64,6 @@ export default function DestinationResultPage() {
   const [pending, setPending]           = useState(null)
   const [ctaError, setCtaError]         = useState({ type: null, message: '' })
   const [flightClicked, setFlightClicked] = useState(false)
-  const [clicksRemaining, setClicksRemaining] = useState(null)
 
   // imageUrl: null while fetching → Pexels URL on success → local curated path on failure
   const [imageUrl, setImageUrl] = useState(null)
@@ -97,12 +94,11 @@ export default function DestinationResultPage() {
 
   if (!resultData) return null
 
-  const { destination: d, tripInput } = resultData
+  const { destination: d, tripInput, remainingGenerations } = resultData
 
   const weather = weatherEnrichment[d.iata_code] ?? null
   const vibes   = destinationVibes[d.iata_code]  ?? null
-  const limitReached = clicksRemaining === 0
-  const hotelDisabled = !!pending || limitReached || !flightClicked
+  const hotelDisabled = !!pending || !flightClicked
   const canSearchFlights = !!(d.iata_code || d.skyscanner_url)
   const canFindHotels    = !!(d.city || d.booking_com_url)
 
@@ -134,7 +130,7 @@ export default function DestinationResultPage() {
   }
 
   async function handleCtaClick(type) {
-    if (pending || limitReached) return
+    if (pending) return
     if (type === 'hotel' && !flightClicked) return
 
     // Open link synchronously so popup blockers don't interfere
@@ -144,10 +140,10 @@ export default function DestinationResultPage() {
     setPending(type)
     setCtaError({ type: null, message: '' })
     try {
-      const res = await trackClick({ destination_id: d.id, click_type: type })
-      setClicksRemaining(res.data?.data?.remaining_clicks ?? null)
-    } catch (err) {
-      setCtaError({ type, message: resolveCtaError(err) })
+      // Analytics-only — flight/hotel clicks never consume generation quota.
+      await trackClick({ destination_id: d.id, click_type: type })
+    } catch {
+      setCtaError({ type, message: resolveCtaError() })
     } finally {
       setPending(null)
     }
@@ -595,7 +591,7 @@ export default function DestinationResultPage() {
               {canSearchFlights && (
                 <button
                   onClick={() => handleCtaClick('flight')}
-                  disabled={!!pending || limitReached}
+                  disabled={!!pending}
                   className="cta-primary w-full py-4 px-6 rounded-2xl font-bold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{
                     fontSize: '1.05rem',
@@ -610,7 +606,7 @@ export default function DestinationResultPage() {
                 <button
                   onClick={() => handleCtaClick('hotel')}
                   disabled={hotelDisabled}
-                  title={!flightClicked && !limitReached ? 'Plan your flights first to unlock accommodation' : undefined}
+                  title={!flightClicked ? 'Plan your flights first to unlock accommodation' : undefined}
                   className="w-full mt-3 py-3.5 px-5 rounded-2xl text-sm font-semibold transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed hover:-translate-y-0.5"
                   style={{
                     backgroundColor: 'rgba(255,255,255,0.9)',
@@ -639,12 +635,18 @@ export default function DestinationResultPage() {
                 )
               )}
 
-              {limitReached && (
-                <p className="mt-3 text-xs text-center font-semibold" style={{ color: '#f97316' }}>
-                  You've reached your monthly limit. Upgrade to continue.
-                </p>
+              {remainingGenerations != null && (
+                remainingGenerations > 0 ? (
+                  <p className="mt-3 text-xs text-center font-medium" style={{ color: '#a8a29e' }}>
+                    {remainingGenerations} destination reveal{remainingGenerations === 1 ? '' : 's'} remaining this month
+                  </p>
+                ) : (
+                  <p className="mt-3 text-xs text-center font-semibold" style={{ color: '#f97316' }}>
+                    You've used all your destination reveals this month. Upgrade for more.
+                  </p>
+                )
               )}
-              {!limitReached && ctaError.message && (
+              {ctaError.message && (
                 <p className="mt-3 text-xs text-center text-red-600 font-semibold">{ctaError.message}</p>
               )}
             </div>

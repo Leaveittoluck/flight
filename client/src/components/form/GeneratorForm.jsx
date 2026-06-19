@@ -12,7 +12,7 @@ const DEFAULT_FORM = {
   season: '',
 }
 
-export default function GeneratorForm({ onSubmit, isLoading, onSeasonPreview, onMoodPreview, activeSeason, pageTheme }) {
+export default function GeneratorForm({ onSubmit, isLoading, disabled, onSeasonPreview, onMoodPreview, activeSeason, pageTheme }) {
   const [form, setForm] = useState(DEFAULT_FORM)
   const [errors, setErrors] = useState({})
 
@@ -41,6 +41,7 @@ export default function GeneratorForm({ onSubmit, isLoading, onSeasonPreview, on
 
   function handleSubmit(e) {
     e.preventDefault()
+    if (disabled) return
     const errs = validate()
     if (Object.keys(errs).length) {
       setErrors(errs)
@@ -110,11 +111,16 @@ export default function GeneratorForm({ onSubmit, isLoading, onSeasonPreview, on
                   : '#fef3c7',
               }}
             >
-              <Button type="submit" disabled={isLoading}>
+              <Button type="submit" disabled={isLoading || disabled}>
                 {isLoading ? 'Searching…' : 'Reveal my destination'}
               </Button>
               {isLoading && (
                 <span className="text-sm text-stone-500">Hang tight, this takes a moment</span>
+              )}
+              {disabled && !isLoading && (
+                <span className="text-sm font-medium" style={{ color: '#ea580c' }}>
+                  You've reached your monthly destination reveal limit. Upgrade to continue.
+                </span>
               )}
             </div>
 

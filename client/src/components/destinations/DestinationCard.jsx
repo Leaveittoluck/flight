@@ -30,16 +30,13 @@ function CtaTooltip({ message }) {
   )
 }
 
-function resolveCtaError(err) {
-  const status = err?.response?.status
-  const code = err?.response?.data?.code
-  if (status === 429 || code === 'LIMIT_REACHED') {
-    return "You've reached your monthly limit. Upgrade to continue."
-  }
+function resolveCtaError() {
+  // CTA clicks (flight/hotel) are analytics-only and carry no quota of
+  // their own — any failure here just means tracking didn't save.
   return "Click tracking failed — your link still opened."
 }
 
-export default function DestinationCard({ destination: d, clicksRemaining, onClickUsed, tripInput }) {
+export default function DestinationCard({ destination: d, tripInput }) {
   const weather = weatherEnrichment[d.iata_code] ?? null
   const vibes = destinationVibes[d.iata_code] ?? null
   const theme = useSeasonTheme(d, tripInput)
@@ -55,8 +52,6 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
   const [ctaError, setCtaError] = useState({ type: null, message: '' })
   // Unlocked when the user opens the flight link for this destination
   const [flightClicked, setFlightClicked] = useState(false)
-
-  const limitReached = clicksRemaining === 0
 
   function resolveUrl(type) {
     if (type === 'flight') {
@@ -81,7 +76,7 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
   }
 
   async function handleCtaClick(type) {
-    if (pending || limitReached) return
+    if (pending) return
     if (type === 'hotel' && !flightClicked) return
 
     // Open synchronously — before any await so popup blockers don't interfere
@@ -94,10 +89,10 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
     setPending(type)
     setCtaError({ type: null, message: '' })
     try {
-      const res = await trackClick({ destination_id: d.id, click_type: type })
-      onClickUsed(res.data?.data?.remaining_clicks ?? null)
-    } catch (err) {
-      setCtaError({ type, message: resolveCtaError(err) })
+      // Analytics-only — flight/hotel clicks never consume generation quota.
+      await trackClick({ destination_id: d.id, click_type: type })
+    } catch {
+      setCtaError({ type, message: resolveCtaError() })
     } finally {
       setPending(null)
     }
@@ -111,14 +106,8 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
   const skyscannerPassengerCaveat =
     !d.iata_code && (tripInput?.travellers ?? 1) > 1
 
-  // Hotel button reasons for being disabled
-  const hotelDisabledByQuota  = limitReached
-  const hotelDisabledByOrder  = !flightClicked && !limitReached
-  const hotelDisabled         = !!pending || hotelDisabledByQuota || hotelDisabledByOrder
-
-  const hotelTooltipMessage = hotelDisabledByQuota
-    ? 'Upgrade to continue booking'
-    : 'Search flights first to unlock hotels'
+  const hotelDisabled = !!pending || !flightClicked
+  const hotelTooltipMessage = 'Search flights first to unlock hotels'
 
   return (
     <article
@@ -286,11 +275,10 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
         <div style={{ borderTop: '1px solid rgba(251,146,60,0.15)' }} className="px-6 py-4">
           <div className="flex gap-3">
             {canSearchFlights && (
-              <div className={`relative group ${limitReached ? 'cursor-not-allowed' : ''}`}>
+              <div className="relative group">
                 <button
                   onClick={() => handleCtaClick('flight')}
-                  disabled={!!pending || limitReached}
-                  title={limitReached ? 'Upgrade to continue booking' : undefined}
+                  disabled={!!pending}
                   className="inline-flex items-center gap-1.5 text-sm font-bold text-white px-5 py-2.5 rounded-2xl transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none hover:-translate-y-0.5"
                   style={{
                     background: 'linear-gradient(135deg, #ea580c, #f97316)',
@@ -299,7 +287,6 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
                 >
                   {pending === 'flight' ? 'Opening…' : flightClicked ? 'Search again →' : 'Search flights →'}
                 </button>
-                {limitReached && <CtaTooltip message="Upgrade to continue booking" />}
               </div>
             )}
             {canFindHotels && (
@@ -345,12 +332,7 @@ export default function DestinationCard({ destination: d, clicksRemaining, onCli
             )
           )}
 
-          {limitReached && (
-            <p className="mt-2.5 text-xs font-semibold" style={{ color: '#f97316' }}>
-              You've reached your limit. Upgrade to continue.
-            </p>
-          )}
-          {!limitReached && ctaError.message && (
+          {ctaError.message && (
             <p className="mt-2.5 text-xs text-red-600 font-semibold">{ctaError.message}</p>
           )}
         </div>
