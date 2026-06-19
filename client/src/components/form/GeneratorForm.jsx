@@ -4,6 +4,8 @@ import TravellersSelect from './TravellersSelect'
 import MoodSelect from './MoodSelect'
 import SeasonSelect from './SeasonSelect'
 import Button from '../ui/Button'
+import GenerationUsageBadge from './GenerationUsageBadge'
+import { ASSUMED_MONTHLY_LIMIT } from '../../utils/generationUsage'
 
 const DEFAULT_FORM = {
   budget: '',
@@ -12,7 +14,7 @@ const DEFAULT_FORM = {
   season: '',
 }
 
-export default function GeneratorForm({ onSubmit, isLoading, disabled, onSeasonPreview, onMoodPreview, activeSeason, pageTheme }) {
+export default function GeneratorForm({ onSubmit, isLoading, disabled, onSeasonPreview, onMoodPreview, activeSeason, pageTheme, remainingGenerations }) {
   const [form, setForm] = useState(DEFAULT_FORM)
   const [errors, setErrors] = useState({})
 
@@ -103,7 +105,7 @@ export default function GeneratorForm({ onSubmit, isLoading, disabled, onSeasonP
 
             {/* Submit */}
             <div
-              className="px-6 py-4 flex flex-wrap items-center gap-4"
+              className="px-6 py-4 flex flex-col gap-3"
               style={{
                 borderTop: '1.5px solid rgba(251,146,60,0.15)',
                 background: activeSeason && pageTheme
@@ -111,17 +113,23 @@ export default function GeneratorForm({ onSubmit, isLoading, disabled, onSeasonP
                   : '#fef3c7',
               }}
             >
-              <Button type="submit" disabled={isLoading || disabled}>
-                {isLoading ? 'Searching…' : 'Reveal my destination'}
-              </Button>
-              {isLoading && (
-                <span className="text-sm text-stone-500">Hang tight, this takes a moment</span>
+              {remainingGenerations != null && (
+                <GenerationUsageBadge remaining={remainingGenerations} limit={ASSUMED_MONTHLY_LIMIT} />
               )}
-              {disabled && !isLoading && (
-                <span className="text-sm font-medium" style={{ color: '#ea580c' }}>
-                  You've reached your monthly destination reveal limit. Upgrade to continue.
-                </span>
-              )}
+
+              <div className="flex flex-wrap items-center gap-4">
+                <Button type="submit" disabled={isLoading || disabled}>
+                  {isLoading ? 'Searching…' : 'Reveal my destination'}
+                </Button>
+                {isLoading && (
+                  <span className="text-sm text-stone-500">Hang tight, this takes a moment</span>
+                )}
+                {disabled && !isLoading && (
+                  <span className="text-sm font-medium" style={{ color: '#ea580c' }}>
+                    You've reached your monthly destination reveal limit. Upgrade to continue.
+                  </span>
+                )}
+              </div>
             </div>
 
           </div>

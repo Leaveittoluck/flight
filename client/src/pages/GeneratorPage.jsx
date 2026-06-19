@@ -8,6 +8,7 @@ import { normalizeDestination } from '../utils/normalizeDestination'
 import { useActiveSeason } from '../context/SeasonContext'
 import { SEASON_THEMES } from '../data/seasonThemes'
 import { resolvePageSeason } from '../utils/resolvePageSeason'
+import { readCachedRemaining, writeCachedRemaining } from '../utils/generationUsage'
 
 const DEPARTURE_AIRPORT_ID = 1
 const DEPARTURE_AIRPORT_IATA = 'STN'
@@ -21,6 +22,9 @@ export default function GeneratorPage() {
   const [tripInput, setTripInput] = useState(null)
   // Sticky for the session once hit — generation quota only resets monthly server-side.
   const [generationLimitReached, setGenerationLimitReached] = useState(false)
+  // Best-known reveal count for the usage badge — purely informational,
+  // never used to gate the form (that's generationLimitReached, server-driven).
+  const [remainingGenerations, setRemainingGenerations] = useState(() => readCachedRemaining())
 
   // formSeason / formMood: drive the external page accents
   const [formSeason, setFormSeason] = useState('')
@@ -58,6 +62,13 @@ export default function GeneratorPage() {
       const dests = res.data?.data?.destinations ?? []
       const remainingGenerations = res.data?.data?.meta?.remaining_generations ?? null
 
+      // Refresh the usage badge with the freshest known count — this holds
+      // true whether or not a destination was actually matched this time.
+      if (remainingGenerations != null) {
+        setRemainingGenerations(remainingGenerations)
+        writeCachedRemaining(remainingGenerations)
+      }
+
       if (dests.length === 0) {
         setStatus('empty')
         return
@@ -91,6 +102,8 @@ export default function GeneratorPage() {
     } catch (err) {
       if (err?.response?.data?.code === 'GENERATION_LIMIT_REACHED') {
         setGenerationLimitReached(true)
+        setRemainingGenerations(0)
+        writeCachedRemaining(0)
       }
       setErrorMsg(
         err?.response?.data?.message || 'Something went wrong. Please try again.'
@@ -162,6 +175,7 @@ export default function GeneratorPage() {
               onMoodPreview={handleMoodChange}
               activeSeason={season}
               pageTheme={pageTheme}
+              remainingGenerations={remainingGenerations}
             />
           </div>
         </div>
