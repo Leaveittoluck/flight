@@ -8,7 +8,7 @@
 CREATE TABLE IF NOT EXISTS flight.generation_usage (
     id             SERIAL       PRIMARY KEY,
     anonymous_id   UUID         NOT NULL,
-    user_id        UUID         REFERENCES flight.users(id) ON DELETE SET NULL,
+    user_id        INTEGER      REFERENCES flight.users(id) ON DELETE SET NULL,
     destination_id INTEGER      REFERENCES flight.destinations(id) ON DELETE SET NULL,
     created_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );

@@ -102,7 +102,7 @@ CREATE INDEX IF NOT EXISTS idx_recommended_places_destination
 
 CREATE TABLE IF NOT EXISTS flight.clicks (
   id             SERIAL      PRIMARY KEY,
-  user_id        UUID        NULL,
+  user_id        INTEGER     NULL,
   anonymous_id   UUID        NULL,
   destination_id INTEGER     NOT NULL,
   click_type     VARCHAR(10) NOT NULL CHECK (click_type IN ('flight', 'hotel')),
@@ -185,7 +185,7 @@ $$;
 
 CREATE TABLE IF NOT EXISTS flight.user_clicks (
   id             SERIAL      PRIMARY KEY,
-  user_id        UUID        NOT NULL REFERENCES flight.users(id) ON DELETE CASCADE,
+  user_id        INTEGER     NOT NULL REFERENCES flight.users(id) ON DELETE CASCADE,
   destination_id INTEGER     NOT NULL,
   clicked_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
