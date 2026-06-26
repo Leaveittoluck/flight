@@ -1,32 +1,36 @@
-const pool = require("../db/pool");
-const { PLAN_LIMITS } = require("../constants/auth");
+const { PLAN_LIMITS, GUEST_CLICK_LIMIT } = require("../constants/auth");
+const { buildUsageSnapshot } = require("../utils/usageSnapshot");
+const { insertClick, countGuestClicksThisMonth } = require("../repositories/clicks.repository");
 const { insertUserClick, countUserClicksThisMonth } = require("../repositories/user_clicks.repository");
 
 async function trackClick({ destination_id, click_type, anonymous_id, user }) {
   const user_id = user?.id ?? null;
 
-  // Always insert into the affiliate analytics table.
-  await pool.query(
-    `INSERT INTO flight.clicks (user_id, anonymous_id, destination_id, click_type)
-     VALUES ($1, $2, $3, $4)`,
-    [user_id, anonymous_id || null, destination_id, click_type]
-  );
+  const plan = user_id ? user.plan : "guest";
+  const limit = user_id ? (PLAN_LIMITS[user.plan] ?? null) : GUEST_CLICK_LIMIT;
+  const used = user_id
+    ? await countUserClicksThisMonth(user_id)
+    : await countGuestClicksThisMonth(anonymous_id);
 
-  // Track authenticated clicks in user_clicks for plan-based usage reporting.
-  // Guests are not tracked (business rule: unlimited, not tracked).
-  let remaining_clicks = null;
-  if (user_id && user) {
-    await insertUserClick({ user_id, destination_id });
+  const allowed = limit === null || used < limit;
 
-    const limit = PLAN_LIMITS[user.plan] ?? null;
-    if (limit !== null) {
-      const used = await countUserClicksThisMonth(user_id);
-      remaining_clicks = Math.max(0, limit - used);
-    }
-    // null means unlimited — frontend treats null as no counter to show
+  if (!allowed) {
+    return { allowed, destination_id, click_type, ...buildUsageSnapshot({ plan, used, limit }) };
   }
 
-  return { destination_id, click_type, remaining_clicks };
+  // Insert only on an allowed click — flight.clicks doubles as the guest
+  // quota source, so a blocked attempt must never be recorded as a click.
+  await insertClick({ user_id, anonymous_id, destination_id, click_type });
+  if (user_id) {
+    await insertUserClick({ user_id, destination_id });
+  }
+
+  return {
+    allowed,
+    destination_id,
+    click_type,
+    ...buildUsageSnapshot({ plan, used: used + 1, limit }),
+  };
 }
 
 module.exports = { trackClick };

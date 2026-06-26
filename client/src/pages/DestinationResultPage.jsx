@@ -38,10 +38,11 @@ function formatTripDate(isoString) {
     .format(new Date(y, m - 1, day))
 }
 
-function resolveCtaError() {
-  // CTA clicks (flight/hotel) are analytics-only and carry no quota of
-  // their own — any failure here just means tracking didn't save.
-  return "Click tracking failed — your link still opened."
+function resolveCtaError(err) {
+  if (err?.response?.data?.code === 'CLICK_LIMIT_REACHED') {
+    return "You've reached your monthly click limit. Upgrade to continue."
+  }
+  return 'Something went wrong. Try again in a moment.'
 }
 
 export default function DestinationResultPage() {
@@ -64,6 +65,10 @@ export default function DestinationResultPage() {
   const [pending, setPending]           = useState(null)
   const [ctaError, setCtaError]         = useState({ type: null, message: '' })
   const [flightClicked, setFlightClicked] = useState(false)
+  // Set once the backend reports the monthly click quota is exhausted
+  const [limitReached, setLimitReached] = useState(false)
+  // Latest known usage snapshot from the backend — display only
+  const [usage, setUsage] = useState(null)
 
   // imageUrl: null while fetching → Pexels URL on success → local curated path on failure
   const [imageUrl, setImageUrl] = useState(null)
@@ -98,7 +103,7 @@ export default function DestinationResultPage() {
 
   const weather = weatherEnrichment[d.iata_code] ?? null
   const vibes   = destinationVibes[d.iata_code]  ?? null
-  const hotelDisabled = !!pending || !flightClicked
+  const hotelDisabled = !!pending || !flightClicked || limitReached
   const canSearchFlights = !!(d.iata_code || d.skyscanner_url)
   const canFindHotels    = !!(d.city || d.booking_com_url)
 
@@ -130,20 +135,34 @@ export default function DestinationResultPage() {
   }
 
   async function handleCtaClick(type) {
-    if (pending) return
+    if (pending || limitReached) return
     if (type === 'hotel' && !flightClicked) return
 
-    // Open link synchronously so popup blockers don't interfere
-    window.open(resolveUrl(type), '_blank', 'noopener,noreferrer')
-    if (type === 'flight') setFlightClicked(true)
+    // Open a blank tab synchronously, within the click gesture, so popup
+    // blockers don't interfere. Its destination is only filled in once the
+    // backend confirms the click is allowed — the backend is the source of
+    // truth on whether this click counts and may book.
+    const tab = window.open('', '_blank', 'noopener,noreferrer')
 
     setPending(type)
     setCtaError({ type: null, message: '' })
     try {
-      // Analytics-only — flight/hotel clicks never consume generation quota.
-      await trackClick({ destination_id: d.id, click_type: type })
-    } catch {
-      setCtaError({ type, message: resolveCtaError() })
+      const res = await trackClick({ destination_id: d.id, click_type: type })
+      const data = res.data?.data
+
+      if (tab) tab.location = resolveUrl(type)
+      else window.open(resolveUrl(type), '_blank', 'noopener,noreferrer')
+
+      if (type === 'flight') setFlightClicked(true)
+      setUsage(data)
+      if (data?.clicksRemaining === 0) setLimitReached(true)
+    } catch (err) {
+      tab?.close()
+      if (err?.response?.data?.code === 'CLICK_LIMIT_REACHED') {
+        setLimitReached(true)
+        setUsage(err.response.data.data)
+      }
+      setCtaError({ type, message: resolveCtaError(err) })
     } finally {
       setPending(null)
     }
@@ -591,7 +610,8 @@ export default function DestinationResultPage() {
               {canSearchFlights && (
                 <button
                   onClick={() => handleCtaClick('flight')}
-                  disabled={!!pending}
+                  disabled={!!pending || limitReached}
+                  title={limitReached ? "You've reached your monthly click limit" : undefined}
                   className="cta-primary w-full py-4 px-6 rounded-2xl font-bold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{
                     fontSize: '1.05rem',
@@ -606,7 +626,13 @@ export default function DestinationResultPage() {
                 <button
                   onClick={() => handleCtaClick('hotel')}
                   disabled={hotelDisabled}
-                  title={!flightClicked ? 'Plan your flights first to unlock accommodation' : undefined}
+                  title={
+                    limitReached
+                      ? "You've reached your monthly click limit"
+                      : !flightClicked
+                        ? 'Plan your flights first to unlock accommodation'
+                        : undefined
+                  }
                   className="w-full mt-3 py-3.5 px-5 rounded-2xl text-sm font-semibold transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed hover:-translate-y-0.5"
                   style={{
                     backgroundColor: 'rgba(255,255,255,0.9)',
@@ -645,6 +671,11 @@ export default function DestinationResultPage() {
                     You've used all your destination reveals this month. Upgrade for more.
                   </p>
                 )
+              )}
+              {usage && usage.clicksRemaining !== null && usage.clicksRemaining > 0 && (
+                <p className="mt-3 text-xs text-center font-medium" style={{ color: '#a8a29e' }}>
+                  {usage.clicksRemaining} click{usage.clicksRemaining === 1 ? '' : 's'} remaining this month
+                </p>
               )}
               {ctaError.message && (
                 <p className="mt-3 text-xs text-center text-red-600 font-semibold">{ctaError.message}</p>

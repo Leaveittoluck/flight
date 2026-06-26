@@ -17,7 +17,7 @@ async function updateProfile(req, res, next) {
     if (!result.success) {
       return res.status(400).json({
         ok: false,
-        message: result.error.errors[0]?.message ?? 'Validation failed',
+        message: result.error.issues[0]?.message ?? 'Validation failed',
       });
     }
 

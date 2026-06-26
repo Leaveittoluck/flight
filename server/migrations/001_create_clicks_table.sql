@@ -4,7 +4,7 @@
 
 CREATE TABLE IF NOT EXISTS flight.clicks (
     id             SERIAL PRIMARY KEY,
-    user_id        INTEGER          NULL,        -- NULL until auth is added
+    user_id        UUID             NULL,        -- NULL for guests; flight.users.id is UUID
     destination_id INTEGER          NOT NULL,
     click_type     VARCHAR(10)      NOT NULL CHECK (click_type IN ('flight', 'hotel')),
     created_at     TIMESTAMPTZ      NOT NULL DEFAULT NOW()

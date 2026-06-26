@@ -11,7 +11,7 @@ async function generate(req, res, next) {
       return res.status(400).json({
         ok: false,
         message: "Validation failed",
-        errors: parsed.error.errors.map((e) => ({
+        errors: parsed.error.issues.map((e) => ({
           field: e.path.join("."),
           message: e.message,
         })),

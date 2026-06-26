@@ -30,10 +30,11 @@ function CtaTooltip({ message }) {
   )
 }
 
-function resolveCtaError() {
-  // CTA clicks (flight/hotel) are analytics-only and carry no quota of
-  // their own — any failure here just means tracking didn't save.
-  return "Click tracking failed — your link still opened."
+function resolveCtaError(err) {
+  if (err?.response?.data?.code === 'CLICK_LIMIT_REACHED') {
+    return "You've reached your monthly click limit. Upgrade to continue."
+  }
+  return 'Something went wrong. Try again in a moment.'
 }
 
 export default function DestinationCard({ destination: d, tripInput }) {
@@ -52,6 +53,10 @@ export default function DestinationCard({ destination: d, tripInput }) {
   const [ctaError, setCtaError] = useState({ type: null, message: '' })
   // Unlocked when the user opens the flight link for this destination
   const [flightClicked, setFlightClicked] = useState(false)
+  // Set once the backend reports the monthly click quota is exhausted
+  const [limitReached, setLimitReached] = useState(false)
+  // Latest known usage snapshot from the backend — display only
+  const [usage, setUsage] = useState(null)
 
   function resolveUrl(type) {
     if (type === 'flight') {
@@ -76,23 +81,34 @@ export default function DestinationCard({ destination: d, tripInput }) {
   }
 
   async function handleCtaClick(type) {
-    if (pending) return
+    if (pending || limitReached) return
     if (type === 'hotel' && !flightClicked) return
 
-    // Open synchronously — before any await so popup blockers don't interfere
-    // and so tracking failure can never block the redirect.
-    window.open(resolveUrl(type), '_blank', 'noopener,noreferrer')
-
-    // Unlock hotel button as soon as the flight link opens.
-    if (type === 'flight') setFlightClicked(true)
+    // Open a blank tab synchronously, within the click gesture, so popup
+    // blockers don't interfere. Its destination is only filled in once the
+    // backend confirms the click is allowed — the backend is the source of
+    // truth on whether this click counts and may book.
+    const tab = window.open('', '_blank', 'noopener,noreferrer')
 
     setPending(type)
     setCtaError({ type: null, message: '' })
     try {
-      // Analytics-only — flight/hotel clicks never consume generation quota.
-      await trackClick({ destination_id: d.id, click_type: type })
-    } catch {
-      setCtaError({ type, message: resolveCtaError() })
+      const res = await trackClick({ destination_id: d.id, click_type: type })
+      const data = res.data?.data
+
+      if (tab) tab.location = resolveUrl(type)
+      else window.open(resolveUrl(type), '_blank', 'noopener,noreferrer')
+
+      if (type === 'flight') setFlightClicked(true)
+      setUsage(data)
+      if (data?.clicksRemaining === 0) setLimitReached(true)
+    } catch (err) {
+      tab?.close()
+      if (err?.response?.data?.code === 'CLICK_LIMIT_REACHED') {
+        setLimitReached(true)
+        setUsage(err.response.data.data)
+      }
+      setCtaError({ type, message: resolveCtaError(err) })
     } finally {
       setPending(null)
     }
@@ -106,8 +122,10 @@ export default function DestinationCard({ destination: d, tripInput }) {
   const skyscannerPassengerCaveat =
     !d.iata_code && (tripInput?.travellers ?? 1) > 1
 
-  const hotelDisabled = !!pending || !flightClicked
-  const hotelTooltipMessage = 'Search flights first to unlock hotels'
+  const hotelDisabled = !!pending || !flightClicked || limitReached
+  const hotelTooltipMessage = !flightClicked
+    ? 'Search flights first to unlock hotels'
+    : "You've reached your monthly click limit"
 
   return (
     <article
@@ -278,7 +296,8 @@ export default function DestinationCard({ destination: d, tripInput }) {
               <div className="relative group">
                 <button
                   onClick={() => handleCtaClick('flight')}
-                  disabled={!!pending}
+                  disabled={!!pending || limitReached}
+                  title={limitReached ? "You've reached your monthly click limit" : undefined}
                   className="inline-flex items-center gap-1.5 text-sm font-bold text-white px-5 py-2.5 rounded-2xl transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none hover:-translate-y-0.5"
                   style={{
                     background: 'linear-gradient(135deg, #ea580c, #f97316)',
@@ -330,6 +349,12 @@ export default function DestinationCard({ destination: d, tripInput }) {
                 {formatGBP(d.remaining_budget_after_flight)} left after flights — hotel cost may push over budget
               </p>
             )
+          )}
+
+          {usage && usage.clicksRemaining !== null && usage.clicksRemaining > 0 && (
+            <p className="mt-2.5 text-xs text-stone-400">
+              {usage.clicksRemaining} click{usage.clicksRemaining === 1 ? '' : 's'} remaining this month
+            </p>
           )}
 
           {ctaError.message && (

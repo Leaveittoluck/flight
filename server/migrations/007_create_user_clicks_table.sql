@@ -4,7 +4,7 @@
 
 CREATE TABLE IF NOT EXISTS flight.user_clicks (
     id             SERIAL       PRIMARY KEY,
-    user_id        INTEGER      NOT NULL REFERENCES flight.users(id) ON DELETE CASCADE,
+    user_id        UUID         NOT NULL REFERENCES flight.users(id) ON DELETE CASCADE,
     destination_id INTEGER      NOT NULL,
     clicked_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );

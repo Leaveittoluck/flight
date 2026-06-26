@@ -1,17 +1,12 @@
 const { PLAN_LIMITS } = require('../constants/auth');
+const { buildUsageSnapshot } = require('../utils/usageSnapshot');
 const { countUserClicksThisMonth } = require('../repositories/user_clicks.repository');
 
 async function getUserUsage(user) {
   const limit = PLAN_LIMITS[user.plan] ?? null;
-  const clicksUsed = await countUserClicksThisMonth(user.id);
-  const clicksRemaining = limit === null ? null : Math.max(0, limit - clicksUsed);
+  const used = await countUserClicksThisMonth(user.id);
 
-  return {
-    plan:             user.plan,
-    clicksUsed,
-    clicksLimit:      limit,
-    clicksRemaining,
-  };
+  return buildUsageSnapshot({ plan: user.plan, used, limit });
 }
 
 module.exports = { getUserUsage };
