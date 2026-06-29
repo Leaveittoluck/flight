@@ -120,6 +120,10 @@ const MODAL_COPY = {
     title: 'Coming Soon',
     body: "Referral rewards are currently in development. You'll be able to invite friends and earn rewards once this launches.",
   },
+  rewards: {
+    title: 'Coming Soon',
+    body: "Redeeming coins for discounts is currently in development. You'll be able to redeem your balance once the rewards system launches.",
+  },
 }
 
 function formatDate(dateStr) {
@@ -144,6 +148,11 @@ function calcFavoriteTripType(discoveries) {
   const entries = Object.entries(counts)
   if (!entries.length) return null
   return entries.reduce((best, curr) => (curr[1] > best[1] ? curr : best))[0]
+}
+
+function calcCountriesExplored(discoveries) {
+  if (!discoveries?.length) return 0
+  return new Set(discoveries.map((d) => d.country).filter(Boolean)).size
 }
 
 function getFirstName(displayName) {
@@ -206,8 +215,9 @@ export default function DashboardPage() {
     ? (PLAN_LABELS[profile.plan] ?? { label: profile.plan, className: 'bg-slate-100 text-slate-600' })
     : null
 
-  const recentDiscoveries = discoveries?.slice(0, 3) ?? []
-  const favoriteTripType  = calcFavoriteTripType(discoveries)
+  const recentDiscoveries  = discoveries?.slice(0, 3) ?? []
+  const favoriteTripType   = calcFavoriteTripType(discoveries)
+  const countriesExplored  = calcCountriesExplored(discoveries)
 
   const usagePercent = usage?.clicksLimit
     ? Math.min(100, Math.round((usage.clicksUsed / usage.clicksLimit) * 100))
@@ -257,84 +267,27 @@ export default function DashboardPage() {
 
         {!loading && (
           <>
-            {/* ── Quick account summary ── */}
-            <DashboardCard>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <SummaryItem label="Current plan" value={planConfig?.label ?? '—'} />
-                <SummaryItem
-                  label="Generations left"
-                  value={usage === null ? '—' : usage.clicksRemaining === null ? '∞' : usage.clicksRemaining}
-                />
-                <SummaryItem
-                  label="Total discoveries"
-                  value={discoveries !== null ? discoveries.length : '—'}
-                />
-                <SummaryItem label="Member since" value={memberSince ?? '—'} />
-              </div>
-            </DashboardCard>
-
-            {/* ══════════════ GROUP 1 — Account Overview ══════════════ */}
+            {/* ══════════════ 1. Overview ══════════════ */}
             <section className="space-y-4">
-              <GroupHeading subtitle="Your plan, usage, and discoveries at a glance">
-                Account Overview
+              <GroupHeading subtitle="Your current plan, usage, and account status">
+                Overview
               </GroupHeading>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-
-                <DashboardCard className="min-h-30 flex flex-col justify-between">
-                  <CardLabel>Click usage</CardLabel>
-                  <div>
-                    <p className="text-3xl font-extrabold text-slate-900">
-                      {usage !== null ? usage.clicksUsed : '—'}
-                      {usage?.clicksLimit != null && (
-                        <span className="text-base font-semibold text-slate-400"> / {usage.clicksLimit}</span>
-                      )}
-                    </p>
-                    <p className="text-xs text-slate-400 mt-1">
-                      {usage === null
-                        ? 'this month'
-                        : usage.clicksRemaining === null
-                          ? 'unlimited remaining'
-                          : `${usage.clicksRemaining} left this month`}
-                    </p>
-                  </div>
-                </DashboardCard>
-
-                <DashboardCard className="min-h-30 flex flex-col justify-between">
-                  <CardLabel>Plan</CardLabel>
-                  <div>
-                    {planConfig ? (
-                      <>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${planConfig.className}`}>
-                          {planConfig.label}
-                        </span>
-                        <p className="text-xs text-slate-400 mt-2">current plan</p>
-                      </>
-                    ) : (
-                      <p className="text-3xl font-extrabold text-slate-900">—</p>
-                    )}
-                  </div>
-                </DashboardCard>
-
-                <DashboardCard className="min-h-30 flex flex-col justify-between">
-                  <CardLabel>Discoveries</CardLabel>
-                  <div>
-                    <p className="text-3xl font-extrabold text-slate-900">
-                      {discoveries !== null ? discoveries.length : '—'}
-                    </p>
-                    <p className="text-xs text-slate-400 mt-1">total generated</p>
-                  </div>
-                </DashboardCard>
-
-                <DashboardCard className="min-h-30 flex flex-col justify-between border-dashed bg-slate-50/60">
-                  <CardLabel>Coins</CardLabel>
-                  <div>
-                    <p className="text-3xl font-extrabold text-slate-300">0</p>
-                    <p className="text-xs text-slate-400 mt-1">no coins yet</p>
-                  </div>
-                </DashboardCard>
-
-              </div>
+              {/* ── Quick account summary ── */}
+              <DashboardCard>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <SummaryItem label="Current plan" value={planConfig?.label ?? '—'} />
+                  <SummaryItem
+                    label="Generations left"
+                    value={usage === null ? '—' : usage.clicksRemaining === null ? '∞' : usage.clicksRemaining}
+                  />
+                  <SummaryItem
+                    label="Total discoveries"
+                    value={discoveries !== null ? discoveries.length : '—'}
+                  />
+                  <SummaryItem label="Member since" value={memberSince ?? '—'} />
+                </div>
+              </DashboardCard>
 
               {/* ── Click usage detail ── */}
               <DashboardCard>
@@ -433,80 +386,30 @@ export default function DashboardPage() {
               </DashboardCard>
             </section>
 
-            {/* ══════════════ GROUP 2 — Coming Soon ══════════════ */}
-            <section className="space-y-4">
-              <GroupHeading subtitle="Premium features we're building next">
-                Coming Soon
-              </GroupHeading>
-
-              {/* ── Rewards (placeholder) ── */}
-              <DashboardCard className="border-dashed bg-slate-50/60">
-                <div className="flex items-center justify-between mb-3">
-                  <CardLabel>Rewards</CardLabel>
-                  <ComingSoonBadge />
-                </div>
-
-                <p className="text-2xl font-extrabold text-slate-300 mb-1">0 coins</p>
-                <p className="text-sm text-slate-400 mb-4">
-                  No coins yet. You'll earn coins for bookings and referrals once the rewards
-                  system launches.
-                </p>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-xl border border-slate-200 bg-white p-3">
-                    <p className="text-xs font-bold text-slate-500">50 coins</p>
-                    <p className="text-xs text-slate-400">Future 5% discount</p>
-                  </div>
-                  <div className="rounded-xl border border-slate-200 bg-white p-3">
-                    <p className="text-xs font-bold text-slate-500">200 coins</p>
-                    <p className="text-xs text-slate-400">Future 10% discount</p>
-                  </div>
-                </div>
-
-                <p className="text-xs text-slate-400 mt-3">No expiring coins yet</p>
-              </DashboardCard>
-
-              {/* ── Referrals (placeholder) ── */}
-              <DashboardCard className="border-dashed bg-slate-50/60">
-                <div className="flex items-center justify-between mb-3">
-                  <CardLabel>Referrals</CardLabel>
-                  <ComingSoonBadge />
-                </div>
-
-                <p className="text-sm text-slate-400 mb-4">
-                  Referral rewards are coming soon. Invite friends and earn rewards once this
-                  launches.
-                </p>
-
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value="Referral link coming soon"
-                    disabled
-                    className="flex-1 rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-400 cursor-not-allowed"
-                  />
-                  <InfoButton onClick={() => openModal('referral')}>Copy</InfoButton>
-                </div>
-              </DashboardCard>
-
-              {/* ── Booking history (placeholder) ── */}
-              <DashboardCard className="border-dashed bg-slate-50/60">
-                <div className="flex items-center justify-between mb-3">
-                  <CardLabel>Booking history</CardLabel>
-                  <ComingSoonBadge />
-                </div>
-                <p className="text-sm text-slate-400">
-                  Booking rewards will appear here after verified bookings are added. This is
-                  separate from your discovery history below.
-                </p>
-              </DashboardCard>
-            </section>
-
-            {/* ══════════════ GROUP 3 — Your Travel Journey ══════════════ */}
+            {/* ══════════════ 2. Travel ══════════════ */}
             <section className="space-y-4">
               <GroupHeading subtitle="Where you've explored so far">
-                Your Travel Journey
+                Travel
               </GroupHeading>
+
+              {/* ── Travel statistics ── */}
+              <DashboardCard>
+                <CardLabel>Travel statistics</CardLabel>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-2xl font-extrabold text-slate-900">
+                      {discoveries !== null ? discoveries.length : '—'}
+                    </p>
+                    <p className="text-xs text-slate-400 mt-1">destinations discovered</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-extrabold text-slate-900">
+                      {discoveries !== null ? countriesExplored : '—'}
+                    </p>
+                    <p className="text-xs text-slate-400 mt-1">countries explored</p>
+                  </div>
+                </div>
+              </DashboardCard>
 
               {/* ── Recent discoveries ── */}
               <DashboardCard>
@@ -615,6 +518,106 @@ export default function DashboardPage() {
                 ) : (
                   <p className="text-sm text-slate-400">Not enough data yet.</p>
                 )}
+              </DashboardCard>
+            </section>
+
+            {/* ══════════════ 3. Rewards ══════════════ */}
+            <section className="space-y-4">
+              <GroupHeading subtitle="Your future coins and perks">
+                Rewards
+              </GroupHeading>
+
+              {/* ── Coin balance / reward progress / expiry (placeholder) ── */}
+              <DashboardCard className="border-dashed bg-slate-50/60">
+                <div className="flex items-center justify-between mb-3">
+                  <CardLabel>Coin balance</CardLabel>
+                  <ComingSoonBadge />
+                </div>
+
+                <p className="text-2xl font-extrabold text-slate-300 mb-1">0 coins</p>
+                <p className="text-sm text-slate-400 mb-4">
+                  No coins yet. You'll earn coins for bookings and referrals once the rewards
+                  system launches.
+                </p>
+
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
+                  Reward progress
+                </p>
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div className="rounded-xl border border-slate-200 bg-white p-3">
+                    <p className="text-xs font-bold text-slate-500">50 coins</p>
+                    <p className="text-xs text-slate-400">Future 5% discount</p>
+                  </div>
+                  <div className="rounded-xl border border-slate-200 bg-white p-3">
+                    <p className="text-xs font-bold text-slate-500">200 coins</p>
+                    <p className="text-xs text-slate-400">Future 10% discount</p>
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-400 mb-4">No expiring coins yet</p>
+
+                <InfoButton onClick={() => openModal('rewards')}>Redeem rewards</InfoButton>
+              </DashboardCard>
+            </section>
+
+            {/* ══════════════ 4. Growth ══════════════ */}
+            <section className="space-y-4">
+              <GroupHeading subtitle="Grow your travel circle">
+                Growth
+              </GroupHeading>
+
+              {/* ── Referrals (placeholder) ── */}
+              <DashboardCard className="border-dashed bg-slate-50/60">
+                <div className="flex items-center justify-between mb-3">
+                  <CardLabel>Referral program</CardLabel>
+                  <ComingSoonBadge />
+                </div>
+
+                <p className="text-sm text-slate-400 mb-4">
+                  Referral rewards are coming soon. Invite friends and earn rewards once this
+                  launches.
+                </p>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value="Referral link coming soon"
+                    disabled
+                    className="flex-1 rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-400 cursor-not-allowed"
+                  />
+                  <InfoButton onClick={() => openModal('referral')}>Copy</InfoButton>
+                </div>
+              </DashboardCard>
+            </section>
+
+            {/* ══════════════ 5. History ══════════════ */}
+            <section className="space-y-4">
+              <GroupHeading subtitle="Your future activity record">
+                History
+              </GroupHeading>
+
+              {/* ── Booking history (placeholder) ── */}
+              <DashboardCard className="border-dashed bg-slate-50/60">
+                <div className="flex items-center justify-between mb-3">
+                  <CardLabel>Booking history</CardLabel>
+                  <ComingSoonBadge />
+                </div>
+                <p className="text-sm text-slate-400">
+                  Booking rewards will appear here after verified bookings are added. This is
+                  separate from your discovery history above.
+                </p>
+              </DashboardCard>
+
+              {/* ── Reward history (placeholder) ── */}
+              <DashboardCard className="border-dashed bg-slate-50/60">
+                <div className="flex items-center justify-between mb-3">
+                  <CardLabel>Reward history</CardLabel>
+                  <ComingSoonBadge />
+                </div>
+                <p className="text-sm text-slate-400">
+                  Your coin earning and redemption history will appear here once the rewards
+                  system launches.
+                </p>
               </DashboardCard>
             </section>
           </>
