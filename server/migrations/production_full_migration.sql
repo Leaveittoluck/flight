@@ -245,7 +245,7 @@ CREATE INDEX IF NOT EXISTS idx_generation_usage_user_month
 -- Run these after migration to confirm everything was created.
 -- =============================================================================
 
--- List all tables in the flight schema (expect 10 tables)
+-- List all tables in the flight schema (expect 11 tables)
 SELECT tablename
 FROM pg_tables
 WHERE schemaname = 'flight'
