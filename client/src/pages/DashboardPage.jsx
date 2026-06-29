@@ -18,6 +18,14 @@ const PLAN_BENEFITS = [
   { key: 'adventurer', label: 'Adventurer', clicks: 'Unlimited clicks' },
 ]
 
+const SECTIONS = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'travel',   label: 'Travel' },
+  { id: 'rewards',  label: 'Rewards' },
+  { id: 'growth',   label: 'Growth' },
+  { id: 'history',  label: 'History' },
+]
+
 function DashboardCard({ children, className = '' }) {
   return (
     <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm p-6 ${className}`}>
@@ -57,6 +65,39 @@ function GroupHeading({ children, subtitle }) {
       <h2 className="text-sm font-bold text-slate-600 uppercase tracking-wide">{children}</h2>
       {subtitle && <p className="text-xs text-slate-400 mt-1">{subtitle}</p>}
     </div>
+  )
+}
+
+// Compact jump-to-section nav. Plain anchor links (graceful no-JS fallback,
+// keyboard/right-click friendly) with a click handler that does the smooth
+// scroll itself, so it can also track which pill to highlight.
+//
+// Sticky positioning only holds an element within its own parent's box, so
+// this must render as a direct sibling of the 5 <section> elements (not
+// nested inside one of them) — otherwise it would unstick the moment the
+// user scrolls past whichever section it lived in. top-16 matches the site
+// Navbar's h-16 exactly, so it docks directly below it with no gap/overlap.
+function SectionNav({ activeSection, onNavigate }) {
+  return (
+    <nav
+      aria-label="Account Center sections"
+      className="sticky top-16 z-30 flex items-center gap-2 overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm p-2 -mx-1 px-1 sm:mx-0 sm:px-2"
+    >
+      {SECTIONS.map((section) => (
+        <a
+          key={section.id}
+          href={`#${section.id}`}
+          onClick={(e) => onNavigate(e, section.id)}
+          className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-bold border transition-all duration-200 ${
+            activeSection === section.id
+              ? 'bg-orange-100 text-orange-700 border-orange-200'
+              : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50 hover:text-slate-700 hover:border-slate-300'
+          }`}
+        >
+          {section.label}
+        </a>
+      ))}
+    </nav>
   )
 }
 
@@ -194,6 +235,7 @@ export default function DashboardPage() {
   const [loading,     setLoading]     = useState(true)
   const [profileErr,  setProfileErr]  = useState(false)
   const [modal,       setModal]       = useState(null)
+  const [activeSection, setActiveSection] = useState('overview')
 
   useEffect(() => {
     const profileReq = fetchProfile()
@@ -236,6 +278,13 @@ export default function DashboardPage() {
     setModal(null)
   }
 
+  function scrollToSection(e, id) {
+    e.preventDefault()
+    setActiveSection(id)
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    window.history.replaceState(null, '', `#${id}`)
+  }
+
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="bg-white border-b border-slate-200">
@@ -267,27 +316,35 @@ export default function DashboardPage() {
 
         {!loading && (
           <>
+            {/* ── Quick account summary ── */}
+            <DashboardCard>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <SummaryItem label="Current plan" value={planConfig?.label ?? '—'} />
+                <SummaryItem
+                  label="Generations left"
+                  value={usage === null ? '—' : usage.clicksRemaining === null ? '∞' : usage.clicksRemaining}
+                />
+                <SummaryItem
+                  label="Total discoveries"
+                  value={discoveries !== null ? discoveries.length : '—'}
+                />
+                <SummaryItem label="Member since" value={memberSince ?? '—'} />
+              </div>
+            </DashboardCard>
+
+            {/*
+              Jump-to-section nav — rendered as a sibling of the 5 <section>
+              elements below (not nested inside one), so its sticky containing
+              block spans the whole page and it stays docked through Travel /
+              Rewards / Growth / History too, not just within Overview.
+            */}
+            <SectionNav activeSection={activeSection} onNavigate={scrollToSection} />
+
             {/* ══════════════ 1. Overview ══════════════ */}
-            <section className="space-y-4">
+            <section id="overview" className="space-y-4 scroll-mt-32">
               <GroupHeading subtitle="Your current plan, usage, and account status">
                 Overview
               </GroupHeading>
-
-              {/* ── Quick account summary ── */}
-              <DashboardCard>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  <SummaryItem label="Current plan" value={planConfig?.label ?? '—'} />
-                  <SummaryItem
-                    label="Generations left"
-                    value={usage === null ? '—' : usage.clicksRemaining === null ? '∞' : usage.clicksRemaining}
-                  />
-                  <SummaryItem
-                    label="Total discoveries"
-                    value={discoveries !== null ? discoveries.length : '—'}
-                  />
-                  <SummaryItem label="Member since" value={memberSince ?? '—'} />
-                </div>
-              </DashboardCard>
 
               {/* ── Click usage detail ── */}
               <DashboardCard>
@@ -387,7 +444,7 @@ export default function DashboardPage() {
             </section>
 
             {/* ══════════════ 2. Travel ══════════════ */}
-            <section className="space-y-4">
+            <section id="travel" className="space-y-4 scroll-mt-32">
               <GroupHeading subtitle="Where you've explored so far">
                 Travel
               </GroupHeading>
@@ -522,7 +579,7 @@ export default function DashboardPage() {
             </section>
 
             {/* ══════════════ 3. Rewards ══════════════ */}
-            <section className="space-y-4">
+            <section id="rewards" className="space-y-4 scroll-mt-32">
               <GroupHeading subtitle="Your future coins and perks">
                 Rewards
               </GroupHeading>
@@ -561,7 +618,7 @@ export default function DashboardPage() {
             </section>
 
             {/* ══════════════ 4. Growth ══════════════ */}
-            <section className="space-y-4">
+            <section id="growth" className="space-y-4 scroll-mt-32">
               <GroupHeading subtitle="Grow your travel circle">
                 Growth
               </GroupHeading>
@@ -591,7 +648,7 @@ export default function DashboardPage() {
             </section>
 
             {/* ══════════════ 5. History ══════════════ */}
-            <section className="space-y-4">
+            <section id="history" className="space-y-4 scroll-mt-32">
               <GroupHeading subtitle="Your future activity record">
                 History
               </GroupHeading>
