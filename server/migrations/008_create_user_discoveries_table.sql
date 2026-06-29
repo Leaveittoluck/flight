@@ -4,7 +4,7 @@
 
 CREATE TABLE IF NOT EXISTS flight.user_discoveries (
     id                        SERIAL        PRIMARY KEY,
-    user_id                   INTEGER       NOT NULL REFERENCES flight.users(id)       ON DELETE CASCADE,
+    user_id                   UUID          NOT NULL REFERENCES flight.users(id)       ON DELETE CASCADE,
     destination_id            INTEGER       NOT NULL REFERENCES flight.destinations(id) ON DELETE CASCADE,
     generated_at              TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
     budget_per_person         NUMERIC(10,2),

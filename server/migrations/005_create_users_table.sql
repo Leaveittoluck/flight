@@ -2,8 +2,10 @@
 -- Adds FK from flight.clicks.user_id → flight.users.id.
 -- Idempotent — safe to run on an existing database.
 
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 CREATE TABLE IF NOT EXISTS flight.users (
-    id                SERIAL        PRIMARY KEY,
+    id                UUID          PRIMARY KEY DEFAULT gen_random_uuid(),
     google_id         VARCHAR(255)  NOT NULL UNIQUE,
     email             VARCHAR(255)  NOT NULL UNIQUE,
     display_name      VARCHAR(255)  NOT NULL,

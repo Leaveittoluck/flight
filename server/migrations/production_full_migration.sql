@@ -13,6 +13,9 @@
 
 CREATE SCHEMA IF NOT EXISTS flight;
 
+-- Required for gen_random_uuid(), used as the default for flight.users.id
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 
 -- =============================================================================
 -- STEP 2 — Base lookup tables
@@ -102,7 +105,7 @@ CREATE INDEX IF NOT EXISTS idx_recommended_places_destination
 
 CREATE TABLE IF NOT EXISTS flight.clicks (
   id             SERIAL      PRIMARY KEY,
-  user_id        INTEGER     NULL,
+  user_id        UUID        NULL,
   anonymous_id   UUID        NULL,
   destination_id INTEGER     NOT NULL,
   click_type     VARCHAR(10) NOT NULL CHECK (click_type IN ('flight', 'hotel')),
@@ -142,7 +145,7 @@ ALTER TABLE flight.destinations
 -- =============================================================================
 
 CREATE TABLE IF NOT EXISTS flight.users (
-  id                SERIAL       PRIMARY KEY,
+  id                UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
   google_id         VARCHAR(255) NOT NULL UNIQUE,
   email             VARCHAR(255) NOT NULL UNIQUE,
   display_name      VARCHAR(255) NOT NULL,
@@ -185,7 +188,7 @@ $$;
 
 CREATE TABLE IF NOT EXISTS flight.user_clicks (
   id             SERIAL      PRIMARY KEY,
-  user_id        INTEGER     NOT NULL REFERENCES flight.users(id) ON DELETE CASCADE,
+  user_id        UUID        NOT NULL REFERENCES flight.users(id) ON DELETE CASCADE,
   destination_id INTEGER     NOT NULL,
   clicked_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -200,7 +203,7 @@ CREATE INDEX IF NOT EXISTS idx_user_clicks_user_month
 
 CREATE TABLE IF NOT EXISTS flight.user_discoveries (
   id                        SERIAL       PRIMARY KEY,
-  user_id                   INTEGER      NOT NULL REFERENCES flight.users(id)        ON DELETE CASCADE,
+  user_id                   UUID         NOT NULL REFERENCES flight.users(id)        ON DELETE CASCADE,
   destination_id            INTEGER      NOT NULL REFERENCES flight.destinations(id) ON DELETE CASCADE,
   generated_at              TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
   budget_per_person         NUMERIC(10,2),
@@ -219,11 +222,30 @@ CREATE INDEX IF NOT EXISTS idx_user_discoveries_destination
 
 
 -- =============================================================================
+-- STEP 8 — Destination-generation quota tracking (migration 009)
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS flight.generation_usage (
+  id             SERIAL       PRIMARY KEY,
+  anonymous_id   UUID         NOT NULL,
+  user_id        UUID         REFERENCES flight.users(id) ON DELETE SET NULL,
+  destination_id INTEGER      REFERENCES flight.destinations(id) ON DELETE SET NULL,
+  created_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_generation_usage_anon_month
+  ON flight.generation_usage (anonymous_id, created_at);
+
+CREATE INDEX IF NOT EXISTS idx_generation_usage_user_month
+  ON flight.generation_usage (user_id, created_at);
+
+
+-- =============================================================================
 -- VERIFICATION
 -- Run these after migration to confirm everything was created.
 -- =============================================================================
 
--- List all tables in the flight schema (expect 9 tables)
+-- List all tables in the flight schema (expect 10 tables)
 SELECT tablename
 FROM pg_tables
 WHERE schemaname = 'flight'
