@@ -3,19 +3,26 @@ import { Link } from 'react-router-dom'
 import { fetchProfile } from '../services/profileApi'
 import { fetchUsage } from '../services/usageApi'
 import { fetchDiscoveries } from '../services/discoveriesApi'
+import { isExplorer } from '../utils/planUtils'
 
 const PLAN_LABELS = {
-  free:       { label: 'Free',       className: 'bg-blue-100 text-blue-700' },
-  pro:        { label: 'Pro',        className: 'bg-violet-100 text-violet-700' },
-  adventurer: { label: 'Adventurer', className: 'bg-amber-100 text-amber-700' },
+  free:       { label: 'Free',            className: 'bg-blue-100 text-blue-700' },
+  explorer:   { label: 'Explorer Member', className: 'bg-amber-100 text-amber-700' },
+  pro:        { label: 'Explorer Member', className: 'bg-amber-100 text-amber-700' }, // legacy
+  adventurer: { label: 'Explorer Member', className: 'bg-amber-100 text-amber-700' }, // legacy
 }
 
-// Matches PLAN_LIMITS in server/src/constants/auth.js — kept in sync manually
-// since there is no public "plan catalog" endpoint yet.
 const PLAN_BENEFITS = [
-  { key: 'free',       label: 'Free',       clicks: '5 clicks / month' },
-  { key: 'pro',        label: 'Pro',        clicks: '50 clicks / month' },
-  { key: 'adventurer', label: 'Adventurer', clicks: 'Unlimited clicks' },
+  {
+    key:         'free',
+    label:       'Free',
+    description: 'Generate destinations, save discoveries, view travel history',
+  },
+  {
+    key:         'explorer',
+    label:       'Explorer Member',
+    description: 'Full destination guide, no ads, unlimited favourites',
+  },
 ]
 
 const SECTIONS = [
@@ -154,8 +161,8 @@ function InfoModal({ modal, onClose }) {
 
 const MODAL_COPY = {
   subscription: {
-    title: 'Coming Soon',
-    body: "Subscription plans are currently in development. You'll be able to upgrade your account once payments launch.",
+    title: 'Become an Explorer',
+    body: 'Explorer Membership unlocks the full destination guide — hidden gems, fun facts, local recommendations, weather insights, packing tips — plus an ad-free experience. Payments are coming soon.',
   },
   referral: {
     title: 'Coming Soon',
@@ -265,7 +272,7 @@ export default function DashboardPage() {
     ? Math.min(100, Math.round((usage.clicksUsed / usage.clicksLimit) * 100))
     : 0
 
-  const canUpgrade = profile && profile.plan !== 'adventurer'
+  const canUpgrade = profile && !isExplorer(profile.plan)
 
   const greetingName  = getFirstName(profile?.display_name)
   const travelMessage = getTravelMessage({ discoveries, usage })
@@ -371,8 +378,8 @@ export default function DashboardPage() {
                       />
                     </div>
                     <p className="text-xs text-slate-400 mt-2">
-                      The {planConfig?.label ?? 'Free'} plan includes {usage.clicksLimit} destination clicks
-                      per month. Usage resets {formatDate(usage.resetDate)}.
+                      Your plan includes {usage.clicksLimit} destination clicks per month.
+                      Usage resets {formatDate(usage.resetDate)}.
                     </p>
                   </>
                 )}
@@ -390,7 +397,7 @@ export default function DashboardPage() {
                 {canUpgrade && usage?.clicksLimit != null && (
                   <div className="mt-4">
                     <InfoButton onClick={() => openModal('subscription')}>
-                      Upgrade for more clicks
+                      Become an Explorer
                     </InfoButton>
                   </div>
                 )}
@@ -398,20 +405,24 @@ export default function DashboardPage() {
 
               {/* ── Subscription status ── */}
               <DashboardCard>
-                <CardLabel>Subscription</CardLabel>
+                <CardLabel>Membership</CardLabel>
 
                 <div className="flex items-center gap-3 mb-4">
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${planConfig?.className ?? 'bg-blue-100 text-blue-700'}`}>
-                    {planConfig?.label ?? 'Free'} plan
+                    {planConfig?.label ?? 'Free'}
                   </span>
-                  <span className="text-xs text-slate-400">
-                    {usage?.clicksLimit == null ? 'Unlimited clicks' : `${usage.clicksLimit} clicks / month`}
-                  </span>
+                  {usage?.clicksLimit == null ? (
+                    <span className="text-xs text-slate-400">Ad-free · unlimited clicks</span>
+                  ) : (
+                    <span className="text-xs text-slate-400">{usage.clicksLimit} clicks / month</span>
+                  )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {PLAN_BENEFITS.map((plan) => {
-                    const isCurrent = profile?.plan === plan.key
+                    const isCurrent = plan.key === 'explorer'
+                      ? isExplorer(profile?.plan)
+                      : profile?.plan === plan.key
                     return (
                       <div
                         key={plan.key}
@@ -419,7 +430,7 @@ export default function DashboardPage() {
                           isCurrent ? 'border-orange-300 bg-orange-50' : 'border-slate-200'
                         }`}
                       >
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between mb-1">
                           <p className="text-sm font-bold text-slate-900">{plan.label}</p>
                           {isCurrent && (
                             <span className="text-[10px] font-bold uppercase tracking-wide text-orange-600">
@@ -427,7 +438,7 @@ export default function DashboardPage() {
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-500 mt-1">{plan.clicks}</p>
+                        <p className="text-xs text-slate-500">{plan.description}</p>
                       </div>
                     )
                   })}
@@ -436,7 +447,7 @@ export default function DashboardPage() {
                 {canUpgrade && (
                   <div className="mt-4">
                     <InfoButton onClick={() => openModal('subscription')}>
-                      Upgrade plan
+                      Become an Explorer
                     </InfoButton>
                   </div>
                 )}

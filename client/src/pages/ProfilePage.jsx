@@ -4,9 +4,10 @@ import { fetchProfile, patchProfile } from '../services/profileApi'
 import { fetchUsage } from '../services/usageApi'
 
 const PLAN_LABELS = {
-  free:       { label: 'Free',       className: 'bg-blue-100 text-blue-700' },
-  pro:        { label: 'Pro',        className: 'bg-violet-100 text-violet-700' },
-  adventurer: { label: 'Adventurer', className: 'bg-amber-100 text-amber-700' },
+  free:       { label: 'Free',            className: 'bg-blue-100 text-blue-700' },
+  explorer:   { label: 'Explorer Member', className: 'bg-amber-100 text-amber-700' },
+  pro:        { label: 'Explorer Member', className: 'bg-amber-100 text-amber-700' }, // legacy
+  adventurer: { label: 'Explorer Member', className: 'bg-amber-100 text-amber-700' }, // legacy
 }
 
 function DashboardCard({ children, className = '' }) {

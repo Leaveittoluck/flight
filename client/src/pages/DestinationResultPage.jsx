@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useLocation, useNavigate, Link } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import { isExplorer } from '../utils/planUtils'
 import { trackClick } from '../services/clicksApi'
 import { buildSkyscannerUrl, buildBookingUrl } from '../utils/buildProviderUrls'
 import { weatherEnrichment } from '../data/weatherEnrichment'
 import { destinationVibes } from '../data/destinationVibes'
 import { getDestinationImage } from '../data/destinationImages'
 import { fetchDestinationImage } from '../services/imagesApi'
+import ExplorerGate from '../components/destinations/ExplorerGate'
 
 const SESSION_KEY = 'litl_last_result'
 
@@ -48,6 +51,7 @@ function resolveCtaError(err) {
 export default function DestinationResultPage() {
   const location = useLocation()
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   // Prefer location state; fall back to sessionStorage (survives soft refresh)
   const [resultData] = useState(() => {
@@ -100,6 +104,8 @@ export default function DestinationResultPage() {
   if (!resultData) return null
 
   const { destination: d, tripInput, remainingGenerations } = resultData
+
+  const hasExplorer = isExplorer(user?.plan)
 
   const weather = weatherEnrichment[d.iata_code] ?? null
   const vibes   = destinationVibes[d.iata_code]  ?? null
@@ -410,134 +416,141 @@ export default function DestinationResultPage() {
           </section>
         )}
 
-        {/* ── 2. FUN FACT ── */}
-        {d.fun_fact && (
-          <section
-            className="reveal reveal-delay-1 pt-8 pb-9"
-            style={{ borderBottom: '1px solid rgba(231,229,228,0.7)' }}
-          >
-            <div
-              className="rounded-2xl overflow-hidden"
-              style={{ border: '1.5px solid rgba(217,119,6,0.18)' }}
-            >
-              {/* Accent stripe */}
-              <div
-                aria-hidden="true"
-                style={{ height: '3px', background: 'linear-gradient(90deg, #c2410c, #ea580c, #f97316)' }}
-              />
-              <div className="px-6 py-5" style={{ backgroundColor: '#fffbeb' }}>
-                <div className="flex items-center gap-2.5 mb-3">
-                  <span style={{ color: '#d97706', fontSize: '1.1rem' }}>✦</span>
-                  <p className="text-xs font-bold uppercase tracking-widest" style={{ color: '#d97706' }}>
-                    Did you know?
-                  </p>
-                </div>
-                <p className="text-base leading-relaxed" style={{ color: '#78350f' }}>
-                  {d.fun_fact}
-                </p>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* ── 3. PLACES TO EXPLORE ── */}
-        {d.recommended_places?.length > 0 && (
-          <section
-            className="reveal reveal-delay-2 pt-8 pb-9"
-            style={{ borderBottom: '1px solid rgba(231,229,228,0.7)' }}
-          >
-            <p className="text-xs font-semibold uppercase tracking-widest mb-5" style={{ color: '#ea580c' }}>
-              Places to Explore
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {d.recommended_places.slice(0, 6).map((place, i) => (
+        {/* ── 2–4. PREMIUM SECTIONS: fun fact, places, weather ── */}
+        {/* Explorer Members see all three sections; everyone else sees the upgrade card. */}
+        {hasExplorer ? (
+          <>
+            {/* ── 2. FUN FACT ── */}
+            {d.fun_fact && (
+              <section
+                className="reveal reveal-delay-1 pt-8 pb-9"
+                style={{ borderBottom: '1px solid rgba(231,229,228,0.7)' }}
+              >
                 <div
-                  key={i}
-                  className="flex gap-3.5 rounded-xl p-4"
-                  style={{ backgroundColor: '#fafaf9', border: '1px solid rgba(231,229,228,0.9)' }}
+                  className="rounded-2xl overflow-hidden"
+                  style={{ border: '1.5px solid rgba(217,119,6,0.18)' }}
                 >
                   <div
-                    className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black text-white"
-                    style={{ background: 'linear-gradient(135deg, #c2410c, #f97316)' }}
-                  >
-                    {i + 1}
-                  </div>
-                  <div className="min-w-0 pt-0.5">
-                    <p className="text-sm font-semibold text-stone-800 leading-snug">
-                      {place.name}
+                    aria-hidden="true"
+                    style={{ height: '3px', background: 'linear-gradient(90deg, #c2410c, #ea580c, #f97316)' }}
+                  />
+                  <div className="px-6 py-5" style={{ backgroundColor: '#fffbeb' }}>
+                    <div className="flex items-center gap-2.5 mb-3">
+                      <span style={{ color: '#d97706', fontSize: '1.1rem' }}>✦</span>
+                      <p className="text-xs font-bold uppercase tracking-widest" style={{ color: '#d97706' }}>
+                        Did you know?
+                      </p>
+                    </div>
+                    <p className="text-base leading-relaxed" style={{ color: '#78350f' }}>
+                      {d.fun_fact}
                     </p>
-                    {place.description && (
-                      <p className="mt-0.5 text-xs leading-relaxed" style={{ color: '#78716c' }}>
-                        {place.description}
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {/* ── 3. PLACES TO EXPLORE ── */}
+            {d.recommended_places?.length > 0 && (
+              <section
+                className="reveal reveal-delay-2 pt-8 pb-9"
+                style={{ borderBottom: '1px solid rgba(231,229,228,0.7)' }}
+              >
+                <p className="text-xs font-semibold uppercase tracking-widest mb-5" style={{ color: '#ea580c' }}>
+                  Places to Explore
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {d.recommended_places.slice(0, 6).map((place, i) => (
+                    <div
+                      key={i}
+                      className="flex gap-3.5 rounded-xl p-4"
+                      style={{ backgroundColor: '#fafaf9', border: '1px solid rgba(231,229,228,0.9)' }}
+                    >
+                      <div
+                        className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black text-white"
+                        style={{ background: 'linear-gradient(135deg, #c2410c, #f97316)' }}
+                      >
+                        {i + 1}
+                      </div>
+                      <div className="min-w-0 pt-0.5">
+                        <p className="text-sm font-semibold text-stone-800 leading-snug">
+                          {place.name}
+                        </p>
+                        {place.description && (
+                          <p className="mt-0.5 text-xs leading-relaxed" style={{ color: '#78716c' }}>
+                            {place.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* ── 4. WEATHER & VIBE ── */}
+            {(weather || weatherText) && (
+              <section
+                className="reveal reveal-delay-3 pt-8 pb-9"
+                style={{ borderBottom: '1px solid rgba(231,229,228,0.7)' }}
+              >
+                <p className="text-xs font-semibold uppercase tracking-widest mb-5" style={{ color: '#ea580c' }}>
+                  What to Expect
+                </p>
+                {weather ? (
+                  <div>
+                    {weather.vibe && (
+                      <p
+                        className="text-base sm:text-lg font-medium leading-relaxed mb-4"
+                        style={{ color: '#1c1917', maxWidth: '560px' }}
+                      >
+                        {weather.vibe}
                       </p>
                     )}
+                    {!weather.vibe && weather.summary && (
+                      <p
+                        className="text-base font-medium leading-relaxed mb-4"
+                        style={{ color: '#1c1917', maxWidth: '560px' }}
+                      >
+                        {weather.summary}
+                      </p>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                      {weather.bestSeason && (
+                        <span
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full"
+                          style={{
+                            backgroundColor: 'rgba(14,165,233,0.09)',
+                            color: '#0369a1',
+                            border: '1px solid rgba(14,165,233,0.18)',
+                          }}
+                        >
+                          ☀ Best in {weather.bestSeason}
+                        </span>
+                      )}
+                      {weather.temperatureRange && (
+                        <span
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full"
+                          style={{
+                            backgroundColor: 'rgba(234,88,12,0.07)',
+                            color: '#c2410c',
+                            border: '1px solid rgba(234,88,12,0.14)',
+                          }}
+                        >
+                          {weather.temperatureRange}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* ── 4. WEATHER & VIBE ── */}
-        {(weather || weatherText) && (
-          <section
-            className="reveal reveal-delay-3 pt-8 pb-9"
-            style={{ borderBottom: '1px solid rgba(231,229,228,0.7)' }}
-          >
-            <p className="text-xs font-semibold uppercase tracking-widest mb-5" style={{ color: '#ea580c' }}>
-              What to Expect
-            </p>
-            {weather ? (
-              <div>
-                {weather.vibe && (
-                  <p
-                    className="text-base sm:text-lg font-medium leading-relaxed mb-4"
-                    style={{ color: '#1c1917', maxWidth: '560px' }}
-                  >
-                    {weather.vibe}
+                ) : (
+                  <p className="text-base font-medium" style={{ color: '#1c1917', maxWidth: '560px' }}>
+                    {weatherText}
                   </p>
                 )}
-                {!weather.vibe && weather.summary && (
-                  <p
-                    className="text-base font-medium leading-relaxed mb-4"
-                    style={{ color: '#1c1917', maxWidth: '560px' }}
-                  >
-                    {weather.summary}
-                  </p>
-                )}
-                <div className="flex flex-wrap gap-2">
-                  {weather.bestSeason && (
-                    <span
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full"
-                      style={{
-                        backgroundColor: 'rgba(14,165,233,0.09)',
-                        color: '#0369a1',
-                        border: '1px solid rgba(14,165,233,0.18)',
-                      }}
-                    >
-                      ☀ Best in {weather.bestSeason}
-                    </span>
-                  )}
-                  {weather.temperatureRange && (
-                    <span
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full"
-                      style={{
-                        backgroundColor: 'rgba(234,88,12,0.07)',
-                        color: '#c2410c',
-                        border: '1px solid rgba(234,88,12,0.14)',
-                      }}
-                    >
-                      {weather.temperatureRange}
-                    </span>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <p className="text-base font-medium" style={{ color: '#1c1917', maxWidth: '560px' }}>
-                {weatherText}
-              </p>
+              </section>
             )}
-          </section>
+          </>
+        ) : (
+          <ExplorerGate />
         )}
 
         {/* ── 5. PRACTICAL — trip dates, costs, CTAs ── */}

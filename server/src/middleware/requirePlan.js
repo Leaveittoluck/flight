@@ -3,11 +3,12 @@ const { PLAN_ORDER } = require('../constants/auth');
 /**
  * requirePlan(minimumPlan)
  *
- * Enforces a minimum plan tier. Plan hierarchy: free < pro < adventurer.
- * A user on 'adventurer' satisfies requirePlan('pro').
+ * Enforces a minimum plan tier.
+ * Plan hierarchy: free < explorer < pro < adventurer (pro/adventurer are legacy).
+ * A user on 'pro' or 'adventurer' satisfies requirePlan('explorer').
  *
  * Usage:
- *   router.get('/feature', requireAuth, requirePlan('pro'), handler)
+ *   router.get('/feature', requireAuth, requirePlan('explorer'), handler)
  *
  * Returns 401 if the request has no authenticated user.
  * Returns 403 if the user's plan is below the required tier.
