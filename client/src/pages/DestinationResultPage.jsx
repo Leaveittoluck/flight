@@ -417,7 +417,9 @@ export default function DestinationResultPage() {
         )}
 
         {/* ── 2–4. PREMIUM SECTIONS: fun fact, places, weather ── */}
-        {/* Explorer Members see all three sections; everyone else sees the upgrade card. */}
+        {/* Explorer Members see all three sections in full.                    */}
+        {/* Guests and free users see a teaser of each section (clipped with    */}
+        {/* a gradient fade) followed by the ExplorerGate upgrade card.         */}
         {hasExplorer ? (
           <>
             {/* ── 2. FUN FACT ── */}
@@ -550,7 +552,144 @@ export default function DestinationResultPage() {
             )}
           </>
         ) : (
-          <ExplorerGate />
+          <>
+            {/* ── 2. DID YOU KNOW — teaser ── */}
+            {d.fun_fact && (
+              <section
+                className="reveal reveal-delay-1 pt-8 pb-9"
+                style={{ borderBottom: '1px solid rgba(231,229,228,0.7)' }}
+              >
+                <div
+                  className="rounded-2xl overflow-hidden"
+                  style={{ border: '1.5px solid rgba(217,119,6,0.18)' }}
+                >
+                  <div
+                    aria-hidden="true"
+                    style={{ height: '3px', background: 'linear-gradient(90deg, #c2410c, #ea580c, #f97316)' }}
+                  />
+                  <div className="px-6 py-5" style={{ backgroundColor: '#fffbeb' }}>
+                    <div className="flex items-center gap-2.5 mb-3">
+                      <span style={{ color: '#d97706', fontSize: '1.1rem' }}>✦</span>
+                      <p className="text-xs font-bold uppercase tracking-widest" style={{ color: '#d97706' }}>
+                        Did you know?
+                      </p>
+                    </div>
+                    {/* Clipped teaser — gradient fade implies more content below */}
+                    <div style={{ position: 'relative', maxHeight: '4rem', overflow: 'hidden' }}>
+                      <p className="text-base leading-relaxed" style={{ color: '#78350f' }}>
+                        {d.fun_fact}
+                      </p>
+                      <div
+                        aria-hidden="true"
+                        style={{
+                          position: 'absolute', bottom: 0, left: 0, right: 0, height: '2.5rem',
+                          background: 'linear-gradient(to bottom, transparent, #fffbeb)',
+                          pointerEvents: 'none',
+                        }}
+                      />
+                    </div>
+                    <p className="flex items-center gap-1.5 mt-2 text-xs" style={{ color: '#a8a29e' }}>
+                      <span aria-hidden="true">🔒</span> Explorer Members unlock the complete story
+                    </p>
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {/* ── 3. PLACES TO EXPLORE — teaser ── */}
+            {d.recommended_places?.length > 0 && (
+              <section
+                className="reveal reveal-delay-2 pt-8 pb-9"
+                style={{ borderBottom: '1px solid rgba(231,229,228,0.7)' }}
+              >
+                <p className="text-xs font-semibold uppercase tracking-widest mb-5" style={{ color: '#ea580c' }}>
+                  Places to Explore
+                </p>
+                {/* First place shown; rest locked */}
+                <div style={{ position: 'relative' }}>
+                  <div
+                    className="flex gap-3.5 rounded-xl p-4"
+                    style={{ backgroundColor: '#fafaf9', border: '1px solid rgba(231,229,228,0.9)' }}
+                  >
+                    <div
+                      className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black text-white"
+                      style={{ background: 'linear-gradient(135deg, #c2410c, #f97316)' }}
+                    >
+                      1
+                    </div>
+                    <div className="min-w-0 pt-0.5">
+                      <p className="text-sm font-semibold text-stone-800 leading-snug">
+                        {d.recommended_places[0].name}
+                      </p>
+                      {d.recommended_places[0].description && (
+                        <p className="mt-0.5 text-xs leading-relaxed" style={{ color: '#78716c' }}>
+                          {d.recommended_places[0].description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      position: 'absolute', bottom: 0, left: 0, right: 0, height: '2.5rem',
+                      background: 'linear-gradient(to bottom, transparent, #fff7ed)',
+                      pointerEvents: 'none',
+                    }}
+                  />
+                </div>
+                {d.recommended_places.length > 1 && (
+                  <p className="flex items-center gap-1.5 mt-3 text-xs font-medium" style={{ color: '#a8a29e' }}>
+                    <span aria-hidden="true">🔒</span>
+                    {' '}+{d.recommended_places.length - 1} more place{d.recommended_places.length > 2 ? 's' : ''} unlocked for Explorer Members
+                  </p>
+                )}
+              </section>
+            )}
+
+            {/* ── 4. WHAT TO EXPECT — teaser ── */}
+            {(weather || weatherText) && (
+              <section
+                className="reveal reveal-delay-2 pt-8 pb-9"
+                style={{ borderBottom: '1px solid rgba(231,229,228,0.7)' }}
+              >
+                <p className="text-xs font-semibold uppercase tracking-widest mb-5" style={{ color: '#ea580c' }}>
+                  What to Expect
+                </p>
+                {/* Intro vibe clipped — chips and detail locked */}
+                <div style={{ position: 'relative', maxHeight: '4.5rem', overflow: 'hidden' }}>
+                  {weather?.vibe && (
+                    <p className="text-base sm:text-lg font-medium leading-relaxed" style={{ color: '#1c1917', maxWidth: '560px' }}>
+                      {weather.vibe}
+                    </p>
+                  )}
+                  {!weather?.vibe && weather?.summary && (
+                    <p className="text-base font-medium leading-relaxed" style={{ color: '#1c1917', maxWidth: '560px' }}>
+                      {weather.summary}
+                    </p>
+                  )}
+                  {!weather && (
+                    <p className="text-base font-medium" style={{ color: '#1c1917', maxWidth: '560px' }}>
+                      {weatherText}
+                    </p>
+                  )}
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      position: 'absolute', bottom: 0, left: 0, right: 0, height: '3rem',
+                      background: 'linear-gradient(to bottom, transparent, #fff7ed)',
+                      pointerEvents: 'none',
+                    }}
+                  />
+                </div>
+                <p className="flex items-center gap-1.5 mt-2 text-xs" style={{ color: '#a8a29e' }}>
+                  <span aria-hidden="true">🔒</span> Full weather insights unlocked for Explorer Members
+                </p>
+              </section>
+            )}
+
+            {/* ── EXPLORER GATE ── */}
+            <ExplorerGate />
+          </>
         )}
 
         {/* ── 5. PRACTICAL — trip dates, costs, CTAs ── */}

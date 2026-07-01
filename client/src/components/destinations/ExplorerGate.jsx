@@ -1,20 +1,18 @@
 import { Link } from 'react-router-dom'
 
 const FEATURES = [
-  'Full Destination Guide',
   'Hidden Gems',
-  'Fun Facts',
-  'Places to Explore',
-  'Weather Insights',
   'Local Recommendations',
+  'Complete Destination Guide',
+  'Weather Insights',
   'Packing Tips',
-  'No Ads',
+  'Ad-Free Experience',
 ]
 
 export default function ExplorerGate() {
   return (
     <section
-      className="reveal reveal-delay-1 pt-8 pb-10"
+      className="reveal reveal-delay-3 pt-8 pb-10"
       style={{ borderBottom: '1px solid rgba(231,229,228,0.7)' }}
     >
       <div
@@ -31,34 +29,31 @@ export default function ExplorerGate() {
         />
 
         <div className="px-6 py-8 sm:px-10" style={{ backgroundColor: '#fffbeb' }}>
-          {/* Membership label */}
-          <span
-            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide mb-5"
+          {/* Lock icon */}
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center mb-5"
             style={{
-              backgroundColor: 'rgba(234,88,12,0.1)',
-              color: '#c2410c',
-              border: '1px solid rgba(234,88,12,0.18)',
+              background: 'linear-gradient(135deg, rgba(234,88,12,0.08), rgba(251,191,36,0.12))',
+              border: '1.5px solid rgba(217,119,6,0.2)',
             }}
           >
-            Explorer Membership
-          </span>
+            <span role="img" aria-label="locked" style={{ fontSize: '1rem' }}>🔒</span>
+          </div>
 
           {/* Heading */}
           <h3
-            className="text-xl sm:text-2xl font-bold mb-3"
+            className="text-xl sm:text-2xl font-bold mb-2"
             style={{ color: '#1c1917' }}
           >
-            Become an Explorer
+            Continue Exploring
           </h3>
 
           {/* Subtitle */}
           <p
             className="text-sm leading-relaxed mb-7"
-            style={{ color: '#78716c', maxWidth: '520px' }}
+            style={{ color: '#78716c', maxWidth: '480px' }}
           >
-            Unlock the complete destination guide including hidden gems, fun facts,
-            local recommendations, weather insights, packing suggestions and an
-            ad-free experience.
+            Become an Explorer to unlock the complete destination guide.
           </p>
 
           {/* Feature list */}
@@ -96,7 +91,7 @@ export default function ExplorerGate() {
           <p className="mt-5 text-xs" style={{ color: '#a8a29e' }}>
             Already an Explorer?{' '}
             <span style={{ color: '#78716c', fontWeight: 500 }}>
-              Enjoy your premium travel experience.
+              You're seeing the full guide automatically.
             </span>
           </p>
         </div>
