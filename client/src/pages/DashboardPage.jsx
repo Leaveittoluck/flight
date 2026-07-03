@@ -223,14 +223,14 @@ function getTravelMessage({ discoveries, usage }) {
   if (discoveries.length === 0) {
     return "Let's discover your first destination."
   }
-  if (usage.clicksRemaining === 0) {
+  if (usage.generationsRemaining === null) {
+    return 'Enjoy unlimited destination discoveries.'
+  }
+  if (usage.generationsRemaining === 0) {
     return "You've used all your destination generations this month."
   }
-  if (usage.clicksRemaining === 1) {
+  if (usage.generationsRemaining === 1) {
     return 'Only one destination generation remaining this month.'
-  }
-  if (usage.clicksRemaining === null) {
-    return 'Enjoy unlimited destination discoveries.'
   }
   return `You've already discovered ${discoveries.length} destination${discoveries.length === 1 ? '' : 's'}.`
 }
@@ -329,7 +329,7 @@ export default function DashboardPage() {
                 <SummaryItem label="Current plan" value={planConfig?.label ?? '—'} />
                 <SummaryItem
                   label="Generations left"
-                  value={usage === null ? '—' : usage.clicksRemaining === null ? '∞' : usage.clicksRemaining}
+                  value={usage === null ? '—' : usage.generationsRemaining === null ? '∞' : (usage.generationsRemaining ?? '—')}
                 />
                 <SummaryItem
                   label="Total discoveries"

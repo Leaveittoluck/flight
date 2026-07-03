@@ -23,8 +23,9 @@ async function generate(req, res, next) {
     // Generation quota is checked up front. A request that doesn't find a
     // destination must not consume an allowance, so the count is only
     // persisted below, after a destination is actually returned.
-    const remainingBefore = await getRemainingGenerations(anonymous_id);
-    if (remainingBefore <= 0) {
+    // null = unlimited (Explorer Members); the <= 0 guard must not fire for null.
+    const remainingBefore = await getRemainingGenerations(anonymous_id, req.user ?? null);
+    if (remainingBefore !== null && remainingBefore <= 0) {
       return res.status(429).json({
         ok: false,
         code: "GENERATION_LIMIT_REACHED",
@@ -44,7 +45,7 @@ async function generate(req, res, next) {
         user_id: req.user?.id ?? null,
         destination_id: dest.destination_id,
       });
-      remaining_generations = remainingBefore - 1;
+      remaining_generations = remainingBefore === null ? null : remainingBefore - 1;
 
       // Save a discovery record for authenticated users when a destination was found.
       // Fire-and-forget: a save failure must never affect the generation response.

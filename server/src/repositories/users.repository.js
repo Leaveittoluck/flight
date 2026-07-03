@@ -23,4 +23,15 @@ async function findById(id) {
   return rows[0] || null;
 }
 
-module.exports = { upsertGoogleUser, findById };
+async function updatePlan(id, plan) {
+  const { rows } = await pool.query(
+    `UPDATE flight.users
+     SET plan = $2, updated_at = NOW()
+     WHERE id = $1
+     RETURNING *`,
+    [id, plan]
+  );
+  return rows[0] || null;
+}
+
+module.exports = { upsertGoogleUser, findById, updatePlan };
