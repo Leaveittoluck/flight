@@ -4,6 +4,10 @@ import { fetchProfile } from '../services/profileApi'
 import { fetchUsage } from '../services/usageApi'
 import { fetchDiscoveries } from '../services/discoveriesApi'
 import { isExplorer } from '../utils/planUtils'
+import Card from '../components/ui/Card'
+import CardLabel from '../components/ui/CardLabel'
+import PageHeader from '../components/ui/PageHeader'
+import EmptyState from '../components/ui/EmptyState'
 
 const PLAN_LABELS = {
   free:       { label: 'Free',            className: 'bg-blue-100 text-blue-700' },
@@ -32,22 +36,6 @@ const SECTIONS = [
   { id: 'growth',   label: 'Growth' },
   { id: 'history',  label: 'History' },
 ]
-
-function DashboardCard({ children, className = '', dashed = false }) {
-  return (
-    <div className={`${dashed ? 'litl-card-dashed' : 'litl-card'} ${className}`}>
-      {children}
-    </div>
-  )
-}
-
-function CardLabel({ children }) {
-  return (
-    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
-      {children}
-    </p>
-  )
-}
 
 function SummaryItem({ label, value }) {
   return (
@@ -295,38 +283,34 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen">
-      <header className="litl-page-header">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
-          <p className="text-[10px] font-bold text-amber-500/80 uppercase tracking-widest mb-2">Account Center</p>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
-            Welcome back, {greetingName ?? 'Traveller'} <span aria-hidden="true">👋</span>
-          </h1>
-          <p className="text-sm text-slate-600 mt-2">{travelMessage}</p>
-        </div>
-      </header>
+      <PageHeader
+        eyebrow="Account Center"
+        title={<>Welcome back, {greetingName ?? 'Traveller'} <span aria-hidden="true">👋</span></>}
+        subtitle={travelMessage}
+      />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-12">
 
         {/* Loading */}
         {loading && (
-          <DashboardCard>
+          <Card>
             <p className="text-sm text-slate-400">Loading dashboard…</p>
-          </DashboardCard>
+          </Card>
         )}
 
         {/* Profile fetch failed entirely */}
         {!loading && profileErr && !profile && (
-          <DashboardCard>
+          <Card>
             <p className="text-sm text-red-500">
               Could not load dashboard data. Please refresh the page.
             </p>
-          </DashboardCard>
+          </Card>
         )}
 
         {!loading && (
           <>
             {/* ── Quick account summary ── */}
-            <DashboardCard>
+            <Card>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <SummaryItem label="Current plan" value={planConfig?.label ?? '—'} />
                 <SummaryItem
@@ -339,7 +323,7 @@ export default function DashboardPage() {
                 />
                 <SummaryItem label="Member since" value={memberSince ?? '—'} />
               </div>
-            </DashboardCard>
+            </Card>
 
             {/*
               Jump-to-section nav — rendered as a sibling of the 5 <section>
@@ -356,7 +340,7 @@ export default function DashboardPage() {
               </GroupHeading>
 
               {/* ── Click usage detail ── */}
-              <DashboardCard>
+              <Card>
                 <div className="flex items-center justify-between mb-3">
                   <CardLabel>Click usage</CardLabel>
                   {usage?.clicksLimit != null && (
@@ -403,10 +387,10 @@ export default function DashboardPage() {
                     </InfoButton>
                   </div>
                 )}
-              </DashboardCard>
+              </Card>
 
               {/* ── Subscription status ── */}
-              <DashboardCard>
+              <Card>
                 <CardLabel>Membership</CardLabel>
 
                 <div className="flex items-center gap-3 mb-4">
@@ -453,7 +437,7 @@ export default function DashboardPage() {
                     </InfoButton>
                   </div>
                 )}
-              </DashboardCard>
+              </Card>
             </section>
 
             {/* ══════════════ 2. Travel ══════════════ */}
@@ -463,7 +447,7 @@ export default function DashboardPage() {
               </GroupHeading>
 
               {/* ── Travel statistics ── */}
-              <DashboardCard>
+              <Card>
                 <CardLabel>Travel statistics</CardLabel>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -479,10 +463,10 @@ export default function DashboardPage() {
                     <p className="text-xs text-slate-400 mt-1">countries explored</p>
                   </div>
                 </div>
-              </DashboardCard>
+              </Card>
 
               {/* ── Recent discoveries ── */}
-              <DashboardCard>
+              <Card>
                 <div className="flex items-center justify-between mb-3">
                   <CardLabel>Recent discoveries</CardLabel>
                   {discoveries !== null && discoveries.length > 0 && (
@@ -497,30 +481,11 @@ export default function DashboardPage() {
 
                 {/* Empty state */}
                 {(discoveries === null || discoveries.length === 0) && (
-                  <div className="py-8 text-center">
-                    <p
-                      className="text-3xl mb-3 font-black"
-                      style={{ color: 'rgba(234,88,12,0.2)' }}
-                    >
-                      ✦
-                    </p>
-                    <p className="text-sm font-semibold text-slate-600 mb-1">
-                      No discoveries yet
-                    </p>
-                    <p className="text-sm text-slate-400 mb-5">
-                      Your discoveries will appear here once you generate your first destination.
-                    </p>
-                    <Link
-                      to="/travel"
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold text-white transition-all duration-200 hover:-translate-y-0.5"
-                      style={{
-                        background: 'linear-gradient(135deg, #ea580c, #f97316)',
-                        boxShadow: '0 3px 12px rgba(234,88,12,0.25)',
-                      }}
-                    >
-                      Leave It To Luck ✦
-                    </Link>
-                  </div>
+                  <EmptyState
+                    title="No discoveries yet"
+                    body="Your discoveries will appear here once you generate your first destination."
+                    ctaTo="/travel"
+                  />
                 )}
 
                 {/* List — latest 3 */}
@@ -571,10 +536,10 @@ export default function DashboardPage() {
                     ))}
                   </div>
                 )}
-              </DashboardCard>
+              </Card>
 
               {/* ── Favourite trip type ── */}
-              <DashboardCard>
+              <Card>
                 <CardLabel>Favourite trip type</CardLabel>
                 {favoriteTripType ? (
                   <>
@@ -588,7 +553,7 @@ export default function DashboardPage() {
                 ) : (
                   <p className="text-sm text-slate-400">Not enough data yet.</p>
                 )}
-              </DashboardCard>
+              </Card>
             </section>
 
             {/* ══════════════ 3. Rewards ══════════════ */}
@@ -598,7 +563,7 @@ export default function DashboardPage() {
               </GroupHeading>
 
               {/* ── Coin balance / reward progress / expiry (placeholder) ── */}
-              <DashboardCard dashed>
+              <Card dashed>
                 <div className="flex items-center justify-between mb-3">
                   <CardLabel>Coin balance</CardLabel>
                   <ComingSoonBadge />
@@ -627,7 +592,7 @@ export default function DashboardPage() {
                 <p className="text-xs text-slate-400 mb-4">No expiring coins yet</p>
 
                 <InfoButton onClick={() => openModal('rewards')}>Redeem rewards</InfoButton>
-              </DashboardCard>
+              </Card>
             </section>
 
             {/* ══════════════ 4. Growth ══════════════ */}
@@ -637,7 +602,7 @@ export default function DashboardPage() {
               </GroupHeading>
 
               {/* ── Referrals (placeholder) ── */}
-              <DashboardCard dashed>
+              <Card dashed>
                 <div className="flex items-center justify-between mb-3">
                   <CardLabel>Referral program</CardLabel>
                   <ComingSoonBadge />
@@ -657,7 +622,7 @@ export default function DashboardPage() {
                   />
                   <InfoButton onClick={() => openModal('referral')}>Copy</InfoButton>
                 </div>
-              </DashboardCard>
+              </Card>
             </section>
 
             {/* ══════════════ 5. History ══════════════ */}
@@ -667,7 +632,7 @@ export default function DashboardPage() {
               </GroupHeading>
 
               {/* ── Booking history (placeholder) ── */}
-              <DashboardCard dashed>
+              <Card dashed>
                 <div className="flex items-center justify-between mb-3">
                   <CardLabel>Booking history</CardLabel>
                   <ComingSoonBadge />
@@ -676,10 +641,10 @@ export default function DashboardPage() {
                   Booking rewards will appear here after verified bookings are added. This is
                   separate from your discovery history above.
                 </p>
-              </DashboardCard>
+              </Card>
 
               {/* ── Reward history (placeholder) ── */}
-              <DashboardCard dashed>
+              <Card dashed>
                 <div className="flex items-center justify-between mb-3">
                   <CardLabel>Reward history</CardLabel>
                   <ComingSoonBadge />
@@ -688,7 +653,7 @@ export default function DashboardPage() {
                   Your coin earning and redemption history will appear here once the rewards
                   system launches.
                 </p>
-              </DashboardCard>
+              </Card>
             </section>
           </>
         )}

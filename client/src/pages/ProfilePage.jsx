@@ -2,28 +2,15 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { fetchProfile, patchProfile } from '../services/profileApi'
 import { fetchUsage } from '../services/usageApi'
+import Card from '../components/ui/Card'
+import CardLabel from '../components/ui/CardLabel'
+import PageHeader from '../components/ui/PageHeader'
 
 const PLAN_LABELS = {
   free:       { label: 'Free',            className: 'bg-blue-100 text-blue-700' },
   explorer:   { label: 'Explorer Member', className: 'bg-amber-100 text-amber-700' },
   pro:        { label: 'Explorer Member', className: 'bg-amber-100 text-amber-700' }, // legacy
   adventurer: { label: 'Explorer Member', className: 'bg-amber-100 text-amber-700' }, // legacy
-}
-
-function DashboardCard({ children, className = '' }) {
-  return (
-    <div className={`litl-card ${className}`}>
-      {children}
-    </div>
-  )
-}
-
-function CardLabel({ children }) {
-  return (
-    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
-      {children}
-    </p>
-  )
 }
 
 function formatMemberSince(dateStr) {
@@ -108,30 +95,24 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen">
-      <header className="litl-page-header">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
-          <p className="text-[10px] font-bold text-amber-500/80 uppercase tracking-widest mb-2">Profile</p>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Your Account</h1>
-          <p className="text-sm text-slate-600 mt-2">Account details and monthly usage</p>
-        </div>
-      </header>
+      <PageHeader eyebrow="Profile" title="Your Account" subtitle="Account details and monthly usage" />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
         {loading && (
-          <DashboardCard>
+          <Card>
             <p className="text-sm text-slate-400">Loading profile…</p>
-          </DashboardCard>
+          </Card>
         )}
 
         {!loading && fetchError && (
-          <DashboardCard>
+          <Card>
             <p className="text-sm text-red-500">{fetchError}</p>
-          </DashboardCard>
+          </Card>
         )}
 
         {/* ── Account card ── */}
         {!loading && profile && (
-          <DashboardCard>
+          <Card>
             <CardLabel>Account</CardLabel>
             <div className="flex items-start gap-5">
               {/* Avatar */}
@@ -219,12 +200,12 @@ export default function ProfilePage() {
                 </p>
               </div>
             </div>
-          </DashboardCard>
+          </Card>
         )}
 
         {/* ── Usage card ── */}
         {!loading && usage && (
-          <DashboardCard>
+          <Card>
             <CardLabel>Monthly usage</CardLabel>
 
             <div className="flex items-end gap-8">
@@ -273,7 +254,7 @@ export default function ProfilePage() {
                 Unlimited clicks on your plan
               </p>
             )}
-          </DashboardCard>
+          </Card>
         )}
       </main>
     </div>

@@ -185,7 +185,7 @@ export default function Navbar({ season }) {
                       style={{ boxShadow: '0 8px 32px rgba(249,115,22,0.14), 0 2px 8px rgba(0,0,0,0.06)' }}
                     >
                       {/* Identity header */}
-                      <div className="px-4 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <div className="px-4 py-3" style={{ borderBottom: '1px solid rgba(251,146,60,0.12)' }}>
                         <p className="text-xs font-bold text-slate-800 truncate">{user.display_name}</p>
                         {user.email && (
                           <p className="text-xs text-slate-400 truncate mt-0.5">{user.email}</p>
@@ -209,7 +209,7 @@ export default function Navbar({ season }) {
                       </div>
 
                       {/* Sign out */}
-                      <div style={{ borderTop: '1px solid #f1f5f9' }}>
+                      <div style={{ borderTop: '1px solid rgba(251,146,60,0.12)' }}>
                         <button
                           onClick={() => { logout(); closeAccount() }}
                           className={`${dropdownItem} text-stone-500 hover:text-orange-600`}

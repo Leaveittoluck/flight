@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { STATS_DATA } from '../data/statsData'
 import { StatsCard, CardLabel } from '../components/stats/StatsCard'
 import FilterBar from '../components/stats/FilterBar'
+import PageHeader from '../components/ui/PageHeader'
 import HeroStatCard from '../components/stats/HeroStatCard'
 import MoodBar from '../components/stats/MoodBar'
 import TrendingDestinationCard from '../components/stats/TrendingDestinationCard'
@@ -16,20 +17,9 @@ export default function StatsPage() {
 
   return (
     <div className="min-h-screen">
-      <header className="litl-page-header">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
-          <div className="flex items-end justify-between gap-4 flex-wrap">
-            <div>
-              <p className="text-[10px] font-bold text-amber-500/80 uppercase tracking-widest mb-2">Statistics</p>
-              <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Travel Insights</h1>
-              <p className="text-sm text-slate-600 mt-2">
-                Explore where LITL travelers are heading
-              </p>
-            </div>
-            <FilterBar active={range} onChange={setRange} />
-          </div>
-        </div>
-      </header>
+      <PageHeader eyebrow="Statistics" title="Travel Insights" subtitle="Explore where LITL travelers are heading">
+        <FilterBar active={range} onChange={setRange} />
+      </PageHeader>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
 

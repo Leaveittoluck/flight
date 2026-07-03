@@ -1,14 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
 import { fetchDiscoveries } from '../services/discoveriesApi'
-
-function CardLabel({ children }) {
-  return (
-    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
-      {children}
-    </p>
-  )
-}
+import Card from '../components/ui/Card'
+import CardLabel from '../components/ui/CardLabel'
+import PageHeader from '../components/ui/PageHeader'
+import EmptyState from '../components/ui/EmptyState'
 
 function formatDate(dateStr) {
   return new Date(dateStr).toLocaleDateString('en-GB', {
@@ -131,13 +126,7 @@ export default function DiscoveriesPage() {
 
   return (
     <div className="min-h-screen">
-      <header className="litl-page-header">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
-          <p className="text-[10px] font-bold text-amber-500/80 uppercase tracking-widest mb-2">Discoveries</p>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Your Destinations</h1>
-          <p className="text-sm text-slate-600 mt-2">Destinations you've generated</p>
-        </div>
-      </header>
+      <PageHeader eyebrow="Discoveries" title="Your Destinations" subtitle="Destinations you've generated" />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
         {/* Loading */}
@@ -156,32 +145,13 @@ export default function DiscoveriesPage() {
 
         {/* Empty state */}
         {!loading && !error && discoveries?.length === 0 && (
-          <div className="litl-card">
-            <div className="py-10 text-center">
-              <p
-                className="text-3xl mb-4 font-black"
-                style={{ color: 'rgba(234,88,12,0.25)' }}
-              >
-                ✦
-              </p>
-              <p className="text-base font-semibold text-slate-700 mb-1">
-                You haven't discovered any destinations yet.
-              </p>
-              <p className="text-sm text-slate-400 mb-6">
-                Generate your first destination and it'll appear here.
-              </p>
-              <Link
-                to="/travel"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold text-white transition-all duration-200 hover:-translate-y-0.5"
-                style={{
-                  background: 'linear-gradient(135deg, #ea580c, #f97316)',
-                  boxShadow: '0 3px 12px rgba(234,88,12,0.25)',
-                }}
-              >
-                Leave It To Luck ✦
-              </Link>
-            </div>
-          </div>
+          <Card>
+            <EmptyState
+              title="You haven't discovered any destinations yet."
+              body="Generate your first destination and it'll appear here."
+              ctaTo="/travel"
+            />
+          </Card>
         )}
 
         {/* Discovery list */}
