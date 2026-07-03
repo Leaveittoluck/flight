@@ -52,15 +52,15 @@ function CardLabel({ children }) {
 function SummaryItem({ label, value }) {
   return (
     <div className="text-center sm:text-left">
-      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">{label}</p>
-      <p className="text-sm font-bold text-slate-800 mt-0.5">{value}</p>
+      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{label}</p>
+      <p className="text-base font-bold text-slate-800 mt-1">{value}</p>
     </div>
   )
 }
 
 function ComingSoonBadge() {
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-slate-100 text-slate-400 border border-slate-200">
+    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-amber-50 text-amber-500 border border-amber-200">
       Coming soon
     </span>
   )
@@ -68,9 +68,9 @@ function ComingSoonBadge() {
 
 function GroupHeading({ children, subtitle }) {
   return (
-    <div>
-      <h2 className="text-sm font-bold text-slate-600 uppercase tracking-wide">{children}</h2>
-      {subtitle && <p className="text-xs text-slate-400 mt-1">{subtitle}</p>}
+    <div className="border-l-2 border-orange-200 pl-3">
+      <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wide">{children}</h2>
+      {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
     </div>
   )
 }
@@ -117,7 +117,7 @@ function InfoButton({ children, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-all duration-200"
+      className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white border border-orange-200 hover:bg-orange-50 hover:border-orange-300 transition-all duration-200"
     >
       {children}
     </button>
@@ -296,11 +296,12 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen">
       <header className="litl-page-header">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+          <p className="text-[10px] font-bold text-amber-500/80 uppercase tracking-widest mb-2">Account Center</p>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
             Welcome back, {greetingName ?? 'Traveller'} <span aria-hidden="true">👋</span>
           </h1>
-          <p className="text-sm text-slate-500 mt-1">{travelMessage}</p>
+          <p className="text-sm text-slate-600 mt-2">{travelMessage}</p>
         </div>
       </header>
 
@@ -367,7 +368,7 @@ export default function DashboardPage() {
 
                 {usage?.clicksLimit != null && (
                   <>
-                    <div className="w-full bg-slate-100 rounded-full h-1.5">
+                    <div className="w-full bg-orange-50 rounded-full h-1.5">
                       <div
                         className="h-1.5 rounded-full transition-all duration-500"
                         style={{
@@ -428,7 +429,7 @@ export default function DashboardPage() {
                       <div
                         key={plan.key}
                         className={`rounded-xl border p-4 ${
-                          isCurrent ? 'border-orange-300 bg-orange-50' : 'border-slate-200'
+                          isCurrent ? 'border-orange-300 bg-orange-50' : 'border-orange-100/70'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-1">
@@ -524,7 +525,7 @@ export default function DashboardPage() {
 
                 {/* List — latest 3 */}
                 {recentDiscoveries.length > 0 && (
-                  <div className="divide-y divide-slate-100">
+                  <div className="divide-y divide-orange-50">
                     {recentDiscoveries.map((item) => (
                       <div
                         key={item.id}
@@ -613,11 +614,11 @@ export default function DashboardPage() {
                   Reward progress
                 </p>
                 <div className="grid grid-cols-2 gap-3 mb-4">
-                  <div className="rounded-xl border border-slate-200 bg-white p-3">
+                  <div className="rounded-xl border border-orange-100 bg-white p-3">
                     <p className="text-xs font-bold text-slate-500">50 coins</p>
                     <p className="text-xs text-slate-400">Future 5% discount</p>
                   </div>
-                  <div className="rounded-xl border border-slate-200 bg-white p-3">
+                  <div className="rounded-xl border border-orange-100 bg-white p-3">
                     <p className="text-xs font-bold text-slate-500">200 coins</p>
                     <p className="text-xs text-slate-400">Future 10% discount</p>
                   </div>
@@ -652,7 +653,7 @@ export default function DashboardPage() {
                     type="text"
                     value="Referral link coming soon"
                     disabled
-                    className="flex-1 rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-400 cursor-not-allowed"
+                    className="flex-1 rounded-lg border border-orange-100 bg-amber-50/40 px-3 py-2 text-sm text-slate-400 cursor-not-allowed"
                   />
                   <InfoButton onClick={() => openModal('referral')}>Copy</InfoButton>
                 </div>
