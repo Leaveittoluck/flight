@@ -15,8 +15,8 @@ export default function StatsPage() {
   const data = STATS_DATA[range]
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200">
+    <div className="min-h-screen">
+      <header className="litl-page-header">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-5">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>

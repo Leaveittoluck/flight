@@ -38,7 +38,7 @@ function DiscoveryCard({ item }) {
 
   return (
     <div
-      className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 transition-all duration-200 hover:border-orange-200 hover:shadow-md"
+      className="bg-white rounded-2xl border border-orange-100 shadow-sm p-5 transition-all duration-200 hover:border-orange-200 hover:shadow-md"
     >
       <div className="flex items-start justify-between gap-4 flex-wrap">
         {/* Destination name */}
@@ -130,8 +130,8 @@ export default function DiscoveriesPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200">
+    <div className="min-h-screen">
+      <header className="litl-page-header">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-5">
           <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">Discoveries</h1>
           <p className="text-sm text-slate-500 mt-0.5">Destinations you've generated</p>
@@ -141,21 +141,21 @@ export default function DiscoveriesPage() {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
         {/* Loading */}
         {loading && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div className="litl-card">
             <p className="text-sm text-slate-400">Loading discoveries…</p>
           </div>
         )}
 
         {/* Error */}
         {!loading && error && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div className="litl-card">
             <p className="text-sm text-red-500">{error}</p>
           </div>
         )}
 
         {/* Empty state */}
         {!loading && !error && discoveries?.length === 0 && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div className="litl-card">
             <div className="py-10 text-center">
               <p
                 className="text-3xl mb-4 font-black"

@@ -33,9 +33,9 @@ const SECTIONS = [
   { id: 'history',  label: 'History' },
 ]
 
-function DashboardCard({ children, className = '' }) {
+function DashboardCard({ children, className = '', dashed = false }) {
   return (
-    <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm p-6 ${className}`}>
+    <div className={`${dashed ? 'litl-card-dashed' : 'litl-card'} ${className}`}>
       {children}
     </div>
   )
@@ -88,7 +88,8 @@ function SectionNav({ activeSection, onNavigate }) {
   return (
     <nav
       aria-label="Account Center sections"
-      className="sticky top-16 z-30 flex items-center gap-2 overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm p-2 -mx-1 px-1 sm:mx-0 sm:px-2"
+      className="sticky top-16 z-30 flex items-center gap-2 overflow-x-auto rounded-2xl p-2 -mx-1 px-1 sm:mx-0 sm:px-2"
+      style={{ background: '#ffffff', border: '1.5px solid rgba(251,146,60,0.14)', boxShadow: '0 2px 10px rgba(249,115,22,0.06)' }}
     >
       {SECTIONS.map((section) => (
         <a
@@ -98,7 +99,7 @@ function SectionNav({ activeSection, onNavigate }) {
           className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-bold border transition-all duration-200 ${
             activeSection === section.id
               ? 'bg-orange-100 text-orange-700 border-orange-200'
-              : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50 hover:text-slate-700 hover:border-slate-300'
+              : 'bg-white text-slate-500 border-orange-100 hover:bg-orange-50 hover:text-slate-700 hover:border-orange-200'
           }`}
         >
           {section.label}
@@ -141,7 +142,7 @@ function InfoModal({ modal, onClose }) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-sm w-full p-6"
+        className="litl-card shadow-xl max-w-sm w-full"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-base font-bold text-slate-900 mb-2">{modal.title}</h3>
@@ -293,8 +294,8 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200">
+    <div className="min-h-screen">
+      <header className="litl-page-header">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             Welcome back, {greetingName ?? 'Traveller'} <span aria-hidden="true">👋</span>
@@ -596,7 +597,7 @@ export default function DashboardPage() {
               </GroupHeading>
 
               {/* ── Coin balance / reward progress / expiry (placeholder) ── */}
-              <DashboardCard className="border-dashed bg-slate-50/60">
+              <DashboardCard dashed>
                 <div className="flex items-center justify-between mb-3">
                   <CardLabel>Coin balance</CardLabel>
                   <ComingSoonBadge />
@@ -635,7 +636,7 @@ export default function DashboardPage() {
               </GroupHeading>
 
               {/* ── Referrals (placeholder) ── */}
-              <DashboardCard className="border-dashed bg-slate-50/60">
+              <DashboardCard dashed>
                 <div className="flex items-center justify-between mb-3">
                   <CardLabel>Referral program</CardLabel>
                   <ComingSoonBadge />
@@ -665,7 +666,7 @@ export default function DashboardPage() {
               </GroupHeading>
 
               {/* ── Booking history (placeholder) ── */}
-              <DashboardCard className="border-dashed bg-slate-50/60">
+              <DashboardCard dashed>
                 <div className="flex items-center justify-between mb-3">
                   <CardLabel>Booking history</CardLabel>
                   <ComingSoonBadge />
@@ -677,7 +678,7 @@ export default function DashboardPage() {
               </DashboardCard>
 
               {/* ── Reward history (placeholder) ── */}
-              <DashboardCard className="border-dashed bg-slate-50/60">
+              <DashboardCard dashed>
                 <div className="flex items-center justify-between mb-3">
                   <CardLabel>Reward history</CardLabel>
                   <ComingSoonBadge />

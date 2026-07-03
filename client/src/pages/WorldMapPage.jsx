@@ -13,8 +13,8 @@ export default function WorldMapPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200">
+    <div className="min-h-screen">
+      <header className="litl-page-header">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5">
           <div className="flex items-center gap-3">
             <Link
@@ -58,7 +58,7 @@ export default function WorldMapPage() {
           </div>
 
           {/* Ranked destinations list */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-2xl overflow-hidden" style={{ border: '1.5px solid rgba(251,146,60,0.14)', boxShadow: '0 1px 8px rgba(249,115,22,0.05)' }}>
             <div className="px-6 py-4 border-b border-slate-100">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                 Top Destinations

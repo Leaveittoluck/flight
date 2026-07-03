@@ -12,7 +12,7 @@ const PLAN_LABELS = {
 
 function DashboardCard({ children, className = '' }) {
   return (
-    <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm p-6 ${className}`}>
+    <div className={`litl-card ${className}`}>
       {children}
     </div>
   )
@@ -107,8 +107,8 @@ export default function ProfilePage() {
     : 0
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200">
+    <div className="min-h-screen">
+      <header className="litl-page-header">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-5">
           <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">Profile</h1>
           <p className="text-sm text-slate-500 mt-0.5">Your account details</p>

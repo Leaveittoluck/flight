@@ -260,3 +260,47 @@ body {
   animation: none;
   box-shadow: 0 12px 36px rgba(234,88,12,0.50);
 }
+
+/* ─── Phase 16A: Global UI Foundation ───────────────────────────────────────
+   Warm, travel-atmosphere baseline shared across all inner pages.
+   ────────────────────────────────────────────────────────────────────────── */
+
+@layer base {
+  /* Smooth color/opacity defaults for interactive elements that don't
+     already carry explicit Tailwind transition classes. Tailwind's own
+     `transition-all` / `transition-colors` utilities (higher layer)
+     override this where needed. */
+  a, button {
+    transition: color 0.15s ease, opacity 0.15s ease;
+  }
+}
+
+@layer components {
+  /* Warm page header strip — replaces bg-white / border-slate-200 across
+     Dashboard, Profile, Discoveries, Stats, WorldMap pages. */
+  .litl-page-header {
+    background-color: #ffffff;
+    border-bottom: 1px solid rgba(251, 146, 60, 0.18);
+  }
+
+  /* Warm card base — drop-in replacement for the bg-white / border-slate-200
+     / shadow-sm pattern used on inner-page cards. Tailwind utility classes
+     added via className still take effect (utilities layer > components). */
+  .litl-card {
+    background: #ffffff;
+    border-radius: 1rem;
+    border: 1.5px solid rgba(251, 146, 60, 0.14);
+    box-shadow: 0 1px 8px rgba(249, 115, 22, 0.05);
+    padding: 1.5rem;
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+
+  /* Dashed variant — coming-soon / placeholder sections */
+  .litl-card-dashed {
+    background: rgba(255, 247, 237, 0.45);
+    border-radius: 1rem;
+    border: 1.5px dashed rgba(251, 146, 60, 0.22);
+    box-shadow: none;
+    padding: 1.5rem;
+  }
+}

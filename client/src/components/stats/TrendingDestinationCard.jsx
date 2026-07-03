@@ -1,6 +1,6 @@
 export default function TrendingDestinationCard({ city, country, moods, price, emoji }) {
   return (
-    <div className="group flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 transition-all duration-150 hover:bg-white hover:-translate-y-px hover:shadow-sm cursor-default">
+    <div className="group flex items-center justify-between rounded-xl border border-orange-100 bg-orange-50/30 px-4 py-3 transition-all duration-150 hover:bg-white hover:-translate-y-px hover:shadow-sm cursor-default">
       <div>
         <p className="text-sm font-semibold text-slate-900">
           {emoji} {city}
