@@ -109,13 +109,14 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen">
       <header className="litl-page-header">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-5">
-          <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">Profile</h1>
-          <p className="text-sm text-slate-500 mt-0.5">Your account details</p>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+          <p className="text-[10px] font-bold text-amber-500/80 uppercase tracking-widest mb-2">Profile</p>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Your Account</h1>
+          <p className="text-sm text-slate-600 mt-2">Account details and monthly usage</p>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-4">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
         {loading && (
           <DashboardCard>
             <p className="text-sm text-slate-400">Loading profile…</p>
@@ -138,11 +139,11 @@ export default function ProfilePage() {
                 <img
                   src={profile.avatar_url}
                   alt={profile.display_name}
-                  className="w-14 h-14 rounded-full object-cover border border-slate-200 shrink-0"
+                  className="w-14 h-14 rounded-full object-cover border border-orange-100 shrink-0"
                 />
               ) : (
-                <div className="w-14 h-14 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
-                  <span className="text-xl font-bold text-slate-400">
+                <div className="w-14 h-14 rounded-full bg-orange-50/60 border border-orange-100 flex items-center justify-center shrink-0">
+                  <span className="text-xl font-bold text-slate-600">
                     {profile.display_name.charAt(0).toUpperCase()}
                   </span>
                 </div>
@@ -164,7 +165,7 @@ export default function ProfilePage() {
                         }}
                         maxLength={100}
                         autoFocus
-                        className="w-full max-w-xs rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+                        className="w-full max-w-xs rounded-lg border border-orange-200 px-3 py-1.5 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
                       />
                       {saveError && (
                         <p className="text-xs text-red-500">{saveError}</p>
@@ -181,7 +182,7 @@ export default function ProfilePage() {
                         <button
                           onClick={cancelEditing}
                           disabled={saving}
-                          className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-all duration-200"
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-700 hover:bg-orange-50 transition-all duration-200"
                         >
                           Cancel
                         </button>
@@ -228,12 +229,12 @@ export default function ProfilePage() {
 
             <div className="flex items-end gap-8">
               <div>
-                <p className="text-xs text-slate-500 mb-1">Clicks used</p>
+                <p className="text-xs font-semibold text-slate-400 mb-1.5">Clicks used</p>
                 <p className="text-2xl font-extrabold text-slate-900">{usage.clicksUsed}</p>
               </div>
 
               <div>
-                <p className="text-xs text-slate-500 mb-1">Remaining</p>
+                <p className="text-xs font-semibold text-slate-400 mb-1.5">Remaining</p>
                 <p className="text-2xl font-extrabold text-slate-900">
                   {usage.clicksRemaining === null ? '∞' : usage.clicksRemaining}
                 </p>
@@ -241,7 +242,7 @@ export default function ProfilePage() {
 
               {usage.clicksLimit !== null && (
                 <div>
-                  <p className="text-xs text-slate-500 mb-1">Limit</p>
+                  <p className="text-xs font-semibold text-slate-400 mb-1.5">Limit</p>
                   <p className="text-2xl font-extrabold text-slate-400">{usage.clicksLimit}</p>
                 </div>
               )}
@@ -250,7 +251,7 @@ export default function ProfilePage() {
             {/* Progress bar — only for plans with a limit */}
             {usage.clicksLimit !== null && (
               <div className="mt-4">
-                <div className="w-full bg-slate-100 rounded-full h-1.5">
+                <div className="w-full bg-orange-50 rounded-full h-1.5">
                   <div
                     className="h-1.5 rounded-full transition-all duration-500"
                     style={{

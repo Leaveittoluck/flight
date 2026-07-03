@@ -68,7 +68,7 @@ function DiscoveryCard({ item }) {
               </span>
             )}
             {item.season && (
-              <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-slate-100 text-slate-600">
+              <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-orange-50/70 text-slate-600">
                 {formatLabel(item.season)}
               </span>
             )}
@@ -90,7 +90,7 @@ function DiscoveryCard({ item }) {
       {(item.budget_per_person != null || item.estimated_total_cost != null) && (
         <div
           className="flex flex-wrap gap-x-5 gap-y-1 mt-4 pt-4 text-sm"
-          style={{ borderTop: '1px solid #f1f5f9' }}
+          style={{ borderTop: '1px solid rgba(251,146,60,0.12)' }}
         >
           {item.budget_per_person != null && (
             <span className="text-slate-500">
@@ -132,24 +132,25 @@ export default function DiscoveriesPage() {
   return (
     <div className="min-h-screen">
       <header className="litl-page-header">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-5">
-          <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">Discoveries</h1>
-          <p className="text-sm text-slate-500 mt-0.5">Destinations you've generated</p>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+          <p className="text-[10px] font-bold text-amber-500/80 uppercase tracking-widest mb-2">Discoveries</p>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Your Destinations</h1>
+          <p className="text-sm text-slate-600 mt-2">Destinations you've generated</p>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
         {/* Loading */}
         {loading && (
-          <div className="litl-card">
+          <div className="litl-card py-10 text-center">
             <p className="text-sm text-slate-400">Loading discoveries…</p>
           </div>
         )}
 
         {/* Error */}
         {!loading && error && (
-          <div className="litl-card">
-            <p className="text-sm text-red-500">{error}</p>
+          <div className="litl-card py-10 text-center">
+            <p className="text-sm text-red-400">{error}</p>
           </div>
         )}
 
@@ -185,7 +186,7 @@ export default function DiscoveriesPage() {
 
         {/* Discovery list */}
         {!loading && !error && discoveries?.length > 0 && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             <CardLabel>
               {discoveries.length} destination{discoveries.length !== 1 ? 's' : ''} discovered
             </CardLabel>
