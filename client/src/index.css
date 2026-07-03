@@ -1,14 +1,20 @@
 @import "tailwindcss";
 
+:root {
+  --font-editorial: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   background-color: #fff7ed;
+  background-image: radial-gradient(circle at 1px 1px, rgba(234,88,12,0.035) 1px, transparent 0);
+  background-size: 28px 28px;
 }
 
 #root {
@@ -276,6 +282,33 @@ body {
 }
 
 @layer components {
+  /* Editorial serif font — Cormorant Garamond for headings, greetings, feature numbers */
+  .litl-serif {
+    font-family: var(--font-editorial);
+  }
+
+  /* PRIMARY card — feature moments (travel statistics, modal) */
+  .litl-card-primary {
+    background: #ffffff;
+    border-radius: 1.25rem;
+    border: 1.5px solid rgba(251, 146, 60, 0.22);
+    box-shadow:
+      0 6px 32px rgba(249, 115, 22, 0.09),
+      inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    padding: 2rem;
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+
+  /* TERTIARY card — small supporting elements (summary stat chips, plan tier chips) */
+  .litl-card-sm {
+    background: #ffffff;
+    border-radius: 0.875rem;
+    border: 1px solid rgba(251, 146, 60, 0.13);
+    box-shadow: 0 1px 6px rgba(249, 115, 22, 0.04);
+    padding: 1rem;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+
   /* Warm page header strip — replaces bg-white / border-slate-200 across
      Dashboard, Profile, Discoveries, Stats, WorldMap pages. */
   .litl-page-header {
