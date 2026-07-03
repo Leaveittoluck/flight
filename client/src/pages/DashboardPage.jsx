@@ -3,6 +3,8 @@ import { Link, NavLink } from 'react-router-dom'
 import { fetchProfile } from '../services/profileApi'
 import { fetchUsage } from '../services/usageApi'
 import { fetchDiscoveries } from '../services/discoveriesApi'
+import { fetchDestinationImage } from '../services/imagesApi'
+import { getDestinationImage } from '../data/destinationImages'
 import { isExplorer } from '../utils/planUtils'
 import { useAuth } from '../context/AuthContext'
 import EmptyState from '../components/ui/EmptyState'
@@ -61,6 +63,8 @@ function IcMap()       { return <svg viewBox="0 0 20 20" className={IC} fill="no
 function IcChevron()   { return <svg viewBox="0 0 16 16" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" d="M6 12l4-4-4-4"/></svg> }
 function IcMenu()      { return <svg viewBox="0 0 20 20" className={IC} fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" d="M3 5h14M3 10h14M3 15h14"/></svg> }
 function IcX()         { return <svg viewBox="0 0 20 20" className={IC} fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" d="M5 15L15 5M5 5l10 10"/></svg> }
+function IcBell()      { return <svg viewBox="0 0 20 20" className={IC} fill="none" stroke="currentColor" strokeWidth="1.75"><path strokeLinecap="round" strokeLinejoin="round" d="M5 8a5 5 0 0110 0c0 3.2 1 4.5 1.5 5.2a.8.8 0 01-.65 1.3H4.15a.8.8 0 01-.65-1.3C4 12.5 5 11.2 5 8z"/><path strokeLinecap="round" d="M8.2 16.5a1.8 1.8 0 003.6 0"/></svg> }
+function IcCompass()   { return <svg viewBox="0 0 20 20" className={IC} fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="10" cy="10" r="8"/><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l-2 5-4 1 2-5 4-1z"/></svg> }
 
 // ─── Helper functions ─────────────────────────────────────────────────────────
 
@@ -202,15 +206,29 @@ function SidebarNavItem({ to, icon: Icon, children }) {
     <NavLink
       to={to}
       className={({ isActive }) =>
-        `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 ${
+        `relative flex items-center gap-3 pl-3 pr-3 py-2.5 my-0.5 rounded-xl text-sm font-semibold transition-all duration-150 ${
           isActive
-            ? 'bg-orange-50 text-orange-700'
+            ? 'text-orange-700'
             : 'text-slate-500 hover:bg-orange-50/60 hover:text-slate-700'
         }`
       }
+      style={({ isActive }) => isActive
+        ? { background: 'linear-gradient(90deg, rgba(251,146,60,0.16), rgba(251,146,60,0.05))' }
+        : {}
+      }
     >
-      <Icon />
-      {children}
+      {({ isActive }) => (
+        <>
+          {isActive && (
+            <span
+              className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full"
+              style={{ background: 'linear-gradient(180deg, #ea580c, #fb923c)' }}
+            />
+          )}
+          <Icon />
+          {children}
+        </>
+      )}
     </NavLink>
   )
 }
@@ -257,6 +275,21 @@ function TravelMoodBar({ type, pct }) {
   )
 }
 
+function TravelStamp({ label }) {
+  return (
+    <div
+      className="w-16 h-[4.5rem] rounded-md flex flex-col items-center justify-center gap-1 select-none shrink-0"
+      style={{ border: '2px dashed rgba(234,88,12,0.22)', transform: 'rotate(7deg)', opacity: 0.6 }}
+      aria-hidden="true"
+    >
+      <IcPlane />
+      <span className="text-[6.5px] font-bold uppercase tracking-widest text-orange-700/70 text-center px-1 leading-tight">
+        {label || 'Travel'}
+      </span>
+    </div>
+  )
+}
+
 // ─── IconBadge helper ─────────────────────────────────────────────────────────
 
 function IconBadge({ children }) {
@@ -282,6 +315,7 @@ export default function DashboardPage() {
   const [profileErr,  setProfileErr]  = useState(false)
   const [modal,       setModal]       = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [discoveryImageUrl, setDiscoveryImageUrl] = useState(null)
 
   useEffect(() => {
     const profileReq = fetchProfile().then(setProfile).catch(() => setProfileErr(true))
@@ -289,6 +323,19 @@ export default function DashboardPage() {
     const discoReq   = fetchDiscoveries().then(setDiscoveries).catch(() => {})
     Promise.all([profileReq, usageReq, discoReq]).finally(() => setLoading(false))
   }, [])
+
+  const recentDiscoveryId = discoveries?.[0]?.id ?? null
+
+  useEffect(() => {
+    const latest = discoveries?.[0]
+    if (!latest) return
+    let cancelled = false
+    fetchDestinationImage(latest.city, latest.country).then((url) => {
+      if (cancelled) return
+      setDiscoveryImageUrl(url || getDestinationImage(latest))
+    })
+    return () => { cancelled = true }
+  }, [recentDiscoveryId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const planConfig        = profile
     ? (PLAN_LABELS[profile.plan] ?? { label: profile.plan, className: 'bg-slate-100 text-slate-600' })
@@ -332,13 +379,13 @@ export default function DashboardPage() {
         style={{ background: '#ffffff', borderRight: '1px solid rgba(251,146,60,0.16)' }}
       >
         {/* Brand */}
-        <div className="px-5 pt-5 pb-4" style={{ borderBottom: '1px solid rgba(251,146,60,0.12)' }}>
-          <Link to="/" className="flex flex-col gap-0.5 group" onClick={() => setSidebarOpen(false)}>
-            <div className="flex items-center gap-1.5">
-              <span className="text-2xl font-black tracking-tight text-slate-900">LITL</span>
-              <span className="text-lg font-black" style={{ color: '#ea580c' }}>✦</span>
+        <div className="px-5 pt-6 pb-5" style={{ borderBottom: '1px solid rgba(251,146,60,0.12)' }}>
+          <Link to="/" className="flex flex-col gap-1 group" onClick={() => setSidebarOpen(false)}>
+            <div className="flex items-center gap-2">
+              <span className="litl-serif text-3xl font-bold tracking-tight text-slate-900 italic">LITL</span>
+              <span className="text-xl font-black" style={{ color: '#ea580c' }}>✦</span>
             </div>
-            <span className="text-[10px] font-bold tracking-[0.18em] text-slate-400 uppercase">Leave It To Luck</span>
+            <span className="text-[10px] font-bold tracking-[0.22em] text-slate-400 uppercase">Leave It To Luck</span>
           </Link>
         </div>
 
@@ -352,15 +399,24 @@ export default function DashboardPage() {
           <SidebarNavItem to="/profile"        icon={IcUser}>Profile</SidebarNavItem>
         </nav>
 
-        {/* Explorer Plan card */}
+        {/* Explorer Plan card — premium travel-pass styling */}
         <div className="mx-3 mb-3">
           <div
-            className="rounded-2xl p-4"
-            style={{ background: '#fffbf5', border: '1.5px solid rgba(251,146,60,0.2)', boxShadow: '0 1px 8px rgba(249,115,22,0.06)' }}
+            className="relative rounded-2xl p-4 overflow-hidden"
+            style={{ background: '#fffbf5', border: '1.5px solid rgba(251,146,60,0.28)', boxShadow: '0 3px 14px rgba(249,115,22,0.09), inset 0 1px 0 rgba(255,255,255,0.9)' }}
           >
-            <div className="flex items-center justify-between mb-2">
+            {/* inner dashed matting — passport / boarding-pass feel */}
+            <div className="absolute inset-1.5 rounded-xl pointer-events-none" style={{ border: '1px dashed rgba(251,146,60,0.22)' }} aria-hidden="true" />
+            {/* corner glow */}
+            <div
+              className="absolute -top-4 -right-4 w-16 h-16 rounded-full pointer-events-none"
+              style={{ background: 'radial-gradient(circle, rgba(251,146,60,0.16) 0%, transparent 72%)' }}
+              aria-hidden="true"
+            />
+
+            <div className="relative flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'rgba(234,88,12,0.1)' }}>
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'rgba(234,88,12,0.12)', border: '1px solid rgba(234,88,12,0.16)' }}>
                   <IcCrown />
                 </div>
                 <span className="text-xs font-bold text-slate-800">
@@ -376,45 +432,47 @@ export default function DashboardPage() {
                 </span>
               )}
             </div>
-            <p className="text-[11px] text-slate-500 mb-3 leading-relaxed">
+            <p className="relative text-[11px] text-slate-500 mb-3 leading-relaxed">
               {isExplorer(profile?.plan)
-                ? 'Unlimited adventures await you.'
+                ? 'Unlimited adventures. No ads. All features.'
                 : 'Upgrade for full destination guides.'}
             </p>
             <button
               type="button"
               onClick={() => openModal('subscription')}
-              className="w-full py-2 rounded-xl text-xs font-bold text-white transition-all duration-200 hover:-translate-y-px"
+              className="relative w-full py-2 rounded-xl text-xs font-bold text-white transition-all duration-200 hover:-translate-y-px"
               style={{ background: 'linear-gradient(135deg, #ea580c, #f97316)', boxShadow: '0 2px 10px rgba(234,88,12,0.25)' }}
             >
-              {isExplorer(profile?.plan) ? 'View Membership' : 'Become an Explorer'}
+              {isExplorer(profile?.plan) ? 'View Membership Benefits →' : 'Become an Explorer'}
             </button>
           </div>
         </div>
 
         {/* Profile card */}
-        <div
-          className="flex items-center gap-2.5 px-4 py-3.5"
-          style={{ borderTop: '1px solid rgba(251,146,60,0.12)' }}
-        >
-          {user?.avatar_url ? (
-            <img
-              src={user.avatar_url}
-              alt={displayName}
-              className="w-8 h-8 rounded-full object-cover border border-orange-200 shrink-0"
-            />
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-orange-100 border border-orange-200 flex items-center justify-center shrink-0">
-              <span className="text-xs font-bold text-orange-600">
-                {displayName.charAt(0).toUpperCase()}
-              </span>
+        <div className="mx-3 mb-3">
+          <div
+            className="flex items-center gap-2.5 px-3.5 py-3 rounded-2xl transition-colors hover:bg-orange-50/50"
+            style={{ background: '#fffdf9', border: '1px solid rgba(251,146,60,0.16)' }}
+          >
+            {user?.avatar_url ? (
+              <img
+                src={user.avatar_url}
+                alt={displayName}
+                className="w-9 h-9 rounded-full object-cover border-2 border-orange-200 shrink-0"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-orange-100 border-2 border-orange-200 flex items-center justify-center shrink-0">
+                <span className="text-xs font-bold text-orange-600">
+                  {displayName.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold text-slate-800 truncate">{displayName}</p>
+              <p className="text-[10px] text-slate-400 truncate">{getUserHandle(displayName)}</p>
             </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-slate-800 truncate">{displayName}</p>
-            <p className="text-[10px] text-slate-400 truncate">{getUserHandle(displayName)}</p>
+            <span className="text-slate-300"><IcChevron /></span>
           </div>
-          <IcChevron />
         </div>
       </aside>
 
@@ -457,6 +515,19 @@ export default function DashboardPage() {
             <span className="text-xs opacity-80">✦</span>
             Generate New Trip
           </Link>
+
+          <button
+            type="button"
+            aria-label="Notifications"
+            className="relative shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center text-slate-500 transition-all duration-200 hover:-translate-y-px hover:text-orange-600"
+            style={{ background: '#fffdf9', border: '1.5px solid rgba(251,146,60,0.2)', boxShadow: '0 2px 10px rgba(249,115,22,0.06)' }}
+          >
+            <IcBell />
+            <span
+              className="absolute top-2 right-2.5 w-2 h-2 rounded-full"
+              style={{ background: '#ea580c', boxShadow: '0 0 0 2px #fffdf9' }}
+            />
+          </button>
         </div>
 
         {/* Scrollable content */}
@@ -516,14 +587,21 @@ export default function DashboardPage() {
                 {/* ── Row 2: Adventure Awaits | Recent Discovery ───── */}
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
 
-                  {/* Adventure Awaits */}
+                  {/* Adventure Awaits — airmail postcard styling */}
                   <div
-                    className="md:col-span-2 rounded-2xl p-6 flex flex-col gap-5 relative overflow-hidden"
+                    className="md:col-span-2 rounded-2xl p-6 pt-7 flex flex-col gap-5 relative overflow-hidden"
                     style={{
                       background: '#fffdf9',
                       border: '2px dashed rgba(234,88,12,0.25)',
+                      boxShadow: '0 4px 20px rgba(234,88,12,0.06)',
                     }}
                   >
+                    {/* Airmail stripe — diagonal orange/ink accent along the top edge */}
+                    <div
+                      className="absolute top-0 left-0 right-0 h-1.5 opacity-50 pointer-events-none"
+                      style={{ background: 'repeating-linear-gradient(-45deg, #ea580c 0 8px, transparent 8px 16px, #1e293b 16px 24px, transparent 24px 32px)' }}
+                      aria-hidden="true"
+                    />
                     {/* Decorative glow */}
                     <div
                       className="absolute top-0 right-0 w-36 h-36 pointer-events-none"
@@ -532,6 +610,15 @@ export default function DashboardPage() {
                         transform: 'translate(30%, -30%)',
                       }}
                     />
+                    {/* Compass rose line-art — subtle, low opacity */}
+                    <div className="absolute bottom-3 right-3 pointer-events-none" style={{ opacity: 0.08, color: '#ea580c' }} aria-hidden="true">
+                      <svg viewBox="0 0 64 64" width="72" height="72" fill="none" stroke="currentColor" strokeWidth="1.25">
+                        <circle cx="32" cy="32" r="26" />
+                        <circle cx="32" cy="32" r="19" />
+                        <path strokeLinecap="round" d="M32 6v8M32 50v8M6 32h8M50 32h8" />
+                        <path strokeLinecap="round" strokeLinejoin="round" fill="currentColor" d="M32 18l6 14-6 14-6-14z" />
+                      </svg>
+                    </div>
                     <div className="flex items-center gap-3 relative">
                       <div
                         className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
@@ -558,16 +645,19 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  {/* Recent Discovery */}
+                  {/* Recent Discovery — visual hero of the dashboard */}
                   <div
-                    className="md:col-span-3 rounded-2xl p-5"
+                    className="md:col-span-3 rounded-2xl p-5 relative overflow-hidden"
                     style={{
                       background: '#ffffff',
                       border: '1.5px solid rgba(251,146,60,0.16)',
-                      boxShadow: '0 2px 16px rgba(249,115,22,0.06)',
+                      boxShadow: '0 4px 22px rgba(249,115,22,0.08), inset 0 1px 0 rgba(255,255,255,0.9)',
                     }}
                   >
-                    <div className="flex items-center justify-between mb-4">
+                    {/* Inner dashed matting — postcard frame */}
+                    <div className="absolute inset-2 rounded-xl pointer-events-none" style={{ border: '1px dashed rgba(251,146,60,0.14)' }} aria-hidden="true" />
+
+                    <div className="relative flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2">
                         <IconBadge><IcPin /></IconBadge>
                         <p className="text-sm font-bold text-slate-800">Recent Discovery</p>
@@ -583,31 +673,53 @@ export default function DashboardPage() {
                     </div>
 
                     {recentDiscovery ? (
-                      <div className="flex items-start gap-5">
-                        {/* Destination placeholder art */}
+                      <div className="relative flex flex-col sm:flex-row items-stretch gap-5">
+                        {/* Destination photo — real image with styled fallback */}
                         <div
-                          className="w-28 h-28 rounded-2xl shrink-0 flex flex-col items-center justify-center gap-1"
-                          style={{
-                            background: 'linear-gradient(135deg, rgba(234,88,12,0.07) 0%, rgba(251,146,60,0.12) 100%)',
-                            border: '1.5px dashed rgba(251,146,60,0.2)',
-                          }}
+                          className="relative w-full sm:w-40 md:w-48 h-40 sm:h-auto rounded-2xl shrink-0 overflow-hidden"
+                          style={{ boxShadow: '0 8px 24px rgba(120,53,15,0.18)' }}
                         >
-                          <IcGlobe />
-                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest text-center px-2">
-                            {recentDiscovery.country ?? 'Destination'}
-                          </span>
-                        </div>
-
-                        {/* Destination details */}
-                        <div className="flex-1 min-w-0">
+                          {discoveryImageUrl ? (
+                            <img
+                              src={discoveryImageUrl}
+                              alt={`${recentDiscovery.city ?? 'Destination'} landscape`}
+                              className="absolute inset-0 w-full h-full object-cover"
+                              onError={(e) => {
+                                if (!e.currentTarget.dataset.fallbackUsed) {
+                                  e.currentTarget.dataset.fallbackUsed = '1'
+                                  e.currentTarget.src = '/images/destinations/_fallback.jpg'
+                                }
+                              }}
+                            />
+                          ) : (
+                            <div
+                              className="absolute inset-0 flex flex-col items-center justify-center gap-1.5"
+                              style={{ background: 'linear-gradient(135deg, rgba(234,88,12,0.10) 0%, rgba(251,146,60,0.18) 100%)' }}
+                            >
+                              <IcGlobe />
+                              <span className="text-[9px] font-bold text-orange-700/50 uppercase tracking-widest text-center px-2">
+                                {recentDiscovery.country ?? 'Destination'}
+                              </span>
+                            </div>
+                          )}
+                          {/* Darken bottom edge slightly so any badge/text reads well */}
+                          <div
+                            className="absolute inset-0 pointer-events-none"
+                            style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.22) 0%, transparent 45%)' }}
+                            aria-hidden="true"
+                          />
                           {recentDiscovery.trip_type && (
                             <span
-                              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide mb-2"
-                              style={{ background: 'rgba(249,115,22,0.1)', color: '#ea580c', border: '1px solid rgba(249,115,22,0.2)' }}
+                              className="absolute top-2.5 left-2.5 inline-flex items-center px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide text-white"
+                              style={{ background: 'rgba(15,23,42,0.55)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.3)' }}
                             >
                               {formatLabel(recentDiscovery.trip_type)}
                             </span>
                           )}
+                        </div>
+
+                        {/* Destination details */}
+                        <div className="flex-1 min-w-0 flex flex-col justify-center">
                           <h3 className="litl-serif text-2xl font-bold text-slate-900 italic leading-tight mb-1">
                             {[recentDiscovery.city, recentDiscovery.country].filter(Boolean).join(', ')}
                           </h3>
@@ -636,6 +748,11 @@ export default function DashboardPage() {
                             )}
                           </div>
                         </div>
+
+                        {/* Decorative travel stamp */}
+                        <div className="hidden md:flex items-start justify-end pt-1 shrink-0" aria-hidden="true">
+                          <TravelStamp label={recentDiscovery.country ?? recentDiscovery.city} />
+                        </div>
                       </div>
                     ) : (
                       <EmptyState
@@ -651,13 +768,17 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
 
                   {/* Membership / Overview */}
-                  <div className="litl-card flex flex-col gap-4">
-                    <div className="flex items-center gap-2">
+                  <div
+                    className="litl-card flex flex-col gap-4 relative overflow-hidden rounded-[1.25rem]"
+                    style={{ boxShadow: '0 3px 18px rgba(249,115,22,0.08), inset 0 1px 0 rgba(255,255,255,0.9)' }}
+                  >
+                    <div className="absolute inset-2 rounded-2xl pointer-events-none" style={{ border: '1px dashed rgba(251,146,60,0.10)' }} aria-hidden="true" />
+                    <div className="relative flex items-center gap-2">
                       <IconBadge><IcCrown /></IconBadge>
                       <p className="text-sm font-bold text-slate-800">Membership</p>
                     </div>
 
-                    <div className="flex items-center gap-2 flex-wrap">
+                    <div className="relative flex items-center gap-2 flex-wrap">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${planConfig?.className ?? 'bg-blue-100 text-blue-700'}`}>
                         {planConfig?.label ?? 'Free'}
                       </span>
@@ -726,8 +847,12 @@ export default function DashboardPage() {
                   </div>
 
                   {/* Travel Mood */}
-                  <div className="litl-card flex flex-col gap-4">
-                    <div className="flex items-start gap-2">
+                  <div
+                    className="litl-card flex flex-col gap-4 relative overflow-hidden rounded-[1.25rem]"
+                    style={{ boxShadow: '0 3px 18px rgba(249,115,22,0.08), inset 0 1px 0 rgba(255,255,255,0.9)' }}
+                  >
+                    <div className="absolute inset-2 rounded-2xl pointer-events-none" style={{ border: '1px dashed rgba(251,146,60,0.10)' }} aria-hidden="true" />
+                    <div className="relative flex items-start gap-2">
                       <IconBadge><IcSparkle /></IconBadge>
                       <div>
                         <p className="text-sm font-bold text-slate-800">Your Travel Mood</p>
@@ -758,8 +883,12 @@ export default function DashboardPage() {
                   </div>
 
                   {/* Quick Links */}
-                  <div className="litl-card flex flex-col gap-2">
-                    <div className="flex items-center gap-2 mb-1">
+                  <div
+                    className="litl-card flex flex-col gap-1.5 relative overflow-hidden rounded-[1.25rem]"
+                    style={{ boxShadow: '0 3px 18px rgba(249,115,22,0.08), inset 0 1px 0 rgba(255,255,255,0.9)' }}
+                  >
+                    <div className="absolute inset-2 rounded-2xl pointer-events-none" style={{ border: '1px dashed rgba(251,146,60,0.10)' }} aria-hidden="true" />
+                    <div className="relative flex items-center gap-2 mb-1">
                       <IconBadge><IcMap /></IconBadge>
                       <p className="text-sm font-bold text-slate-800">Quick Links</p>
                     </div>
@@ -772,12 +901,12 @@ export default function DashboardPage() {
                       <Link
                         key={to}
                         to={to}
-                        className="flex items-center gap-3 group px-3 py-2.5 rounded-xl transition-colors hover:bg-orange-50/70"
+                        className="relative flex items-center gap-3 group px-3 py-2.5 rounded-xl transition-all duration-150 hover:bg-orange-50/80 hover:-translate-y-px"
                         style={{ borderBottom: '1px solid rgba(251,146,60,0.08)' }}
                       >
                         <div
-                          className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-                          style={{ background: 'rgba(234,88,12,0.07)' }}
+                          className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors duration-150 group-hover:bg-orange-100"
+                          style={{ background: 'rgba(234,88,12,0.07)', border: '1px solid rgba(234,88,12,0.1)' }}
                         >
                           <Icon />
                         </div>
@@ -785,7 +914,7 @@ export default function DashboardPage() {
                           <p className="text-xs font-bold text-slate-800 group-hover:text-orange-700 transition-colors">{label}</p>
                           <p className="text-[10px] text-slate-400">{sub}</p>
                         </div>
-                        <span className="text-slate-300 group-hover:text-orange-400 transition-colors">
+                        <span className="text-slate-300 group-hover:text-orange-500 group-hover:translate-x-0.5 transition-all">
                           <IcChevron />
                         </span>
                       </Link>
