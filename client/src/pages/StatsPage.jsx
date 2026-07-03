@@ -17,11 +17,12 @@ export default function StatsPage() {
   return (
     <div className="min-h-screen">
       <header className="litl-page-header">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-5">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+          <div className="flex items-end justify-between gap-4 flex-wrap">
             <div>
-              <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">Stats</h1>
-              <p className="text-sm text-slate-500 mt-0.5">
+              <p className="text-[10px] font-bold text-amber-500/80 uppercase tracking-widest mb-2">Statistics</p>
+              <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Travel Insights</h1>
+              <p className="text-sm text-slate-600 mt-2">
                 Explore where LITL travelers are heading
               </p>
             </div>
@@ -30,7 +31,7 @@ export default function StatsPage() {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-4">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
 
         {/* Hero stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">

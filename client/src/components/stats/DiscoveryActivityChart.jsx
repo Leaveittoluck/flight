@@ -4,7 +4,7 @@ import { StatsCard, CardLabel } from './StatsCard'
 function ActivityTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-md text-xs">
+    <div className="bg-white rounded-xl px-3 py-2 shadow-md text-xs" style={{ border: '1px solid rgba(251,146,60,0.18)' }}>
       <p className="font-semibold text-slate-700">{label}</p>
       <p className="text-blue-600 font-bold">{payload[0].value} trips</p>
     </div>
@@ -30,7 +30,7 @@ export default function DiscoveryActivityChart({ data }) {
             tickLine={false}
           />
           <YAxis hide />
-          <Tooltip content={<ActivityTooltip />} cursor={{ stroke: '#e2e8f0', strokeWidth: 1 }} />
+          <Tooltip content={<ActivityTooltip />} cursor={{ stroke: 'rgba(251,146,60,0.2)', strokeWidth: 1 }} />
           <Area
             type="monotone"
             dataKey="value"

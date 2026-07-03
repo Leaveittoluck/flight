@@ -12,7 +12,7 @@ function MoodTooltip({ active, payload }) {
   if (!active || !payload?.length) return null
   const { name, value } = payload[0]
   return (
-    <div className="bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-md text-xs">
+    <div className="bg-white rounded-xl px-3 py-2 shadow-md text-xs" style={{ border: '1px solid rgba(251,146,60,0.18)' }}>
       <p className="font-semibold text-slate-700">{name}</p>
       <p className="font-bold" style={{ color: MOOD_COLORS[name] ?? '#94a3b8' }}>{value}%</p>
     </div>

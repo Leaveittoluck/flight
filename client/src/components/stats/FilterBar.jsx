@@ -2,7 +2,7 @@ import { FILTER_OPTIONS } from '../../data/statsData'
 
 export default function FilterBar({ active, onChange }) {
   return (
-    <div className="flex gap-1 bg-slate-100 rounded-xl p-1 self-start">
+    <div className="flex gap-1 bg-orange-50/80 rounded-xl p-1 self-end shrink-0" style={{ border: '1px solid rgba(251,146,60,0.12)' }}>
       {FILTER_OPTIONS.map(({ key, label }) => (
         <button
           key={key}
