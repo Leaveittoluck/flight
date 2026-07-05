@@ -1,25 +1,8 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useReveal } from '../hooks/useReveal'
 
 /* ─── Decorative SVG helpers ─── */
-
-function Cloud({ opacity = 0.12, className = '', style = {} }) {
-  return (
-    <svg
-      viewBox="0 0 200 70"
-      fill="white"
-      aria-hidden="true"
-      className={className}
-      style={{ opacity, ...style }}
-    >
-      <ellipse cx="70" cy="58" rx="55" ry="14" />
-      <ellipse cx="110" cy="52" rx="60" ry="20" />
-      <ellipse cx="148" cy="58" rx="44" ry="13" />
-      <ellipse cx="88" cy="38" rx="36" ry="28" />
-      <ellipse cx="130" cy="32" rx="38" ry="32" />
-    </svg>
-  )
-}
 
 function Sparkle({ className = '', style = {} }) {
   return (
@@ -43,13 +26,156 @@ function ArrowRight({ className = 'w-4 h-4' }) {
   )
 }
 
-function CheckIcon() {
+function CheckIcon({ className = 'w-4 h-4 text-orange-500 mt-0.5 shrink-0' }) {
   return (
-    <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-orange-500 mt-0.5 shrink-0">
+    <svg viewBox="0 0 20 20" fill="currentColor" className={className}>
       <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
     </svg>
   )
 }
+
+/** Passport-stamp style decoration for the hero collage. */
+function PassportStamp({ className = '', style = {} }) {
+  return (
+    <svg viewBox="0 0 120 120" className={className} style={style} aria-hidden="true">
+      <circle cx="60" cy="60" r="52" fill="none" stroke="#ea580c" strokeWidth="2" strokeDasharray="4 5" opacity="0.8" />
+      <circle cx="60" cy="60" r="41" fill="none" stroke="#ea580c" strokeWidth="1.2" opacity="0.55" />
+      <text x="60" y="40" textAnchor="middle" fill="#ea580c" fontSize="9" fontWeight="700" letterSpacing="2" opacity="0.85">LITL</text>
+      <path
+        d="M46 66l9-3 3-8 4 6 8-9 -3 10 8 2 -8 5 2 8 -8-3-3 7-4-6-9 3z"
+        fill="none" stroke="#ea580c" strokeWidth="2.2" strokeLinejoin="round" opacity="0.9"
+      />
+      <text x="60" y="90" textAnchor="middle" fill="#ea580c" fontSize="8" fontWeight="700" letterSpacing="3" opacity="0.85">LUCK</text>
+    </svg>
+  )
+}
+
+function SuitcaseIllustration({ className = '' }) {
+  return (
+    <svg viewBox="0 0 160 140" className={className} aria-hidden="true">
+      <rect x="18" y="42" width="124" height="86" rx="14" fill="#fff7ed" stroke="#ea580c" strokeWidth="3" />
+      <rect x="60" y="22" width="40" height="22" rx="6" fill="none" stroke="#ea580c" strokeWidth="3" />
+      <line x1="18" y1="76" x2="142" y2="76" stroke="#fdba74" strokeWidth="2.5" />
+      <rect x="70" y="66" width="20" height="20" rx="4" fill="#f97316" opacity="0.9" />
+      <circle cx="40" cy="58" r="4" fill="#fb923c" />
+      <circle cx="120" cy="100" r="3" fill="#fb923c" />
+      <path d="M30 100c4-6 10-6 14 0" stroke="#fb923c" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+      <path d="M108 58c4-6 10-6 14 0" stroke="#fb923c" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+/* ─── Feature strip icons (thin outline, single color) ─── */
+
+function IconPersonalised({ className = 'w-6 h-6' }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
+      <circle cx="12" cy="12" r="9" />
+      <path strokeLinecap="round" d="M8.5 14.5c1 1.2 2.2 1.8 3.5 1.8s2.5-.6 3.5-1.8" />
+      <path strokeLinecap="round" d="M9 9.75h.01M15 9.75h.01" />
+    </svg>
+  )
+}
+
+function IconSurprise({ className = 'w-6 h-6' }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M5.6 18.4l1.6-1.6M16.8 7.2l1.6-1.6" />
+      <circle cx="12" cy="12" r="3.4" />
+    </svg>
+  )
+}
+
+function IconTrusted({ className = 'w-6 h-6' }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3.5l7 2.7v5.1c0 4.4-2.9 7.9-7 9.2-4.1-1.3-7-4.8-7-9.2V6.2l7-2.7z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.2l2.1 2.1 3.9-4.3" />
+    </svg>
+  )
+}
+
+function IconSimple({ className = 'w-6 h-6' }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13 3L4.5 13.5H11L10 21l8.5-10.5H12L13 3z" />
+    </svg>
+  )
+}
+
+const FEATURES = [
+  { title: 'Personalised', desc: 'Just for you', Icon: IconPersonalised },
+  { title: 'Surprise', desc: 'Something new', Icon: IconSurprise },
+  { title: 'Trusted', desc: 'Real experiences', Icon: IconTrusted },
+  { title: 'Simple', desc: 'In just one click', Icon: IconSimple },
+]
+
+/* ─── How it works icons ─── */
+
+function IconMoodBudget({ className = 'w-6 h-6' }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className={className}>
+      <circle cx="12" cy="12" r="9" />
+      <path strokeLinecap="round" d="M8.5 14.2c1 1.1 2.1 1.7 3.5 1.7s2.5-.6 3.5-1.7" />
+      <path strokeLinecap="round" d="M9 9.5h.01M15 9.5h.01" />
+    </svg>
+  )
+}
+
+function IconSearchDestinations({ className = 'w-6 h-6' }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className={className}>
+      <circle cx="10.5" cy="10.5" r="6.5" />
+      <path strokeLinecap="round" d="M15.3 15.3L20 20" />
+    </svg>
+  )
+}
+
+function IconDiscoverPlace({ className = 'w-6 h-6' }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21s-7-6.1-7-11.5A7 7 0 0119 9.5C19 14.9 12 21 12 21z" />
+      <circle cx="12" cy="9.5" r="2.4" />
+    </svg>
+  )
+}
+
+function IconPlanTrip({ className = 'w-6 h-6' }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className={className}>
+      <rect x="4" y="7.5" width="16" height="11.5" rx="2" />
+      <path strokeLinecap="round" d="M9 7.5V5.8a1.8 1.8 0 011.8-1.8h2.4A1.8 1.8 0 0116 5.8v1.7" />
+      <path strokeLinecap="round" d="M4 12.5h16" />
+    </svg>
+  )
+}
+
+const HOW_IT_WORKS = [
+  {
+    step: '01',
+    title: 'You tell us your mood and budget',
+    desc: 'Adventure, relaxation, culture — pick how you want to feel and what you can spend.',
+    Icon: IconMoodBudget,
+  },
+  {
+    step: '02',
+    title: 'We search the best destinations',
+    desc: 'Leave It To Luck scans real flights and destination profiles that fit your brief.',
+    Icon: IconSearchDestinations,
+  },
+  {
+    step: '03',
+    title: 'You discover a place you’ll love',
+    desc: 'Get a matched destination you’d never have searched for yourself — with the details to prove it.',
+    Icon: IconDiscoverPlace,
+  },
+  {
+    step: '04',
+    title: 'You plan your next adventure',
+    desc: 'Review the guide, save your favourites, and book directly through trusted platforms.',
+    Icon: IconPlanTrip,
+  },
+]
 
 /* ─── Data ─── */
 
@@ -80,39 +206,6 @@ const MOCK_DESTINATIONS = [
     price: '£310',
     accentColor: '#f97316',
     bgColor: '#fff7ed',
-  },
-]
-
-const HOW_IT_WORKS = [
-  {
-    step: '01',
-    title: 'Set Your Mood & Budget',
-    desc: 'Tell us how you want to feel and what you can spend. Adventure, relaxation, culture — your call.',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
-      </svg>
-    ),
-  },
-  {
-    step: '02',
-    title: 'Luck Does the Work',
-    desc: 'Leave It To Luck scans real flights and destination profiles to find somewhere unexpected — somewhere you\'d never have searched for yourself.',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" />
-      </svg>
-    ),
-  },
-  {
-    step: '03',
-    title: 'Discover & Book',
-    desc: 'Review your matched destinations, explore the details, and book directly through trusted platforms.',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-      </svg>
-    ),
   },
 ]
 
@@ -156,184 +249,168 @@ const STATS = [
   { value: '1,800+', label: 'Travellers inspired' },
 ]
 
-const HERO_BG = 'linear-gradient(160deg, #1c0f00 0%, #92400e 22%, #c2410c 45%, #f97316 68%, #fbbf24 92%)'
-const CTA_BG  = 'linear-gradient(135deg, #ea580c 0%, #f97316 50%, #fbbf24 100%)'
+const TRUST_MARKS = ['WANDERLIST', 'WAYPOINT JOURNAL', 'TRAILHEAD', 'ATLAS & CO.', 'THE DRIFTER']
+
+const HERO_PHOTO = '/images/marketing/coastal-cliffs.jpg'
 
 /* ─── Component ─── */
 
 export default function HomePage() {
   const [howRef,     howVisible]     = useReveal(0.1)
   const [destRef,    destVisible]    = useReveal(0.08)
+  const [mapRef,     mapVisible]     = useReveal(0.1)
   const [pricingRef, pricingVisible] = useReveal(0.08)
+  const [trustRef,   trustVisible]   = useReveal(0.1)
   const [statsRef,   statsVisible]   = useReveal(0.12)
+  const [newsletterRef, newsletterVisible] = useReveal(0.1)
+  const [subscribed, setSubscribed] = useState(false)
+
+  function handleNewsletterSubmit(e) {
+    e.preventDefault()
+    setSubscribed(true)
+  }
 
   return (
     <div style={{ backgroundColor: '#fff7ed' }}>
 
       {/* ══════════════════════════════
-          HERO — sunset gradient
+          HERO — cream paper, editorial split layout
       ══════════════════════════════ */}
-      <section className="relative min-h-[94vh] flex items-center overflow-hidden" style={{ background: HERO_BG }}>
+      <section className="relative overflow-hidden">
+        <div className="relative max-w-6xl mx-auto px-6 sm:px-8 py-16 sm:py-20 lg:py-24 grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
 
-        {/* Sun glow blob */}
-        <div
-          aria-hidden="true"
-          className="absolute pointer-events-none rounded-full"
-          style={{
-            top: '8%', right: '12%',
-            width: '340px', height: '340px',
-            background: 'radial-gradient(circle, rgba(251,191,36,0.4) 0%, rgba(251,146,60,0.18) 40%, transparent 70%)',
-            animation: 'sunGlow 9s ease-in-out infinite',
-          }}
-        />
+          {/* Left: headline + copy + CTA */}
+          <div style={{ animation: 'fadeInUp 0.7s ease forwards' }}>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-widest uppercase mb-6"
+              style={{ backgroundColor: 'rgba(234,88,12,0.08)', border: '1px solid rgba(234,88,12,0.18)', color: '#c2410c' }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-orange-500 inline-block" />
+              Let luck choose
+            </div>
 
-        {/* Floating clouds */}
-        <Cloud
-          className="absolute w-52 sm:w-72 pointer-events-none"
-          style={{ top: '10%', left: '6%', animation: 'cloudDrift 30s ease-in-out infinite' }}
-          opacity={0.1}
-        />
-        <Cloud
-          className="absolute w-36 sm:w-48 pointer-events-none"
-          style={{ top: '35%', right: '4%', animation: 'cloudDriftLeft 24s ease-in-out infinite 5s' }}
-          opacity={0.08}
-        />
-        <Cloud
-          className="absolute w-44 sm:w-56 pointer-events-none"
-          style={{ bottom: '22%', left: '20%', animation: 'cloudDrift 38s ease-in-out infinite 12s' }}
-          opacity={0.07}
-        />
+            <h1 className="litl-serif text-5xl sm:text-6xl lg:text-6xl font-semibold text-stone-900 leading-[1.08] mb-6">
+              Don&rsquo;t overthink it.
+              <br />
+              <span style={{ color: '#ea580c' }}>Leave it to luck.</span>
+            </h1>
 
-        {/* Sparkles */}
-        <Sparkle className="absolute w-4 h-4 pointer-events-none" style={{ top: '18%', left: '30%', animation: 'sparkle 3.5s ease-in-out infinite' }} />
-        <Sparkle className="absolute w-3 h-3 pointer-events-none" style={{ top: '55%', right: '22%', animation: 'sparkle 4.2s ease-in-out infinite 1.2s' }} />
-        <Sparkle className="absolute w-5 h-5 pointer-events-none" style={{ bottom: '30%', right: '38%', animation: 'sparkle 3s ease-in-out infinite 2.4s' }} />
-        <Sparkle className="absolute w-3 h-3 pointer-events-none" style={{ top: '70%', left: '12%', animation: 'sparkle 4.8s ease-in-out infinite 0.8s' }} />
+            <p className="text-base sm:text-lg text-stone-500 max-w-md leading-relaxed mb-9">
+              We&rsquo;ll find a destination that fits your mood, your budget and your sense of adventure — no endless tab-hopping required.
+            </p>
 
-        {/* Animated route line */}
-        <svg aria-hidden="true" className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none">
-          <path
-            d="M -50 340 C 200 315 450 360 700 325 S 1050 295 1300 315"
-            stroke="#fde68a"
-            strokeWidth="1.5"
-            fill="none"
-            strokeDasharray="6 12"
-            opacity="0.2"
-            style={{ animation: 'drawRoute 6s ease forwards' }}
-          />
-        </svg>
-
-        {/* Hero content */}
-        <div
-          className="relative w-full max-w-5xl mx-auto px-6 sm:px-8 py-24 text-center"
-          style={{ animation: 'fadeInUp 0.7s ease forwards' }}
-        >
-          {/* Eyebrow badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-widest uppercase mb-8"
-            style={{ backgroundColor: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.75)' }}>
-            <span className="w-1.5 h-1.5 rounded-full bg-yellow-300 inline-block" />
-            ✦ Let luck choose.
-          </div>
-
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold text-white tracking-tight leading-[1.05] mb-5">
-            Leave It
-            <br />
-            <span className="text-yellow-300">To Luck.</span>
-          </h1>
-
-          <p className="text-lg sm:text-xl max-w-lg mx-auto leading-relaxed mb-10 font-light" style={{ color: 'rgba(255,255,255,0.65)' }}>
-            Stop overthinking your next trip. Tell us your mood and budget — we'll find a destination you'd never have chosen yourself.
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               to="/travel"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-sm font-bold text-white transition-all duration-200 hover:-translate-y-1 hover:shadow-2xl"
-              style={{ background: 'linear-gradient(135deg, #ea580c, #f97316)', boxShadow: '0 4px 20px rgba(234,88,12,0.45)' }}
+              className="inline-flex items-center gap-2 px-7 py-3.5 rounded-2xl text-sm font-bold text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl"
+              style={{ background: 'linear-gradient(135deg, #ea580c, #f97316)', boxShadow: '0 4px 20px rgba(234,88,12,0.35)' }}
             >
-              Start Exploring
+              Find My Destination
               <ArrowRight />
             </Link>
-            <Link
-              to="/stats"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5"
-              style={{ backgroundColor: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.85)' }}
-            >
-              Explore the Map
-            </Link>
           </div>
-        </div>
 
-        {/* Scroll hint */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2" style={{ color: 'rgba(255,255,255,0.25)' }}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-5 h-5 animate-bounce">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
+          {/* Right: layered postcard photo collage */}
+          <div className="relative mx-auto w-full max-w-sm h-[380px] sm:h-[440px] lg:h-[460px]">
+            {/* Dashed route line drifting behind the photos */}
+            <svg aria-hidden="true" viewBox="0 0 400 400" className="absolute -inset-6 w-[calc(100%+3rem)] h-[calc(100%+3rem)] pointer-events-none" style={{ opacity: 0.35 }}>
+              <path
+                d="M10 340 C 90 260 60 160 150 120 S 300 90 380 40"
+                stroke="#ea580c" strokeWidth="2" fill="none" strokeDasharray="2 10" strokeLinecap="round"
+              />
+              <path d="M370 30 l10 10 -14 4 4-14z" fill="#ea580c" />
+            </svg>
+
+            {/* Main photo */}
+            <div
+              className="absolute top-2 right-0 w-[78%] h-[72%] rounded-[26px] overflow-hidden border-[6px] border-white shadow-2xl"
+              style={{ transform: 'rotate(-4deg)' }}
+            >
+              <img
+                src={HERO_PHOTO}
+                alt="Turquoise coastline with sea cliffs"
+                className="w-full h-full object-cover"
+                style={{ objectPosition: '55% 35%' }}
+                loading="eager"
+              />
+            </div>
+
+            {/* Secondary photo, peeking bottom-left */}
+            <div
+              className="absolute bottom-0 left-0 w-[52%] h-[46%] rounded-[20px] overflow-hidden border-[6px] border-white shadow-xl z-10"
+              style={{ transform: 'rotate(6deg)' }}
+            >
+              <img
+                src={HERO_PHOTO}
+                alt="Palm trees along a sandy beach"
+                className="w-full h-full object-cover"
+                style={{ objectPosition: '15% 85%' }}
+              />
+            </div>
+
+            {/* Washi-tape accents */}
+            <div aria-hidden="true" className="absolute -top-2 right-10 w-14 h-5 rounded-sm shadow-sm z-20" style={{ background: 'rgba(253,186,116,0.75)', transform: 'rotate(10deg)' }} />
+            <div aria-hidden="true" className="absolute bottom-[42%] left-4 w-12 h-5 rounded-sm shadow-sm z-20" style={{ background: 'rgba(251,146,60,0.6)', transform: 'rotate(-8deg)' }} />
+
+            {/* Passport stamp */}
+            <PassportStamp className="absolute -bottom-6 -right-4 w-28 h-28 z-20" style={{ transform: 'rotate(8deg)' }} />
+
+            <Sparkle className="absolute w-4 h-4 pointer-events-none z-20" style={{ top: '4%', left: '8%', animation: 'sparkle 4s ease-in-out infinite' }} />
+          </div>
         </div>
       </section>
 
       {/* ══════════════════════════════
-          HOW IT WORKS — journey path
+          FEATURE STRIP
+      ══════════════════════════════ */}
+      <section className="py-10" style={{ background: 'linear-gradient(135deg, #ea580c 0%, #f97316 100%)' }}>
+        <div className="max-w-6xl mx-auto px-6 sm:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
+            {FEATURES.map(({ title, desc, Icon }) => (
+              <div key={title} className="flex flex-col items-center text-center gap-2 text-white">
+                <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{ border: '1.5px solid rgba(255,255,255,0.55)' }}>
+                  <Icon className="w-5 h-5" />
+                </div>
+                <p className="text-sm font-bold">{title}</p>
+                <p className="text-xs text-white/75">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════
+          HOW LITL WORKS
       ══════════════════════════════ */}
       <section id="how-it-works" className="py-24" style={{ backgroundColor: '#fff7ed' }}>
-        <div className="max-w-5xl mx-auto px-6 sm:px-8">
+        <div className="max-w-6xl mx-auto px-6 sm:px-8">
           <div ref={howRef} className={`reveal ${howVisible ? 'visible' : ''}`}>
 
             <div className="text-center mb-16">
               <p className="text-xs tracking-widest uppercase font-bold mb-3" style={{ color: '#f97316' }}>
-                The Journey
+                How LITL works
               </p>
-              <h2 className="text-3xl sm:text-4xl font-bold text-stone-900 tracking-tight">
-                How it works
+              <h2 className="litl-serif text-3xl sm:text-4xl font-semibold text-stone-900">
+                A smarter way to travel
               </h2>
             </div>
 
-            {/* Steps with connecting animated line */}
-            <div className="relative">
-              {/* Desktop animated dashed connector */}
-              <div
-                aria-hidden="true"
-                className="absolute hidden md:block"
-                style={{
-                  top: '28px',
-                  left: 'calc(16.67% + 30px)',
-                  right: 'calc(16.67% + 30px)',
-                  height: '2px',
-                  background: 'repeating-linear-gradient(90deg, rgba(249,115,22,0.45) 0px, rgba(249,115,22,0.45) 8px, transparent 8px, transparent 18px)',
-                  backgroundSize: '18px 2px',
-                  animation: 'slideDash 1.2s linear infinite',
-                  zIndex: 0,
-                }}
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-                {HOW_IT_WORKS.map((item, i) => (
-                  <div
-                    key={item.step}
-                    className={`reveal reveal-delay-${i + 1} ${howVisible ? 'visible' : ''} flex flex-col gap-4`}
-                  >
-                    {/* Circular icon — sits on the connecting line on desktop */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {HOW_IT_WORKS.map((item, i) => (
+                <div
+                  key={item.step}
+                  className={`reveal reveal-delay-${i + 1} ${howVisible ? 'visible' : ''} litl-card flex flex-col gap-3 transition-all duration-300 hover:-translate-y-1`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono font-bold tracking-widest" style={{ color: '#fb923c' }}>{item.step}</span>
                     <div
-                      className="relative z-10 w-14 h-14 rounded-full flex items-center justify-center shrink-0"
-                      style={{
-                        backgroundColor: '#fff7ed',
-                        border: '2px solid #fdba74',
-                        color: '#f97316',
-                        boxShadow: '0 0 0 6px rgba(249,115,22,0.08)',
-                      }}
+                      className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                      style={{ backgroundColor: '#fff7ed', border: '1.5px solid #fdba74', color: '#f97316' }}
                     >
-                      {item.icon}
-                    </div>
-
-                    <div className="rounded-2xl p-5 flex flex-col gap-2 transition-all duration-300 hover:-translate-y-1"
-                      style={{ backgroundColor: 'rgba(255,255,255,0.7)', border: '1px solid #fed7aa', boxShadow: '0 2px 12px rgba(249,115,22,0.08)' }}>
-                      <p className="text-xs font-mono font-bold tracking-widest" style={{ color: '#fb923c' }}>{item.step}</p>
-                      <h3 className="text-base font-bold text-stone-900">{item.title}</h3>
-                      <p className="text-sm text-stone-500 leading-relaxed">{item.desc}</p>
+                      <item.Icon className="w-5 h-5" />
                     </div>
                   </div>
-                ))}
-              </div>
+                  <h3 className="text-base font-bold text-stone-900 leading-snug">{item.title}</h3>
+                  <p className="text-sm text-stone-500 leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -342,8 +419,8 @@ export default function HomePage() {
       {/* ══════════════════════════════
           SAMPLE DISCOVERIES
       ══════════════════════════════ */}
-      <section className="py-24" style={{ backgroundColor: '#fef3c7' }}>
-        <div className="max-w-5xl mx-auto px-6 sm:px-8">
+      <section className="py-24" style={{ backgroundColor: '#fffaf3', borderTop: '1px dashed rgba(251,146,60,0.25)', borderBottom: '1px dashed rgba(251,146,60,0.25)' }}>
+        <div className="max-w-6xl mx-auto px-6 sm:px-8">
           <div ref={destRef} className={`reveal ${destVisible ? 'visible' : ''}`}>
 
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
@@ -351,7 +428,7 @@ export default function HomePage() {
                 <p className="text-xs tracking-widest uppercase font-bold mb-3" style={{ color: '#f97316' }}>
                   Where could you go?
                 </p>
-                <h2 className="text-3xl sm:text-4xl font-bold text-stone-900 tracking-tight">
+                <h2 className="litl-serif text-3xl sm:text-4xl font-semibold text-stone-900">
                   Sample discoveries
                 </h2>
               </div>
@@ -371,11 +448,9 @@ export default function HomePage() {
                     boxShadow: `0 2px 16px ${dest.accentColor}18`,
                   }}
                 >
-                  {/* Colored top accent */}
                   <div className="h-1.5 w-full" style={{ background: `linear-gradient(90deg, ${dest.accentColor}, transparent)` }} />
 
                   <div className="p-5">
-                    {/* Mood badge */}
                     <span
                       className="inline-block text-xs font-bold px-3 py-1 rounded-full mb-3 uppercase tracking-wider"
                       style={{ backgroundColor: `${dest.accentColor}20`, color: dest.accentColor }}
@@ -400,14 +475,42 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
 
-            <div className="mt-10 text-center">
+      {/* ══════════════════════════════
+          EXPLORE THE WORLD — image section
+      ══════════════════════════════ */}
+      <section className="py-24" style={{ backgroundColor: '#fff7ed' }}>
+        <div className="max-w-6xl mx-auto px-6 sm:px-8">
+          <div
+            ref={mapRef}
+            className={`reveal ${mapVisible ? 'visible' : ''} relative rounded-[32px] overflow-hidden`}
+            style={{ height: '420px', border: '1px solid rgba(251,146,60,0.2)', boxShadow: '0 12px 40px rgba(120,53,15,0.18)' }}
+          >
+            <img
+              src={HERO_PHOTO}
+              alt="Aerial view of turquoise sea cliffs"
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{ objectPosition: '50% 40%' }}
+              loading="lazy"
+            />
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(0deg, rgba(28,15,0,0.72) 0%, rgba(28,15,0,0.25) 45%, rgba(28,15,0,0.05) 70%)' }} />
+
+            <div className="relative h-full flex flex-col justify-end p-8 sm:p-12 max-w-lg">
+              <h2 className="litl-serif text-3xl sm:text-4xl font-semibold text-white mb-3 leading-tight">
+                Explore the world from a new perspective
+              </h2>
+              <p className="text-sm sm:text-base text-white/80 mb-7 leading-relaxed">
+                Every discovery drops a pin. Watch your own map of the world fill in, one lucky trip at a time.
+              </p>
               <Link
-                to="/travel"
-                className="inline-flex items-center gap-2 px-7 py-3.5 rounded-2xl text-sm font-bold text-white transition-all duration-200 hover:-translate-y-0.5"
-                style={{ background: 'linear-gradient(135deg, #ea580c, #f97316)', boxShadow: '0 4px 16px rgba(234,88,12,0.35)' }}
+                to="/stats/world-map"
+                className="inline-flex items-center gap-2 w-fit px-6 py-3 rounded-2xl text-sm font-bold transition-all duration-200 hover:-translate-y-0.5"
+                style={{ backgroundColor: 'white', color: '#ea580c' }}
               >
-                Discover your destinations
+                Explore the map
                 <ArrowRight />
               </Link>
             </div>
@@ -418,21 +521,21 @@ export default function HomePage() {
       {/* ══════════════════════════════
           ADVENTURE PASSES (PRICING)
       ══════════════════════════════ */}
-      <section id="pricing" className="py-24" style={{ backgroundColor: '#fff7ed' }}>
-        <div className="max-w-5xl mx-auto px-6 sm:px-8">
+      <section id="pricing" className="py-24" style={{ backgroundColor: '#fffaf3', borderTop: '1px dashed rgba(251,146,60,0.25)' }}>
+        <div className="max-w-6xl mx-auto px-6 sm:px-8">
           <div ref={pricingRef} className={`reveal ${pricingVisible ? 'visible' : ''}`}>
 
             <div className="text-center mb-16">
               <p className="text-xs tracking-widest uppercase font-bold mb-3" style={{ color: '#f97316' }}>
                 Adventure Passes
               </p>
-              <h2 className="text-3xl sm:text-4xl font-bold text-stone-900 tracking-tight">
+              <h2 className="litl-serif text-3xl sm:text-4xl font-semibold text-stone-900">
                 Choose your level of discovery
               </h2>
               <p className="text-stone-500 mt-3 text-sm">Start free. Upgrade when the wanderlust kicks in.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-2xl mx-auto">
               {PLANS.map((plan, i) => (
                 <div
                   key={plan.name}
@@ -441,14 +544,13 @@ export default function HomePage() {
                     background: 'linear-gradient(160deg, #ea580c 0%, #f97316 60%, #fb923c 100%)',
                     boxShadow: '0 8px 32px rgba(234,88,12,0.35)',
                   } : {
-                    backgroundColor: 'rgba(255,255,255,0.8)',
+                    backgroundColor: '#ffffff',
                     border: '1px solid #fed7aa',
                     boxShadow: '0 2px 12px rgba(249,115,22,0.08)',
                   }}
                 >
                   {plan.highlight && (
                     <>
-                      {/* Inner glow */}
                       <div aria-hidden="true" className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255,255,255,0.12) 0%, transparent 70%)' }} />
                       <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                         <span className="px-3 py-1 rounded-full text-xs font-bold tracking-wide bg-yellow-300 text-orange-900 shadow-sm whitespace-nowrap">
@@ -471,9 +573,7 @@ export default function HomePage() {
                   <ul className="flex flex-col gap-2.5 flex-1 relative">
                     {plan.features.map((f) => (
                       <li key={f} className="flex items-start gap-2 text-sm">
-                        <svg viewBox="0 0 20 20" fill="currentColor" className={`w-4 h-4 mt-0.5 shrink-0 ${plan.highlight ? 'text-yellow-300' : 'text-orange-500'}`}>
-                          <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
-                        </svg>
+                        <CheckIcon className={`w-4 h-4 mt-0.5 shrink-0 ${plan.highlight ? 'text-yellow-300' : 'text-orange-500'}`} />
                         <span className={plan.highlight ? 'text-orange-50' : 'text-stone-600'}>{f}</span>
                       </li>
                     ))}
@@ -501,39 +601,42 @@ export default function HomePage() {
       </section>
 
       {/* ══════════════════════════════
-          STATS — dark explorer atlas
+          TRUST STRIP
       ══════════════════════════════ */}
-      <section className="py-20 relative overflow-hidden" style={{ backgroundColor: '#1c0f00' }}>
-        {/* Atlas map grid */}
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 pointer-events-none opacity-[0.05]"
-          style={{
-            backgroundImage:
-              'linear-gradient(rgba(251,146,60,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(251,146,60,0.8) 1px, transparent 1px)',
-            backgroundSize: '60px 60px',
-          }}
-        />
-        {/* Warm center glow */}
-        <div aria-hidden="true" className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 65% 55% at 50% 50%, rgba(234,88,12,0.12) 0%, transparent 70%)' }} />
+      <section className="py-14" style={{ backgroundColor: '#fff7ed' }}>
+        <div className="max-w-6xl mx-auto px-6 sm:px-8">
+          <div ref={trustRef} className={`reveal ${trustVisible ? 'visible' : ''} text-center`}>
+            <p className="text-xs tracking-widest uppercase font-bold mb-7" style={{ color: '#c2410c', opacity: 0.7 }}>
+              Inspired by travellers everywhere
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
+              {TRUST_MARKS.map((mark) => (
+                <span key={mark} className="litl-serif text-lg sm:text-xl font-semibold text-stone-400 tracking-wide">
+                  {mark}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
 
-        <div ref={statsRef} className={`reveal ${statsVisible ? 'visible' : ''} relative max-w-5xl mx-auto px-6 sm:px-8`}>
+      {/* ══════════════════════════════
+          STATS
+      ══════════════════════════════ */}
+      <section className="py-20" style={{ backgroundColor: '#fffaf3', borderTop: '1px dashed rgba(251,146,60,0.25)', borderBottom: '1px dashed rgba(251,146,60,0.25)' }}>
+        <div ref={statsRef} className={`reveal ${statsVisible ? 'visible' : ''} max-w-6xl mx-auto px-6 sm:px-8`}>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center mb-12">
             {STATS.map((stat, i) => (
               <div key={stat.label} className={`reveal reveal-delay-${i + 1} ${statsVisible ? 'visible' : ''}`}>
-                <p className="text-3xl sm:text-4xl font-bold tabular-nums mb-1" style={{ color: '#fb923c' }}>
+                <p className="litl-serif text-3xl sm:text-4xl font-semibold tabular-nums mb-1" style={{ color: '#ea580c' }}>
                   {stat.value}
                 </p>
-                <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>{stat.label}</p>
+                <p className="text-sm text-stone-500">{stat.label}</p>
               </div>
             ))}
           </div>
           <div className="text-center">
-            <Link to="/stats" className="inline-flex items-center gap-2 text-sm font-medium transition-colors hover:opacity-100"
-              style={{ color: 'rgba(251,146,60,0.55)' }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = '#fb923c')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(251,146,60,0.55)')}
-            >
+            <Link to="/stats" className="inline-flex items-center gap-2 text-sm font-medium transition-colors hover:opacity-80" style={{ color: '#ea580c' }}>
               Explore the full stats <ArrowRight />
             </Link>
           </div>
@@ -541,32 +644,55 @@ export default function HomePage() {
       </section>
 
       {/* ══════════════════════════════
-          FINAL CTA — orange invitation
+          NEWSLETTER / FINAL CTA
       ══════════════════════════════ */}
-      <section className="py-24 text-center relative overflow-hidden" style={{ background: CTA_BG }}>
-        {/* Background sparkles */}
-        <Sparkle className="absolute w-5 h-5 pointer-events-none" style={{ top: '20%', left: '8%', animation: 'sparkle 3s ease-in-out infinite', color: 'rgba(255,255,255,0.3)' }} />
-        <Sparkle className="absolute w-4 h-4 pointer-events-none" style={{ bottom: '25%', right: '10%', animation: 'sparkle 4s ease-in-out infinite 1.5s', color: 'rgba(255,255,255,0.25)' }} />
-        <Sparkle className="absolute w-3 h-3 pointer-events-none" style={{ top: '60%', left: '22%', animation: 'sparkle 3.5s ease-in-out infinite 2s', color: 'rgba(255,255,255,0.2)' }} />
-
-        <div className="relative max-w-xl mx-auto px-6 sm:px-8">
-          <p className="text-xs tracking-widest uppercase font-bold mb-4 text-white/70">
-            Ready for adventure?
-          </p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
-            Where will luck take you?
-          </h2>
-          <p className="text-orange-100/75 text-sm mb-8 leading-relaxed">
-            Set your budget. Pick your mood. Leave the rest to Leave It To Luck.
-          </p>
-          <Link
-            to="/travel"
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-sm font-bold transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
-            style={{ backgroundColor: 'white', color: '#ea580c', boxShadow: '0 4px 20px rgba(0,0,0,0.15)' }}
+      <section className="py-24" style={{ backgroundColor: '#fff7ed' }}>
+        <div className="max-w-6xl mx-auto px-6 sm:px-8">
+          <div
+            ref={newsletterRef}
+            className={`reveal ${newsletterVisible ? 'visible' : ''} rounded-[32px] grid grid-cols-1 lg:grid-cols-2 gap-10 items-center p-8 sm:p-12`}
+            style={{ backgroundColor: '#fffaf3', border: '1px solid rgba(251,146,60,0.25)', boxShadow: '0 8px 32px rgba(249,115,22,0.1)' }}
           >
-            Start for free
-            <ArrowRight />
-          </Link>
+            <div>
+              <p className="text-xs tracking-widest uppercase font-bold mb-3" style={{ color: '#f97316' }}>
+                Stay inspired
+              </p>
+              <h2 className="litl-serif text-3xl sm:text-4xl font-semibold text-stone-900 mb-4">
+                Get travel inspiration to your inbox
+              </h2>
+              <p className="text-sm text-stone-500 mb-7 leading-relaxed max-w-md">
+                Tips, hidden gems and lucky destinations — straight to you. Newsletter coming soon; sign up to be first in line.
+              </p>
+
+              {subscribed ? (
+                <p className="text-sm font-semibold" style={{ color: '#ea580c' }}>
+                  Thanks — we'll let you know when it launches. ✦
+                </p>
+              ) : (
+                <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md">
+                  <input
+                    type="email"
+                    required
+                    placeholder="Enter your email"
+                    aria-label="Email address"
+                    className="flex-1 px-4 py-3 rounded-2xl text-sm text-stone-700 placeholder:text-stone-400 focus:outline-none"
+                    style={{ backgroundColor: 'white', border: '1px solid rgba(251,146,60,0.3)' }}
+                  />
+                  <button
+                    type="submit"
+                    className="px-6 py-3 rounded-2xl text-sm font-bold text-white transition-all duration-200 hover:-translate-y-0.5 whitespace-nowrap"
+                    style={{ background: 'linear-gradient(135deg, #ea580c, #f97316)', boxShadow: '0 4px 16px rgba(234,88,12,0.3)' }}
+                  >
+                    Subscribe
+                  </button>
+                </form>
+              )}
+            </div>
+
+            <div className="hidden lg:flex justify-center">
+              <SuitcaseIllustration className="w-56 h-48" />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -574,7 +700,7 @@ export default function HomePage() {
           FOOTER
       ══════════════════════════════ */}
       <footer style={{ backgroundColor: '#0c0500' }} className="py-10">
-        <div className="max-w-5xl mx-auto px-6 sm:px-8">
+        <div className="max-w-6xl mx-auto px-6 sm:px-8">
           <div className="border-t border-dashed mb-8" style={{ borderColor: 'rgba(251,146,60,0.15)' }} />
           <div className="flex flex-col sm:flex-row items-center justify-between gap-5">
             <div className="flex items-center gap-2">
