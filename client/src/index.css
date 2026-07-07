@@ -336,4 +336,33 @@ body {
     box-shadow: none;
     padding: 1.5rem;
   }
+
+  /* Phase 19B: boarding-pass ticket stub — punched notches on the left edge.
+     The notch fill must match the section background it sits on. */
+  .litl-ticket {
+    position: relative;
+    border-left: 2px dashed rgba(251, 146, 60, 0.35);
+  }
+  .litl-ticket::before,
+  .litl-ticket::after {
+    content: '';
+    position: absolute;
+    left: -8px;
+    width: 14px;
+    height: 14px;
+    background: var(--litl-ticket-punch, #fff7ed);
+    border-radius: 50%;
+    border: 1px solid rgba(251, 146, 60, 0.3);
+  }
+  .litl-ticket::before { top: -8px; }
+  .litl-ticket::after { bottom: -8px; }
+
+  /* Horizontal editorial gallery — hide scrollbar, keep native touch scroll */
+  .litl-scroll-x {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .litl-scroll-x::-webkit-scrollbar {
+    display: none;
+  }
 }
