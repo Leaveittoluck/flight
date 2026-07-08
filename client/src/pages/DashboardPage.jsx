@@ -58,13 +58,13 @@ function IcCrown()     { return <svg viewBox="0 0 20 20" className={IC} fill="no
 function IcPin()       { return <svg viewBox="0 0 20 20" className={IC} fill="none" stroke="currentColor" strokeWidth="1.75"><path strokeLinecap="round" d="M10 2.5A5.5 5.5 0 004.5 8c0 4.5 5.5 10 5.5 10s5.5-5.5 5.5-10A5.5 5.5 0 0010 2.5z"/><circle cx="10" cy="8" r="1.75"/></svg> }
 function IcLightning() { return <svg viewBox="0 0 20 20" className={IC} fill="none" stroke="currentColor" strokeWidth="1.75"><path strokeLinecap="round" strokeLinejoin="round" d="M11.5 2L6 11h5L9.5 18l7.5-10h-5L13 2h-1.5z"/></svg> }
 function IcCalendar()  { return <svg viewBox="0 0 20 20" className={IC} fill="none" stroke="currentColor" strokeWidth="1.75"><rect x="2.5" y="4" width="15" height="13" rx="2"/><path strokeLinecap="round" d="M6.5 2.5v3M13.5 2.5v3M2.5 9h15"/></svg> }
-function IcPlane()     { return <svg viewBox="0 0 20 20" className={IC} fill="none" stroke="currentColor" strokeWidth="1.75"><path strokeLinecap="round" strokeLinejoin="round" d="M18 10L2 4l3 6-3 6 16-6z"/></svg> }
 function IcMap()       { return <svg viewBox="0 0 20 20" className={IC} fill="none" stroke="currentColor" strokeWidth="1.75"><polyline strokeLinejoin="round" points="1.5,3 7,1.5 13,4 18.5,2.5 18.5,17.5 13,16 7,18.5 1.5,17"/><line x1="7" y1="1.5" x2="7" y2="18.5"/><line x1="13" y1="4" x2="13" y2="16"/></svg> }
 function IcChevron()   { return <svg viewBox="0 0 16 16" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" d="M6 12l4-4-4-4"/></svg> }
 function IcMenu()      { return <svg viewBox="0 0 20 20" className={IC} fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" d="M3 5h14M3 10h14M3 15h14"/></svg> }
 function IcX()         { return <svg viewBox="0 0 20 20" className={IC} fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" d="M5 15L15 5M5 5l10 10"/></svg> }
 function IcBell()      { return <svg viewBox="0 0 20 20" className={IC} fill="none" stroke="currentColor" strokeWidth="1.75"><path strokeLinecap="round" strokeLinejoin="round" d="M5 8a5 5 0 0110 0c0 3.2 1 4.5 1.5 5.2a.8.8 0 01-.65 1.3H4.15a.8.8 0 01-.65-1.3C4 12.5 5 11.2 5 8z"/><path strokeLinecap="round" d="M8.2 16.5a1.8 1.8 0 003.6 0"/></svg> }
 function IcCompass()   { return <svg viewBox="0 0 20 20" className={IC} fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="10" cy="10" r="8"/><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l-2 5-4 1 2-5 4-1z"/></svg> }
+function IcLogout()    { return <svg viewBox="0 0 20 20" className={IC} fill="none" stroke="currentColor" strokeWidth="1.75"><path strokeLinecap="round" strokeLinejoin="round" d="M8 17H4.5a1.5 1.5 0 01-1.5-1.5v-11A1.5 1.5 0 014.5 3H8M13.5 14l4-4-4-4M17 10H7.5"/></svg> }
 
 // ─── Helper functions ─────────────────────────────────────────────────────────
 
@@ -117,17 +117,47 @@ function formatMemberSince(dateStr) {
   return new Date(dateStr).toLocaleDateString('en-GB', { year: 'numeric', month: 'long' })
 }
 
-function calcDaysExploring(dateStr) {
-  if (!dateStr) return null
-  const days = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000)
-  return days > 0 ? days : 1
+function getWeekId(dateStr) {
+  const date = new Date(dateStr)
+  const onejan = new Date(date.getFullYear(), 0, 1)
+  const week = Math.ceil((((date - onejan) / 86400000) + onejan.getDay() + 1) / 7)
+  return date.getFullYear() * 100 + week
 }
 
-function getGreeting() {
-  const h = new Date().getHours()
-  if (h < 12) return 'Good morning'
-  if (h < 17) return 'Good afternoon'
-  return 'Good evening'
+function calcWeekStreak(discoveries) {
+  if (!discoveries?.length) return 0
+  const weekIds = new Set(discoveries.map((d) => getWeekId(d.generated_at)))
+  let streak = 0
+  let cursor = getWeekId(new Date())
+  while (weekIds.has(cursor)) {
+    streak += 1
+    cursor -= 1
+  }
+  return streak
+}
+
+function buildSparklineCounts(discoveries, buckets = 7) {
+  const counts = Array(buckets).fill(0)
+  if (!discoveries?.length) return counts
+  const now = Date.now()
+  const bucketMs = 7 * 86400000
+  for (const d of discoveries) {
+    const diff = now - new Date(d.generated_at).getTime()
+    const idx = buckets - 1 - Math.floor(diff / bucketMs)
+    if (idx >= 0 && idx < buckets) counts[idx] += 1
+  }
+  return counts
+}
+
+function describeDiscovery(d) {
+  if (!d) return ''
+  const parts = []
+  const article = (word) => (/^[aeiou]/i.test(word) ? 'An' : 'A')
+  if (d.season) parts.push(`${article(d.season)} ${formatLabel(d.season)}`)
+  if (d.trip_type) parts.push(parts.length ? formatLabel(d.trip_type).toLowerCase() + ' getaway' : `${article(d.trip_type)} ${formatLabel(d.trip_type)} getaway`)
+  const base = parts.length ? parts.join(' ') : 'A destination'
+  if (d.travellers) return `${base} for ${d.travellers} traveller${d.travellers !== 1 ? 's' : ''}.`
+  return `${base}, chosen just for you.`
 }
 
 function getTravelMessage({ discoveries, usage }) {
@@ -206,29 +236,19 @@ function SidebarNavItem({ to, icon: Icon, children }) {
     <NavLink
       to={to}
       className={({ isActive }) =>
-        `relative flex items-center gap-3 pl-3 pr-3 py-2.5 my-0.5 rounded-xl text-sm font-semibold transition-all duration-150 ${
+        `relative flex items-center gap-3 pl-3.5 pr-3 py-2.5 my-0.5 rounded-full text-sm font-semibold transition-all duration-150 ${
           isActive
-            ? 'text-orange-700'
-            : 'text-slate-500 hover:bg-orange-50/60 hover:text-slate-700'
+            ? 'text-white'
+            : 'text-white/55 hover:bg-white/8 hover:text-white/85'
         }`
       }
       style={({ isActive }) => isActive
-        ? { background: 'linear-gradient(90deg, rgba(251,146,60,0.16), rgba(251,146,60,0.05))' }
+        ? { background: 'linear-gradient(135deg, #ea580c, #f97316)', boxShadow: '0 3px 12px rgba(234,88,12,0.35)' }
         : {}
       }
     >
-      {({ isActive }) => (
-        <>
-          {isActive && (
-            <span
-              className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full"
-              style={{ background: 'linear-gradient(180deg, #ea580c, #fb923c)' }}
-            />
-          )}
-          <Icon />
-          {children}
-        </>
-      )}
+      <Icon />
+      {children}
     </NavLink>
   )
 }
@@ -238,9 +258,9 @@ function StatChip({ icon: Icon, value, label, helper }) {
     <div
       className="flex items-center gap-4 rounded-2xl p-5"
       style={{
-        background: '#ffffff',
-        border: '1.5px dashed rgba(251,146,60,0.24)',
-        boxShadow: '0 1px 6px rgba(249,115,22,0.04)',
+        background: '#fffdf9',
+        border: '1.5px solid rgba(251,146,60,0.16)',
+        boxShadow: '0 2px 12px rgba(249,115,22,0.06)',
       }}
     >
       <div
@@ -275,18 +295,67 @@ function TravelMoodBar({ type, pct }) {
   )
 }
 
-function TravelStamp({ label }) {
+/** Circular customs/passport stamp for the hero banner — hand-authored outline
+    + circular textPath, adapted from HomePage's TravelStamp for a dark photo bg. */
+function HeroStamp({ className = '', style = {} }) {
   return (
-    <div
-      className="w-16 h-[4.5rem] rounded-md flex flex-col items-center justify-center gap-1 select-none shrink-0"
-      style={{ border: '2px dashed rgba(234,88,12,0.22)', transform: 'rotate(7deg)', opacity: 0.6 }}
-      aria-hidden="true"
-    >
-      <IcPlane />
-      <span className="text-[6.5px] font-bold uppercase tracking-widest text-orange-700/70 text-center px-1 leading-tight">
-        {label || 'Travel'}
-      </span>
-    </div>
+    <svg viewBox="0 0 140 140" className={className} style={style} aria-hidden="true">
+      <path
+        d="M70 6 C97 5 124 20 132 46 C139 68 133 96 112 114 C93 130 62 133 40 121 C17 109 5 83 9 58 C13 33 39 8 70 6 Z"
+        fill="none" stroke="#fff7ed" strokeWidth="2.4" opacity="0.9"
+      />
+      <path
+        d="M70 18 C92 17 113 30 119 50 C125 68 120 89 103 103 C88 115 63 118 45 108 C27 98 18 78 22 59 C26 39 47 19 70 18 Z"
+        fill="none" stroke="#fff7ed" strokeWidth="1" strokeDasharray="2 3.5" opacity="0.65"
+      />
+      <path id="hero-stamp-top" d="M 24 52 A 48 48 0 0 1 116 52" fill="none" />
+      <text fontSize="8" fontWeight="700" letterSpacing="2.2" fill="#fff7ed" opacity="0.9">
+        <textPath href="#hero-stamp-top" startOffset="50%" textAnchor="middle">LEAVE IT TO LUCK</textPath>
+      </text>
+      <path id="hero-stamp-bottom" d="M 116 88 A 48 48 0 0 1 24 88" fill="none" />
+      <text fontSize="7.5" fontWeight="700" letterSpacing="2.6" fill="#fff7ed" opacity="0.9">
+        <textPath href="#hero-stamp-bottom" startOffset="50%" textAnchor="middle">LITL · EST 2024</textPath>
+      </text>
+      <g transform="translate(70,70) rotate(-32)" opacity="0.9">
+        <path d="M-18 2 L-3 2 L5 -13 L9 -13 L6 2 L18 2 L22 -4 L25 -4 L22 4 L25 12 L22 12 L18 6 L6 6 L9 21 L5 21 L-3 6 L-18 6 Z" fill="#fff7ed" />
+      </g>
+    </svg>
+  )
+}
+
+/** Compact ring progress indicator — dependency-free inline SVG. */
+function RingStat({ percent, size = 44, stroke = 5, color = '#ea580c', track = 'rgba(234,88,12,0.14)' }) {
+  const r = (size - stroke) / 2
+  const c = 2 * Math.PI * r
+  const clamped = Math.min(100, Math.max(0, percent))
+  const offset = c - (clamped / 100) * c
+  return (
+    <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} style={{ transform: 'rotate(-90deg)' }} aria-hidden="true">
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={track} strokeWidth={stroke} />
+      <circle
+        cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={stroke}
+        strokeDasharray={c} strokeDashoffset={offset} strokeLinecap="round"
+        style={{ transition: 'stroke-dashoffset 0.6s ease' }}
+      />
+    </svg>
+  )
+}
+
+/** Small dependency-free trend line for the Journey Overview card. */
+function Sparkline({ counts, color = '#f97316' }) {
+  const max = Math.max(1, ...counts)
+  const w = 200, h = 56, pad = 4
+  const step = counts.length > 1 ? (w - pad * 2) / (counts.length - 1) : 0
+  const points = counts
+    .map((v, i) => `${pad + i * step},${h - pad - (v / max) * (h - pad * 2)}`)
+    .join(' ')
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-14" preserveAspectRatio="none" aria-hidden="true">
+      <polyline points={points} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      {counts.map((v, i) => (
+        <circle key={i} cx={pad + i * step} cy={h - pad - (v / max) * (h - pad * 2)} r="2.5" fill={color} />
+      ))}
+    </svg>
   )
 }
 
@@ -306,7 +375,7 @@ function IconBadge({ children }) {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
 
   const [profile,     setProfile]     = useState(null)
   const [usage,       setUsage]       = useState(null)
@@ -337,9 +406,6 @@ export default function DashboardPage() {
     return () => { cancelled = true }
   }, [recentDiscoveryId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const planConfig        = profile
-    ? (PLAN_LABELS[profile.plan] ?? { label: profile.plan, className: 'bg-slate-100 text-slate-600' })
-    : null
   const recentDiscovery   = discoveries?.[0] ?? null
   const favoriteTripType  = calcFavoriteTripType(discoveries)
   const countriesExplored = calcCountriesExplored(discoveries)
@@ -350,7 +416,8 @@ export default function DashboardPage() {
   const canUpgrade    = profile && !isExplorer(profile.plan)
   const greetingName  = getFirstName(profile?.display_name) ?? getFirstName(user?.display_name) ?? 'Traveller'
   const travelMessage = getTravelMessage({ discoveries, usage })
-  const daysExploring = calcDaysExploring(profile?.created_at)
+  const weekStreak    = discoveries !== null ? calcWeekStreak(discoveries) : null
+  const sparklineCounts = discoveries !== null ? buildSparklineCounts(discoveries) : Array(7).fill(0)
 
   function openModal(key) { setModal(MODAL_COPY[key]) }
   function closeModal()   { setModal(null) }
@@ -372,25 +439,25 @@ export default function DashboardPage() {
       <aside
         className={`
           fixed md:static inset-y-0 left-0 z-40
-          w-60 shrink-0 flex flex-col
+          w-64 shrink-0 flex flex-col
           transition-transform duration-300
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
-        style={{ background: '#ffffff', borderRight: '1px solid rgba(251,146,60,0.16)' }}
+        style={{ background: '#1c1917' }}
       >
         {/* Brand */}
-        <div className="px-5 pt-6 pb-5" style={{ borderBottom: '1px solid rgba(251,146,60,0.12)' }}>
+        <div className="px-5 pt-6 pb-5">
           <Link to="/" className="flex flex-col gap-1 group" onClick={() => setSidebarOpen(false)}>
             <div className="flex items-center gap-2">
-              <span className="litl-serif text-3xl font-bold tracking-tight text-slate-900 italic">LITL</span>
-              <span className="text-xl font-black" style={{ color: '#ea580c' }}>✦</span>
+              <span className="litl-serif text-3xl font-bold tracking-tight text-white italic">LITL</span>
+              <span className="text-xl font-black" style={{ color: '#f97316' }}>✦</span>
             </div>
-            <span className="text-[10px] font-bold tracking-[0.22em] text-slate-400 uppercase">Leave It To Luck</span>
+            <span className="text-[10px] font-bold tracking-[0.22em] text-white/40 uppercase">Leave It To Luck</span>
           </Link>
         </div>
 
         {/* Nav links */}
-        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+        <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
           <SidebarNavItem to="/dashboard"      icon={IcHome}>Dashboard</SidebarNavItem>
           <SidebarNavItem to="/travel"         icon={IcSparkle}>Generate Trip</SidebarNavItem>
           <SidebarNavItem to="/stats/world-map" icon={IcGlobe}>World Map</SidebarNavItem>
@@ -399,139 +466,134 @@ export default function DashboardPage() {
           <SidebarNavItem to="/profile"        icon={IcUser}>Profile</SidebarNavItem>
         </nav>
 
-        {/* Explorer Plan card — premium travel-pass styling */}
-        <div className="mx-3 mb-3">
-          <div
-            className="relative rounded-2xl p-4 overflow-hidden"
-            style={{ background: '#fffbf5', border: '1.5px solid rgba(251,146,60,0.28)', boxShadow: '0 3px 14px rgba(249,115,22,0.09), inset 0 1px 0 rgba(255,255,255,0.9)' }}
-          >
-            {/* inner dashed matting — passport / boarding-pass feel */}
-            <div className="absolute inset-1.5 rounded-xl pointer-events-none" style={{ border: '1px dashed rgba(251,146,60,0.22)' }} aria-hidden="true" />
-            {/* corner glow */}
-            <div
-              className="absolute -top-4 -right-4 w-16 h-16 rounded-full pointer-events-none"
-              style={{ background: 'radial-gradient(circle, rgba(251,146,60,0.16) 0%, transparent 72%)' }}
-              aria-hidden="true"
-            />
-
-            <div className="relative flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'rgba(234,88,12,0.12)', border: '1px solid rgba(234,88,12,0.16)' }}>
-                  <IcCrown />
-                </div>
-                <span className="text-xs font-bold text-slate-800">
-                  {loading ? '—' : (planConfig?.label ?? 'Free')}
-                </span>
-              </div>
-              {isExplorer(profile?.plan) && (
-                <span
-                  className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full"
-                  style={{ background: 'rgba(234,88,12,0.12)', color: '#c2410c' }}
-                >
-                  Active
-                </span>
-              )}
-            </div>
-            <p className="relative text-[11px] text-slate-500 mb-3 leading-relaxed">
-              {isExplorer(profile?.plan)
-                ? 'Unlimited adventures. No ads. All features.'
-                : 'Upgrade for full destination guides.'}
-            </p>
-            <button
-              type="button"
-              onClick={() => openModal('subscription')}
-              className="relative w-full py-2 rounded-xl text-xs font-bold text-white transition-all duration-200 hover:-translate-y-px"
-              style={{ background: 'linear-gradient(135deg, #ea580c, #f97316)', boxShadow: '0 2px 10px rgba(234,88,12,0.25)' }}
-            >
-              {isExplorer(profile?.plan) ? 'View Membership Benefits →' : 'Become an Explorer'}
-            </button>
-          </div>
-        </div>
-
-        {/* Profile card */}
-        <div className="mx-3 mb-3">
-          <div
-            className="flex items-center gap-2.5 px-3.5 py-3 rounded-2xl transition-colors hover:bg-orange-50/50"
-            style={{ background: '#fffdf9', border: '1px solid rgba(251,146,60,0.16)' }}
+        {/* Profile row + Logout */}
+        <div className="px-3 pb-3 space-y-0.5">
+          <Link
+            to="/profile"
+            className="flex items-center gap-2.5 px-3 py-2.5 rounded-full transition-colors hover:bg-white/8"
+            onClick={() => setSidebarOpen(false)}
           >
             {user?.avatar_url ? (
               <img
                 src={user.avatar_url}
                 alt={displayName}
-                className="w-9 h-9 rounded-full object-cover border-2 border-orange-200 shrink-0"
+                className="w-8 h-8 rounded-full object-cover border-2 border-white/15 shrink-0"
               />
             ) : (
-              <div className="w-9 h-9 rounded-full bg-orange-100 border-2 border-orange-200 flex items-center justify-center shrink-0">
-                <span className="text-xs font-bold text-orange-600">
-                  {displayName.charAt(0).toUpperCase()}
-                </span>
+              <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ background: 'rgba(255,255,255,0.1)' }}>
+                <span className="text-xs font-bold text-white/80">{displayName.charAt(0).toUpperCase()}</span>
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold text-slate-800 truncate">{displayName}</p>
-              <p className="text-[10px] text-slate-400 truncate">{getUserHandle(displayName)}</p>
+              <p className="text-xs font-bold text-white/85 truncate">{displayName}</p>
+              <p className="text-[10px] text-white/35 truncate">{getUserHandle(displayName)}</p>
             </div>
-            <span className="text-slate-300"><IcChevron /></span>
-          </div>
+          </Link>
+          <button
+            type="button"
+            onClick={() => logout()}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-full text-sm font-semibold text-white/50 hover:bg-white/8 hover:text-white/85 transition-all duration-150"
+          >
+            <IcLogout />
+            Logout
+          </button>
+        </div>
+
+        {/* Torn-edge quote footer */}
+        <div
+          className="relative shrink-0 sidebar-footer-torn px-6 pt-9 pb-6 overflow-hidden"
+          style={{ background: 'linear-gradient(160deg, #7c2d12 0%, #c2410c 55%, #ea580c 100%)' }}
+        >
+          <svg
+            viewBox="0 0 240 90"
+            preserveAspectRatio="none"
+            className="absolute inset-x-0 bottom-0 w-full h-16 pointer-events-none"
+            style={{ opacity: 0.22 }}
+            aria-hidden="true"
+          >
+            <path d="M0 90 L40 35 L70 60 L100 20 L135 65 L165 40 L200 70 L240 30 L240 90 Z" fill="#1c1917" />
+          </svg>
+          <p className="relative litl-serif italic text-sm text-white/90 leading-snug">
+            "The world is a book and those who do not travel read only one page."
+          </p>
+          <p className="relative text-[10px] font-semibold text-white/55 uppercase tracking-widest mt-2">
+            — St. Augustine
+          </p>
         </div>
       </aside>
 
       {/* ══════════════ MAIN CONTENT ══════════════ */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
-        {/* Top header bar */}
-        <div
-          className="flex items-center gap-3 px-5 py-4 shrink-0"
-          style={{ borderBottom: '1px solid rgba(251,146,60,0.12)', background: '#ffffff' }}
-        >
-          {/* Mobile hamburger */}
-          <button
-            type="button"
-            className="md:hidden p-1.5 rounded-lg text-slate-500 hover:text-slate-700 shrink-0"
-            onClick={() => setSidebarOpen(true)}
-            aria-label="Open menu"
-          >
-            <IcMenu />
-          </button>
-
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h1
-                className="litl-serif font-bold text-slate-900 leading-none"
-                style={{ fontSize: 'clamp(1.5rem, 2.8vw, 2.1rem)' }}
-              >
-                {getGreeting()}, <span style={{ color: '#ea580c' }}>{greetingName}</span>!
-              </h1>
-              <span className="text-base font-black" style={{ color: '#ea580c' }}>✦</span>
-            </div>
-            <p className="text-sm text-slate-400 mt-1 truncate">{travelMessage}</p>
-          </div>
-
-          <Link
-            to="/travel"
-            className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold text-white shrink-0 transition-all duration-200 hover:-translate-y-px active:scale-[0.97]"
-            style={{ background: 'linear-gradient(135deg, #ea580c, #f97316)', boxShadow: '0 3px 14px rgba(234,88,12,0.28)' }}
-          >
-            <span className="text-xs opacity-80">✦</span>
-            Generate New Trip
-          </Link>
-
-          <button
-            type="button"
-            aria-label="Notifications"
-            className="relative shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center text-slate-500 transition-all duration-200 hover:-translate-y-px hover:text-orange-600"
-            style={{ background: '#fffdf9', border: '1.5px solid rgba(251,146,60,0.2)', boxShadow: '0 2px 10px rgba(249,115,22,0.06)' }}
-          >
-            <IcBell />
-            <span
-              className="absolute top-2 right-2.5 w-2 h-2 rounded-full"
-              style={{ background: '#ea580c', boxShadow: '0 0 0 2px #fffdf9' }}
-            />
-          </button>
-        </div>
-
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto">
+
+          {/* Hero banner */}
+          <div className="relative overflow-hidden" style={{ minHeight: '15rem' }}>
+            <img
+              src="/images/marketing/coastal-cliffs.jpg"
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+              aria-hidden="true"
+            />
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{ background: 'linear-gradient(180deg, rgba(28,25,23,0.55) 0%, rgba(28,25,23,0.25) 45%, #faf8f5 100%)' }}
+              aria-hidden="true"
+            />
+
+            {/* Mobile hamburger */}
+            <button
+              type="button"
+              className="md:hidden absolute top-4 left-4 z-10 p-2 rounded-full text-white"
+              style={{ background: 'rgba(28,25,23,0.4)', backdropFilter: 'blur(6px)' }}
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Open menu"
+            >
+              <IcMenu />
+            </button>
+
+            {/* Circular customs stamp */}
+            <HeroStamp
+              className="absolute top-5 right-5 w-16 h-16 sm:w-20 sm:h-20"
+              style={{ opacity: 0.85 }}
+            />
+
+            {/* Heading block */}
+            <div className="relative px-5 sm:px-8 pt-16 sm:pt-20 pb-8 max-w-xl">
+              <h1
+                className="litl-serif italic font-bold text-white leading-none"
+                style={{ fontSize: 'clamp(1.75rem, 3.4vw, 2.5rem)' }}
+              >
+                Welcome back, <span style={{ color: '#fdba74' }}>{greetingName}</span>!
+              </h1>
+              <p className="text-sm text-white/80 mt-2 max-w-sm">{travelMessage}</p>
+
+              <div className="flex items-center gap-3 mt-5">
+                <Link
+                  to="/travel"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold text-white transition-all duration-200 hover:-translate-y-px active:scale-[0.97]"
+                  style={{ background: 'linear-gradient(135deg, #ea580c, #f97316)', boxShadow: '0 3px 14px rgba(234,88,12,0.35)' }}
+                >
+                  <span className="text-xs opacity-80">✦</span>
+                  Generate New Trip
+                </Link>
+                <button
+                  type="button"
+                  aria-label="Notifications"
+                  className="relative shrink-0 w-11 h-11 rounded-full flex items-center justify-center text-white transition-all duration-200 hover:-translate-y-px"
+                  style={{ background: 'rgba(255,255,255,0.12)', border: '1.5px solid rgba(255,255,255,0.2)', backdropFilter: 'blur(6px)' }}
+                >
+                  <IcBell />
+                  <span
+                    className="absolute top-2 right-2.5 w-2 h-2 rounded-full"
+                    style={{ background: '#f97316', boxShadow: '0 0 0 2px rgba(28,25,23,0.6)' }}
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div className="p-5 space-y-5">
 
             {/* Loading */}
@@ -550,245 +612,242 @@ export default function DashboardPage() {
 
             {!loading && (
               <>
-                {/* ── Row 1: 4 stat chips ─────────────────────────── */}
+                {/* ── Row 1: 4 stat cards ─────────────────────────── */}
                 <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
                   <StatChip
                     icon={IcMap}
                     value={discoveries !== null ? discoveries.length : '—'}
-                    label="Trips Generated"
-                    helper="keep exploring!"
+                    label="Destinations Discovered"
                   />
                   <StatChip
                     icon={IcPin}
                     value={discoveries !== null ? countriesExplored : '—'}
                     label="Countries Explored"
-                    helper="and counting"
                   />
                   <StatChip
                     icon={IcLightning}
-                    value={
-                      usage === null
-                        ? '—'
-                        : usage.generationsRemaining === null
-                          ? '∞'
-                          : (usage.generationsRemaining ?? '—')
-                    }
-                    label="Trips Left"
-                    helper="this month"
+                    value={weekStreak !== null ? weekStreak : '—'}
+                    label="Week Streak"
                   />
-                  <StatChip
-                    icon={IcCalendar}
-                    value={daysExploring !== null ? daysExploring : '—'}
-                    label="Days Exploring"
-                    helper="days of adventure!"
-                  />
-                </div>
-
-                {/* ── Row 2: Adventure Awaits | Recent Discovery ───── */}
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
-
-                  {/* Adventure Awaits — airmail postcard styling */}
                   <div
-                    className="md:col-span-2 rounded-2xl p-6 pt-7 flex flex-col gap-5 relative overflow-hidden"
-                    style={{
-                      background: '#fffdf9',
-                      border: '2px dashed rgba(234,88,12,0.25)',
-                      boxShadow: '0 4px 20px rgba(234,88,12,0.06)',
-                    }}
+                    className="flex items-center gap-4 rounded-2xl p-5"
+                    style={{ background: '#fffdf9', border: '1.5px solid rgba(251,146,60,0.16)', boxShadow: '0 2px 12px rgba(249,115,22,0.06)' }}
                   >
-                    {/* Airmail stripe — diagonal orange/ink accent along the top edge */}
-                    <div
-                      className="absolute top-0 left-0 right-0 h-1.5 opacity-50 pointer-events-none"
-                      style={{ background: 'repeating-linear-gradient(-45deg, #ea580c 0 8px, transparent 8px 16px, #1e293b 16px 24px, transparent 24px 32px)' }}
-                      aria-hidden="true"
-                    />
-                    {/* Decorative glow */}
-                    <div
-                      className="absolute top-0 right-0 w-36 h-36 pointer-events-none"
-                      style={{
-                        background: 'radial-gradient(circle, rgba(251,146,60,0.09) 0%, transparent 70%)',
-                        transform: 'translate(30%, -30%)',
-                      }}
-                    />
-                    {/* Compass rose line-art — subtle, low opacity */}
-                    <div className="absolute bottom-3 right-3 pointer-events-none" style={{ opacity: 0.08, color: '#ea580c' }} aria-hidden="true">
-                      <svg viewBox="0 0 64 64" width="72" height="72" fill="none" stroke="currentColor" strokeWidth="1.25">
-                        <circle cx="32" cy="32" r="26" />
-                        <circle cx="32" cy="32" r="19" />
-                        <path strokeLinecap="round" d="M32 6v8M32 50v8M6 32h8M50 32h8" />
-                        <path strokeLinecap="round" strokeLinejoin="round" fill="currentColor" d="M32 18l6 14-6 14-6-14z" />
-                      </svg>
+                    <div className="relative shrink-0 flex items-center justify-center">
+                      <RingStat percent={usagePercent} />
+                      <span className="absolute text-xs font-extrabold text-slate-900 tabular-nums">{usagePercent}%</span>
                     </div>
-                    <div className="flex items-center gap-3 relative">
-                      <div
-                        className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                        style={{ background: 'rgba(234,88,12,0.08)' }}
-                      >
-                        <IcPlane />
-                      </div>
-                      <h2 className="litl-serif text-xl font-bold text-slate-900 italic leading-tight">
-                        Your Next Adventure Awaits
-                      </h2>
-                    </div>
-                    <p className="text-sm text-slate-500 leading-relaxed relative">
-                      Still feeling spontaneous?<br />
-                      Let luck choose your next unforgettable destination.
-                    </p>
-                    <div className="relative mt-auto">
-                      <Link
-                        to="/travel"
-                        className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold text-white transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.97]"
-                        style={{ background: 'linear-gradient(135deg, #ea580c, #f97316)', boxShadow: '0 3px 14px rgba(234,88,12,0.28)' }}
-                      >
-                        <span className="text-xs opacity-80">✦</span> Surprise Me!
-                      </Link>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-slate-600 leading-tight">Goal Progress</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">
+                        {usage?.generationsRemaining == null ? 'Unlimited trips left' : `${usage.generationsRemaining} trips left`}
+                      </p>
                     </div>
                   </div>
+                </div>
 
-                  {/* Recent Discovery — visual hero of the dashboard */}
-                  <div
-                    className="md:col-span-3 rounded-2xl p-5 relative overflow-hidden"
-                    style={{
-                      background: '#ffffff',
-                      border: '1.5px solid rgba(251,146,60,0.16)',
-                      boxShadow: '0 4px 22px rgba(249,115,22,0.08), inset 0 1px 0 rgba(255,255,255,0.9)',
-                    }}
-                  >
-                    {/* Inner dashed matting — postcard frame */}
-                    <div className="absolute inset-2 rounded-xl pointer-events-none" style={{ border: '1px dashed rgba(251,146,60,0.14)' }} aria-hidden="true" />
+                {/* ── Latest Discovery ────────────────────────────── */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="litl-serif italic text-xl font-bold text-slate-900">Latest Discovery</h2>
+                    {discoveries !== null && discoveries.length > 0 && (
+                      <Link
+                        to="/discoveries"
+                        className="text-xs font-semibold text-orange-500 hover:text-orange-600 transition-colors"
+                      >
+                        View all →
+                      </Link>
+                    )}
+                  </div>
 
-                    <div className="relative flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
-                        <IconBadge><IcPin /></IconBadge>
-                        <p className="text-sm font-bold text-slate-800">Recent Discovery</p>
+                  {recentDiscovery ? (
+                    <div
+                      className="flex flex-col sm:flex-row rounded-2xl"
+                      style={{ boxShadow: '0 4px 22px rgba(249,115,22,0.1)' }}
+                    >
+                      {/* Destination photo — real image with styled fallback */}
+                      <div className="relative w-full sm:w-2/5 h-48 sm:h-auto shrink-0 overflow-hidden rounded-2xl sm:rounded-r-none">
+                        {discoveryImageUrl ? (
+                          <img
+                            src={discoveryImageUrl}
+                            alt={`${recentDiscovery.city ?? 'Destination'} landscape`}
+                            className="absolute inset-0 w-full h-full object-cover"
+                            onError={(e) => {
+                              if (!e.currentTarget.dataset.fallbackUsed) {
+                                e.currentTarget.dataset.fallbackUsed = '1'
+                                e.currentTarget.src = '/images/destinations/_fallback.jpg'
+                              }
+                            }}
+                          />
+                        ) : (
+                          <div
+                            className="absolute inset-0 flex flex-col items-center justify-center gap-1.5"
+                            style={{ background: 'linear-gradient(135deg, rgba(234,88,12,0.10) 0%, rgba(251,146,60,0.18) 100%)' }}
+                          >
+                            <IcGlobe />
+                            <span className="text-[9px] font-bold text-orange-700/50 uppercase tracking-widest text-center px-2">
+                              {recentDiscovery.country ?? 'Destination'}
+                            </span>
+                          </div>
+                        )}
+                        {recentDiscovery.trip_type && (
+                          <span
+                            className="absolute top-2.5 left-2.5 inline-flex items-center px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide text-white"
+                            style={{ background: 'rgba(15,23,42,0.55)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.3)' }}
+                          >
+                            {formatLabel(recentDiscovery.trip_type)}
+                          </span>
+                        )}
                       </div>
-                      {discoveries !== null && discoveries.length > 0 && (
-                        <Link
-                          to="/discoveries"
-                          className="text-xs font-semibold text-orange-500 hover:text-orange-600 transition-colors"
-                        >
-                          View all →
-                        </Link>
+
+                      {/* Ticket panel */}
+                      <div
+                        className="litl-ticket flex-1 p-6 pl-8 flex flex-col justify-center gap-2 rounded-2xl sm:rounded-l-none"
+                        style={{ background: '#fff7ed', '--litl-ticket-punch': '#faf8f5' }}
+                      >
+                        <h3 className="litl-serif text-2xl font-bold text-slate-900 italic leading-tight">
+                          {[recentDiscovery.city, recentDiscovery.country].filter(Boolean).join(', ')}
+                        </h3>
+                        <div className="flex items-center gap-1.5">
+                          <IcCalendar />
+                          <span className="text-[11px] text-slate-400">
+                            Discovered on {formatDate(recentDiscovery.generated_at)}
+                          </span>
+                        </div>
+                        <p className="text-sm text-slate-500 leading-relaxed mt-1">
+                          {describeDiscovery(recentDiscovery)}
+                        </p>
+                        <div className="mt-3">
+                          <Link
+                            to="/discoveries"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold text-white transition-all duration-200 hover:-translate-y-px active:scale-[0.97]"
+                            style={{ background: 'linear-gradient(135deg, #ea580c, #f97316)', boxShadow: '0 3px 14px rgba(234,88,12,0.28)' }}
+                          >
+                            View Details →
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <EmptyState
+                      title="No discoveries yet"
+                      body="Generate your first destination to see it here."
+                      ctaTo="/travel"
+                    />
+                  )}
+                </div>
+
+                {/* ── Your Journey Overview ───────────────────────── */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="litl-serif italic text-xl font-bold text-slate-900">Your Journey Overview</h2>
+                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">This Month</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    {/* Clicks Used */}
+                    <div className="litl-card">
+                      <p className="text-xs font-bold text-slate-600 uppercase tracking-widest mb-3">Clicks Used</p>
+                      {usage?.clicksLimit != null ? (
+                        <>
+                          <p className="litl-serif text-3xl font-bold italic text-slate-900 mb-3">
+                            {usage.clicksUsed} <span className="text-base text-slate-400 not-italic">/ {usage.clicksLimit}</span>
+                          </p>
+                          <div className="w-full rounded-full h-1.5" style={{ background: 'rgba(251,146,60,0.12)' }}>
+                            <div
+                              className="h-1.5 rounded-full transition-all duration-500"
+                              style={{
+                                width: `${usagePercent}%`,
+                                background: usagePercent >= 100
+                                  ? 'linear-gradient(90deg, #ea580c, #f97316)'
+                                  : 'linear-gradient(90deg, #f97316, #fb923c)',
+                              }}
+                            />
+                          </div>
+                          <p className="text-[10px] text-slate-400 mt-2">Resets {formatDate(usage.resetDate)}</p>
+                        </>
+                      ) : (
+                        <p className="text-sm text-slate-500">Unlimited clicks — explore freely.</p>
                       )}
                     </div>
 
-                    {recentDiscovery ? (
-                      <div className="relative flex flex-col sm:flex-row items-stretch gap-5">
-                        {/* Destination photo — real image with styled fallback */}
-                        <div
-                          className="relative w-full sm:w-40 md:w-48 h-40 sm:h-auto rounded-2xl shrink-0 overflow-hidden"
-                          style={{ boxShadow: '0 8px 24px rgba(120,53,15,0.18)' }}
-                        >
-                          {discoveryImageUrl ? (
-                            <img
-                              src={discoveryImageUrl}
-                              alt={`${recentDiscovery.city ?? 'Destination'} landscape`}
-                              className="absolute inset-0 w-full h-full object-cover"
-                              onError={(e) => {
-                                if (!e.currentTarget.dataset.fallbackUsed) {
-                                  e.currentTarget.dataset.fallbackUsed = '1'
-                                  e.currentTarget.src = '/images/destinations/_fallback.jpg'
-                                }
-                              }}
-                            />
-                          ) : (
-                            <div
-                              className="absolute inset-0 flex flex-col items-center justify-center gap-1.5"
-                              style={{ background: 'linear-gradient(135deg, rgba(234,88,12,0.10) 0%, rgba(251,146,60,0.18) 100%)' }}
-                            >
-                              <IcGlobe />
-                              <span className="text-[9px] font-bold text-orange-700/50 uppercase tracking-widest text-center px-2">
-                                {recentDiscovery.country ?? 'Destination'}
-                              </span>
-                            </div>
-                          )}
-                          {/* Darken bottom edge slightly so any badge/text reads well */}
-                          <div
-                            className="absolute inset-0 pointer-events-none"
-                            style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.22) 0%, transparent 45%)' }}
-                            aria-hidden="true"
-                          />
-                          {recentDiscovery.trip_type && (
-                            <span
-                              className="absolute top-2.5 left-2.5 inline-flex items-center px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide text-white"
-                              style={{ background: 'rgba(15,23,42,0.55)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.3)' }}
-                            >
-                              {formatLabel(recentDiscovery.trip_type)}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Destination details */}
-                        <div className="flex-1 min-w-0 flex flex-col justify-center">
-                          <h3 className="litl-serif text-2xl font-bold text-slate-900 italic leading-tight mb-1">
-                            {[recentDiscovery.city, recentDiscovery.country].filter(Boolean).join(', ')}
-                          </h3>
-                          <div className="flex items-center gap-1.5 mb-3">
-                            <IcCalendar />
-                            <span className="text-[11px] text-slate-400">
-                              Generated on {formatDate(recentDiscovery.generated_at)}
-                            </span>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {recentDiscovery.season && (
-                              <span
-                                className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium"
-                                style={{ background: 'rgba(34,197,94,0.08)', color: '#15803d', border: '1px solid rgba(34,197,94,0.18)' }}
-                              >
-                                🌿 {formatLabel(recentDiscovery.season)}
-                              </span>
-                            )}
-                            {recentDiscovery.travellers && (
-                              <span
-                                className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium"
-                                style={{ background: 'rgba(59,130,246,0.07)', color: '#1d4ed8', border: '1px solid rgba(59,130,246,0.14)' }}
-                              >
-                                👥 {recentDiscovery.travellers} traveller{recentDiscovery.travellers !== 1 ? 's' : ''}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Decorative travel stamp */}
-                        <div className="hidden md:flex items-start justify-end pt-1 shrink-0" aria-hidden="true">
-                          <TravelStamp label={recentDiscovery.country ?? recentDiscovery.city} />
-                        </div>
-                      </div>
-                    ) : (
-                      <EmptyState
-                        title="No discoveries yet"
-                        body="Generate your first destination to see it here."
-                        ctaTo="/travel"
-                      />
-                    )}
+                    {/* Sparkline */}
+                    <div className="litl-card">
+                      <p className="text-xs font-bold text-slate-600 uppercase tracking-widest mb-3">Discovery Activity</p>
+                      <Sparkline counts={sparklineCounts} />
+                      <p className="text-[10px] text-slate-400 mt-2">Destinations discovered per week, last 7 weeks</p>
+                    </div>
                   </div>
                 </div>
 
-                {/* ── Row 3: Membership | Travel Mood | Quick Links ── */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-
-                  {/* Membership / Overview */}
-                  <div
-                    className="litl-card flex flex-col gap-4 relative overflow-hidden rounded-[1.25rem]"
-                    style={{ boxShadow: '0 3px 18px rgba(249,115,22,0.08), inset 0 1px 0 rgba(255,255,255,0.9)' }}
+                {/* ── Explorer Membership ─────────────────────────── */}
+                <div className="relative overflow-hidden rounded-2xl p-6 sm:p-8" style={{ background: '#1c1917' }}>
+                  {/* geometric watermark — not a hand-drawn illustration, purely outline geometry */}
+                  <svg
+                    viewBox="0 0 200 200"
+                    className="absolute -right-6 -top-6 w-56 h-56 pointer-events-none"
+                    style={{ opacity: 0.08, color: '#fbbf24' }}
+                    aria-hidden="true" fill="none" stroke="currentColor"
                   >
-                    <div className="absolute inset-2 rounded-2xl pointer-events-none" style={{ border: '1px dashed rgba(251,146,60,0.10)' }} aria-hidden="true" />
-                    <div className="relative flex items-center gap-2">
-                      <IconBadge><IcCrown /></IconBadge>
-                      <p className="text-sm font-bold text-slate-800">Membership</p>
-                    </div>
+                    <circle cx="100" cy="100" r="96" strokeWidth="1" />
+                    <circle cx="100" cy="100" r="72" strokeWidth="0.75" />
+                    <g fill="currentColor" stroke="none">
+                      <path d="M100 10 L109 92 L100 101 L91 92 Z" />
+                      <path d="M100 190 L109 108 L100 99 L91 108 Z" opacity="0.55" />
+                      <path d="M10 100 L92 91 L101 100 L92 109 Z" opacity="0.55" />
+                      <path d="M190 100 L108 91 L99 100 L108 109 Z" opacity="0.55" />
+                      <circle cx="100" cy="100" r="4" />
+                    </g>
+                  </svg>
 
-                    <div className="relative flex items-center gap-2 flex-wrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${planConfig?.className ?? 'bg-blue-100 text-blue-700'}`}>
-                        {planConfig?.label ?? 'Free'}
-                      </span>
-                      <span className="text-xs text-slate-400">
-                        {usage?.clicksLimit == null ? 'Ad-free · unlimited' : `${usage.clicksLimit} clicks/mo`}
-                      </span>
+                  <div className="relative flex flex-col md:flex-row md:items-center gap-6">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-3 flex-wrap">
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(251,191,36,0.14)', color: '#fbbf24' }}>
+                          <IcCrown />
+                        </div>
+                        <h2 className="litl-serif italic text-2xl font-bold text-white">Explorer Membership</h2>
+                        {isExplorer(profile?.plan) && (
+                          <span
+                            className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full"
+                            style={{ background: 'rgba(251,191,36,0.16)', color: '#fbbf24' }}
+                          >
+                            Active
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-white/60 mb-4 max-w-md">
+                        Unlock unlimited destinations, advanced features and an ad-free experience.
+                      </p>
+                      <ul className="space-y-1.5 mb-5">
+                        {['Unlimited destination generations', 'Full destination guides & local tips', 'No ads, priority support'].map((line) => (
+                          <li key={line} className="flex items-center gap-2 text-sm text-white/75">
+                            <span style={{ color: '#fbbf24' }}>✓</span> {line}
+                          </li>
+                        ))}
+                      </ul>
+                      {canUpgrade ? (
+                        <button
+                          type="button"
+                          onClick={() => openModal('subscription')}
+                          className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.97]"
+                          style={{ background: 'linear-gradient(135deg, #f59e0b, #fbbf24)', color: '#1c1917', boxShadow: '0 3px 14px rgba(251,191,36,0.3)' }}
+                        >
+                          Upgrade Now
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => openModal('subscription')}
+                          className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold text-white transition-all duration-200 hover:-translate-y-0.5"
+                          style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}
+                        >
+                          View Membership Benefits →
+                        </button>
+                      )}
                     </div>
 
                     {/* Plan comparison chips */}
-                    <div className="space-y-2">
+                    <div className="w-full md:w-64 shrink-0 space-y-2">
                       {PLAN_BENEFITS.map((plan) => {
                         const isCurrent = plan.key === 'explorer'
                           ? isExplorer(profile?.plan)
@@ -796,55 +855,28 @@ export default function DashboardPage() {
                         return (
                           <div
                             key={plan.key}
-                            className="litl-card-sm"
-                            style={isCurrent ? { borderColor: 'rgba(249,115,22,0.30)', background: 'rgba(255,247,237,0.6)' } : {}}
+                            className="rounded-xl p-3"
+                            style={{
+                              background: isCurrent ? 'rgba(251,191,36,0.1)' : 'rgba(255,255,255,0.05)',
+                              border: isCurrent ? '1px solid rgba(251,191,36,0.3)' : '1px solid rgba(255,255,255,0.08)',
+                            }}
                           >
-                            <div className="flex items-center justify-between mb-1">
-                              <p className="text-xs font-bold text-slate-900">{plan.label}</p>
+                            <div className="flex items-center justify-between mb-0.5">
+                              <p className="text-xs font-bold text-white">{plan.label}</p>
                               {isCurrent && (
-                                <span className="text-[9px] font-bold text-orange-600 uppercase tracking-wide">✦ Current</span>
+                                <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: '#fbbf24' }}>✦ Current</span>
                               )}
                             </div>
-                            <p className="text-[11px] text-slate-500 leading-relaxed">{plan.description}</p>
+                            <p className="text-[11px] text-white/50 leading-relaxed">{plan.description}</p>
                           </div>
                         )
                       })}
                     </div>
-
-                    {/* Click usage bar */}
-                    {usage?.clicksLimit != null && (
-                      <div>
-                        <div className="flex items-center justify-between mb-1.5">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Usage</p>
-                          <span className="text-[10px] text-slate-400 tabular-nums">{usage.clicksUsed} / {usage.clicksLimit}</span>
-                        </div>
-                        <div className="w-full rounded-full h-1.5" style={{ background: 'rgba(251,146,60,0.12)' }}>
-                          <div
-                            className="h-1.5 rounded-full transition-all duration-500"
-                            style={{
-                              width: `${usagePercent}%`,
-                              background: usagePercent >= 100
-                                ? 'linear-gradient(90deg, #ea580c, #f97316)'
-                                : 'linear-gradient(90deg, #f97316, #fb923c)',
-                            }}
-                          />
-                        </div>
-                        <p className="text-[10px] text-slate-400 mt-1">
-                          Resets {formatDate(usage.resetDate)}
-                        </p>
-                      </div>
-                    )}
-
-                    {usage && usage.clicksLimit === null && (
-                      <p className="text-xs text-slate-500">Unlimited clicks — explore freely.</p>
-                    )}
-
-                    {canUpgrade && (
-                      <InfoButton onClick={() => openModal('subscription')} wide>
-                        Become an Explorer ✦
-                      </InfoButton>
-                    )}
                   </div>
+                </div>
+
+                {/* ── More about your travel: Travel Mood | Quick Links ── */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
                   {/* Travel Mood */}
                   <div

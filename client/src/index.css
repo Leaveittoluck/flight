@@ -433,4 +433,16 @@ body {
       );
     }
   }
+
+  /* Dashboard sidebar footer — torn-paper top edge separating the dark nav
+     area from the sunset-gradient quote footer below it. Only the top edge
+     is cut; the footer is flush with the sidebar's own bottom edge. */
+  .sidebar-footer-torn {
+    clip-path: polygon(
+      0% 6%, 6% 2%, 12% 5%, 18% 1%, 25% 6%, 32% 2%, 39% 5%,
+      46% 1%, 53% 6%, 60% 2%, 67% 5%, 74% 1%, 81% 6%, 88% 2%,
+      94% 5%, 100% 1%,
+      100% 100%, 0% 100%
+    );
+  }
 }
