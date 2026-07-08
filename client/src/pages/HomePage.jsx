@@ -4,20 +4,6 @@ import { useReveal } from '../hooks/useReveal'
 
 /* ─── Decorative SVG helpers ─── */
 
-function Sparkle({ className = '', style = {} }) {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      fill="#fde68a"
-      aria-hidden="true"
-      className={className}
-      style={style}
-    >
-      <polygon points="8,0.5 9.8,5.8 15.5,5.8 11,9.2 12.8,14.5 8,11 3.2,14.5 5,9.2 0.5,5.8 6.2,5.8" />
-    </svg>
-  )
-}
-
 function ArrowRight({ className = 'w-4 h-4' }) {
   return (
     <svg viewBox="0 0 20 20" fill="currentColor" className={className}>
@@ -34,33 +20,44 @@ function CheckIcon({ className = 'w-4 h-4 text-orange-500 mt-0.5 shrink-0' }) {
   )
 }
 
-/** Passport-stamp style decoration for the hero collage. */
-function PassportStamp({ className = '', style = {} }) {
+/** Authentic-feeling customs/immigration stamp — hand-stamped outline, coordinate
+    arc, entry-point arc and a diagonal plane mark, inspired by real passport stamps
+    rather than a logo-in-a-circle. */
+function TravelStamp({ className = '', style = {}, id = 'litl-stamp' }) {
+  const topArc = `${id}-top`
+  const bottomArc = `${id}-bottom`
   return (
-    <svg viewBox="0 0 120 120" className={className} style={style} aria-hidden="true">
-      <circle cx="60" cy="60" r="52" fill="none" stroke="#ea580c" strokeWidth="2" strokeDasharray="4 5" opacity="0.8" />
-      <circle cx="60" cy="60" r="41" fill="none" stroke="#ea580c" strokeWidth="1.2" opacity="0.55" />
-      <text x="60" y="40" textAnchor="middle" fill="#ea580c" fontSize="9" fontWeight="700" letterSpacing="2" opacity="0.85">LITL</text>
+    <svg viewBox="0 0 140 140" className={className} style={style} aria-hidden="true">
+      {/* hand-stamped outer boundary — deliberately not a perfect circle */}
       <path
-        d="M46 66l9-3 3-8 4 6 8-9 -3 10 8 2 -8 5 2 8 -8-3-3 7-4-6-9 3z"
-        fill="none" stroke="#ea580c" strokeWidth="2.2" strokeLinejoin="round" opacity="0.9"
+        d="M70 6 C97 5 124 20 132 46 C139 68 133 96 112 114 C93 130 62 133 40 121 C17 109 5 83 9 58 C13 33 39 8 70 6 Z"
+        fill="none" stroke="#ea580c" strokeWidth="2.4" opacity="0.85"
       />
-      <text x="60" y="90" textAnchor="middle" fill="#ea580c" fontSize="8" fontWeight="700" letterSpacing="3" opacity="0.85">LUCK</text>
-    </svg>
-  )
-}
+      <path
+        d="M70 18 C92 17 113 30 119 50 C125 68 120 89 103 103 C88 115 63 118 45 108 C27 98 18 78 22 59 C26 39 47 19 70 18 Z"
+        fill="none" stroke="#ea580c" strokeWidth="1" strokeDasharray="2 3.5" opacity="0.6"
+      />
 
-function SuitcaseIllustration({ className = '' }) {
-  return (
-    <svg viewBox="0 0 160 140" className={className} aria-hidden="true">
-      <rect x="18" y="42" width="124" height="86" rx="14" fill="#fff7ed" stroke="#ea580c" strokeWidth="3" />
-      <rect x="60" y="22" width="40" height="22" rx="6" fill="none" stroke="#ea580c" strokeWidth="3" />
-      <line x1="18" y1="76" x2="142" y2="76" stroke="#fdba74" strokeWidth="2.5" />
-      <rect x="70" y="66" width="20" height="20" rx="4" fill="#f97316" opacity="0.9" />
-      <circle cx="40" cy="58" r="4" fill="#fb923c" />
-      <circle cx="120" cy="100" r="3" fill="#fb923c" />
-      <path d="M30 100c4-6 10-6 14 0" stroke="#fb923c" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-      <path d="M108 58c4-6 10-6 14 0" stroke="#fb923c" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+      <path id={topArc} d="M 24 52 A 48 48 0 0 1 116 52" fill="none" />
+      <text fontSize="8" fontWeight="700" letterSpacing="2.2" fill="#ea580c" opacity="0.85">
+        <textPath href={`#${topArc}`} startOffset="50%" textAnchor="middle">41°N · 12°E</textPath>
+      </text>
+
+      <path id={bottomArc} d="M 116 88 A 48 48 0 0 1 24 88" fill="none" />
+      <text fontSize="7.5" fontWeight="700" letterSpacing="2.6" fill="#ea580c" opacity="0.85">
+        <textPath href={`#${bottomArc}`} startOffset="50%" textAnchor="middle">LEAVE IT TO LUCK</textPath>
+      </text>
+
+      {/* diagonal arrival mark, like an airport customs plane stamp */}
+      <g transform="translate(70,70) rotate(-32)" opacity="0.9">
+        <path d="M-18 2 L-3 2 L5 -13 L9 -13 L6 2 L18 2 L22 -4 L25 -4 L22 4 L25 12 L22 12 L18 6 L6 6 L9 21 L5 21 L-3 6 L-18 6 Z" fill="#ea580c" />
+      </g>
+
+      {/* faint ink imperfections for authenticity */}
+      <circle cx="28" cy="98" r="1.4" fill="#ea580c" opacity="0.4" />
+      <circle cx="110" cy="40" r="1" fill="#ea580c" opacity="0.35" />
+      <circle cx="98" cy="108" r="1.6" fill="#ea580c" opacity="0.3" />
+      <circle cx="20" cy="45" r="0.9" fill="#ea580c" opacity="0.3" />
     </svg>
   )
 }
@@ -94,6 +91,42 @@ function RouteDivider({ className = '' }) {
   )
 }
 
+/** A short strip of "masking tape" — a clean rounded rectangle with a soft
+    diagonal sheen and drop shadow, used to pin the collage photos down. */
+function WashiTape({ style = {}, width = 56, height = 20, rotate = 8, tint = 'rgba(253,186,116,0.85)' }) {
+  return (
+    <div
+      aria-hidden="true"
+      className="absolute z-30 rounded-[3px]"
+      style={{
+        width,
+        height,
+        background: `linear-gradient(105deg, ${tint} 0%, rgba(255,255,255,0.4) 48%, ${tint} 100%)`,
+        boxShadow: '0 2px 4px rgba(60,25,0,0.18)',
+        transform: `rotate(${rotate}deg)`,
+        ...style,
+      }}
+    />
+  )
+}
+
+/** Tiny folded-corner ("dog-ear") detail for otherwise-flat white cards — a
+    small, low-opacity paper realism touch, not a functional element. */
+function FoldedCorner({ size = 26 }) {
+  return (
+    <div aria-hidden="true" className="absolute top-0 right-0 pointer-events-none overflow-hidden" style={{ width: size, height: size }}>
+      <div
+        style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(135deg, transparent 52%, #fdf0e2 52.5%, #fdf0e2 100%)',
+          clipPath: 'polygon(100% 0, 0 0, 100% 100%)',
+          boxShadow: 'inset -1px 1px 3px rgba(124,45,18,0.18)',
+        }}
+      />
+    </div>
+  )
+}
+
 function MapMarker({ label, style }) {
   return (
     <div className="absolute hidden sm:flex items-center gap-1.5" style={style}>
@@ -108,49 +141,54 @@ function MapMarker({ label, style }) {
   )
 }
 
-/* ─── Feature strip icons (thin outline, single color) ─── */
+/* ─── Feature strip icons — one consistent premium travel icon family
+   (passport / compass / boarding pass / globe), thin outline, matched stroke ─── */
 
-function IconPersonalised({ className = 'w-6 h-6' }) {
+function IconPassportBook({ className = 'w-6 h-6' }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
+      <rect x="5" y="3" width="14" height="18" rx="1.8" />
+      <circle cx="12" cy="9.4" r="2.6" />
+      <path strokeLinecap="round" d="M9 15.2h6M9.8 17.4h4.4" />
+    </svg>
+  )
+}
+
+function IconCompassNeedle({ className = 'w-6 h-6' }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
       <circle cx="12" cy="12" r="9" />
-      <path strokeLinecap="round" d="M8.5 14.5c1 1.2 2.2 1.8 3.5 1.8s2.5-.6 3.5-1.8" />
-      <path strokeLinecap="round" d="M9 9.75h.01M15 9.75h.01" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15.2 8.8l-2.1 5-5 2.1 2.1-5z" />
+      <path strokeLinecap="round" d="M12 3.6v1.5M12 18.9v1.5M3.6 12h1.5M18.9 12h1.5" />
     </svg>
   )
 }
 
-function IconSurprise({ className = 'w-6 h-6' }) {
+function IconBoardingPass({ className = 'w-6 h-6' }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M5.6 18.4l1.6-1.6M16.8 7.2l1.6-1.6" />
-      <circle cx="12" cy="12" r="3.4" />
+      <path strokeLinejoin="round" d="M3 8.2a1.8 1.8 0 011.8-1.8h14.4A1.8 1.8 0 0121 8.2v1.3a1.4 1.4 0 000 2.6v1.3a1.8 1.8 0 01-1.8 1.8H4.8A1.8 1.8 0 013 13.4v-1.3a1.4 1.4 0 000-2.6z" />
+      <path strokeLinecap="round" strokeDasharray="1.6 2.2" d="M9.2 6.8v10.4" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13 10.4l4.3 1.6-4.3 1.6v-1.1h-2v-1z" />
     </svg>
   )
 }
 
-function IconTrusted({ className = 'w-6 h-6' }) {
+function IconGlobeRoute({ className = 'w-6 h-6' }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3.5l7 2.7v5.1c0 4.4-2.9 7.9-7 9.2-4.1-1.3-7-4.8-7-9.2V6.2l7-2.7z" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.2l2.1 2.1 3.9-4.3" />
-    </svg>
-  )
-}
-
-function IconSimple({ className = 'w-6 h-6' }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M13 3L4.5 13.5H11L10 21l8.5-10.5H12L13 3z" />
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18" />
+      <path d="M12 3c2.4 2.5 3.7 6 3.7 9s-1.3 6.5-3.7 9c-2.4-2.5-3.7-6-3.7-9S9.6 5.5 12 3z" />
     </svg>
   )
 }
 
 const FEATURES = [
-  { title: 'Personalised', desc: 'Just for you', Icon: IconPersonalised },
-  { title: 'Surprise', desc: 'Something new', Icon: IconSurprise },
-  { title: 'Trusted', desc: 'Real experiences', Icon: IconTrusted },
-  { title: 'Simple', desc: 'In just one click', Icon: IconSimple },
+  { title: 'Personalised', desc: 'Just for you', Icon: IconPassportBook },
+  { title: 'Surprise', desc: 'Something new', Icon: IconCompassNeedle },
+  { title: 'Trusted', desc: 'Real experiences', Icon: IconBoardingPass },
+  { title: 'Simple', desc: 'In just one click', Icon: IconGlobeRoute },
 ]
 
 /* ─── How it works icons ─── */
@@ -231,7 +269,10 @@ const HOW_IT_WORKS = [
 
 const PHOTOS = {
   cliffs: '/images/marketing/coastal-cliffs.jpg',
+  travelFlatlay: '/images/marketing/newsletter-flatlay.jpg',
   oiaSantorini: 'https://images.pexels.com/photos/15532995/pexels-photo-15532995.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940&fm=jpg',
+  cinqueTerre: 'https://images.pexels.com/photos/31117323/pexels-photo-31117323.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940&fm=jpg',
+  airplaneWindow: 'https://images.pexels.com/photos/1363794/pexels-photo-1363794.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940&fm=jpg',
   reykjavik: 'https://images.pexels.com/photos/20165201/pexels-photo-20165201.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940&fm=jpg',
   lisbon: 'https://images.pexels.com/photos/26824153/pexels-photo-26824153.png?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940&fm=jpg',
   marrakech: 'https://images.pexels.com/photos/15260622/pexels-photo-15260622.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940&fm=jpg',
@@ -354,7 +395,7 @@ export default function HomePage() {
           HERO — cream paper, editorial split layout
       ══════════════════════════════ */}
       <section className="relative overflow-hidden">
-        <div className="relative max-w-6xl mx-auto px-6 sm:px-8 py-16 sm:py-20 lg:py-24 grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
+        <div className="relative max-w-6xl mx-auto px-6 sm:px-8 pt-16 sm:pt-20 lg:pt-24 pb-24 sm:pb-28 lg:pb-32 grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-center">
 
           {/* Left: headline + copy + CTA */}
           <div className="relative" style={{ animation: 'fadeInUp 0.7s ease forwards' }}>
@@ -363,26 +404,26 @@ export default function HomePage() {
               style={{ top: '-70px', left: '-140px', opacity: 0.045 }}
             />
 
-            <div className="relative inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-widest uppercase mb-6"
+            <div className="relative inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-widest uppercase mb-7"
               style={{ backgroundColor: 'rgba(234,88,12,0.08)', border: '1px solid rgba(234,88,12,0.18)', color: '#c2410c' }}>
               <span className="w-1.5 h-1.5 rounded-full bg-orange-500 inline-block" />
               Let luck choose
             </div>
 
-            <h1 className="relative litl-serif text-5xl sm:text-6xl font-semibold text-stone-900 leading-[1.08] mb-6">
+            <h1 className="relative litl-serif text-5xl sm:text-6xl font-semibold text-stone-900 leading-[1.1] mb-7">
               Don&rsquo;t overthink it.
               <br />
               <span style={{ color: '#ea580c' }}>Leave it to luck.</span>
             </h1>
 
-            <p className="relative text-base sm:text-lg text-stone-500 max-w-md leading-relaxed mb-9">
+            <p className="relative text-base sm:text-lg text-stone-500 max-w-md leading-relaxed mb-10">
               We&rsquo;ll find a destination that fits your mood, your budget and your sense of adventure — no endless tab-hopping required.
             </p>
 
             <Link
               to="/travel"
-              className="relative inline-flex items-center gap-2 px-7 py-3.5 rounded-2xl text-sm font-bold text-white transition-all duration-200 hover:-translate-y-0.5"
-              style={{ background: 'linear-gradient(135deg, #ea580c, #f97316)', boxShadow: '0 3px 14px rgba(234,88,12,0.28)' }}
+              className="relative inline-flex items-center gap-2 px-7 py-3.5 rounded-2xl text-sm font-bold text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+              style={{ background: 'linear-gradient(135deg, #ea580c, #f97316)', boxShadow: '0 2px 8px rgba(234,88,12,0.2)' }}
             >
               Find My Destination
               <ArrowRight />
@@ -390,7 +431,7 @@ export default function HomePage() {
 
             {/* Boarding-pass flourish — quiet travel detail, fills the whitespace under the CTA */}
             <div
-              className="relative mt-9 pt-4 flex items-center gap-3 max-w-xs"
+              className="relative mt-10 pt-4 flex items-center gap-3 max-w-xs"
               style={{ borderTop: '1px dashed rgba(234,88,12,0.25)' }}
             >
               <span className="text-[10px] font-mono tracking-[0.2em] uppercase text-stone-400">Anywhere</span>
@@ -401,21 +442,54 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Right: layered postcard photo collage */}
-          <div className="relative mx-auto w-full max-w-sm h-[380px] sm:h-[440px] lg:h-[460px]">
-            {/* Dashed route line drifting behind the photos */}
-            <svg aria-hidden="true" viewBox="0 0 400 400" className="absolute -inset-6 w-[calc(100%+3rem)] h-[calc(100%+3rem)] pointer-events-none" style={{ opacity: 0.35 }}>
-              <path
-                d="M10 340 C 90 260 60 160 150 120 S 300 90 380 40"
-                stroke="#ea580c" strokeWidth="2" fill="none" strokeDasharray="2 10" strokeLinecap="round"
-              />
-              <path d="M370 30 l10 10 -14 4 4-14z" fill="#ea580c" />
-            </svg>
+          {/* Right: curated photo collage — 4 overlapping prints, calm rotation/depth,
+              generous margin below reserved for the travel stamp so it never
+              touches the photos (see safe-zone note on the stamp itself). */}
+          <div className="relative mx-auto w-full max-w-md h-[420px] sm:h-[480px] lg:h-[520px]">
 
-            {/* Main photo */}
+            {/* Photo 1 — airplane window, smallest, peeking from behind top-left, furthest back */}
             <div
-              className="absolute top-2 right-0 w-[78%] h-[72%] rounded-[26px] overflow-hidden border-[6px] border-white shadow-2xl"
-              style={{ transform: 'rotate(-4deg)' }}
+              className="absolute top-0 left-0 w-[36%] h-[30%] overflow-hidden border-[6px] border-white z-0"
+              style={{
+                borderRadius: '16px 20px 14px 18px',
+                transform: 'rotate(7deg)',
+                boxShadow: '0 2px 4px rgba(60,25,0,0.1), 0 10px 18px rgba(60,25,0,0.16)',
+              }}
+            >
+              <img
+                src={PHOTOS.airplaneWindow}
+                alt="View of clouds through an airplane window"
+                className="w-full h-full object-cover"
+                loading="eager"
+              />
+            </div>
+
+            {/* Photo 2 — Cinque Terre, largest, top-right, the "hero" print of the collage */}
+            <div
+              className="absolute top-[6%] right-0 w-[66%] h-[50%] overflow-hidden border-[6px] border-white z-10"
+              style={{
+                borderRadius: '20px 24px 18px 22px',
+                transform: 'rotate(-3deg)',
+                boxShadow: '0 2px 4px rgba(60,25,0,0.12), 0 14px 26px rgba(60,25,0,0.2)',
+              }}
+            >
+              <img
+                src={PHOTOS.cinqueTerre}
+                alt="Colourful cliffside village of Manarola, Cinque Terre"
+                className="w-full h-full object-cover"
+                style={{ objectPosition: '50% 35%' }}
+                loading="eager"
+              />
+            </div>
+
+            {/* Photo 3 — coastal cliffs, staggered lower-left, mid-depth */}
+            <div
+              className="absolute bottom-[14%] left-[2%] w-[50%] h-[36%] overflow-hidden border-[6px] border-white z-20"
+              style={{
+                borderRadius: '18px 22px 24px 16px',
+                transform: 'rotate(5deg)',
+                boxShadow: '0 2px 4px rgba(60,25,0,0.12), 0 12px 22px rgba(60,25,0,0.2)',
+              }}
             >
               <img
                 src={PHOTOS.cliffs}
@@ -426,10 +500,14 @@ export default function HomePage() {
               />
             </div>
 
-            {/* Secondary photo, peeking bottom-left */}
+            {/* Photo 4 — Oia, Santorini, frontmost, same border treatment as the rest */}
             <div
-              className="absolute bottom-0 left-0 w-[52%] h-[46%] rounded-[20px] overflow-hidden border-[6px] border-white shadow-xl z-10"
-              style={{ transform: 'rotate(6deg)' }}
+              className="absolute bottom-[-3%] right-[3%] w-[34%] h-[32%] overflow-hidden border-[6px] border-white z-30"
+              style={{
+                borderRadius: '16px 20px 18px 22px',
+                transform: 'rotate(-7deg)',
+                boxShadow: '0 3px 6px rgba(60,25,0,0.14), 0 14px 24px rgba(60,25,0,0.22)',
+              }}
             >
               <img
                 src={PHOTOS.oiaSantorini}
@@ -439,34 +517,37 @@ export default function HomePage() {
               />
             </div>
 
-            {/* Washi-tape accents */}
-            <div aria-hidden="true" className="absolute -top-2 right-10 w-14 h-5 rounded-sm shadow-sm z-20" style={{ background: 'rgba(253,186,116,0.75)', transform: 'rotate(10deg)' }} />
-            <div aria-hidden="true" className="absolute bottom-[42%] left-4 w-12 h-5 rounded-sm shadow-sm z-20" style={{ background: 'rgba(251,146,60,0.6)', transform: 'rotate(-8deg)' }} />
+            {/* Masking tape, pinning just two photos — restrained, not scattered */}
+            <WashiTape style={{ top: '3%', left: '28%' }} rotate={-12} width={50} height={18} tint="rgba(253,186,116,0.85)" />
+            <WashiTape style={{ top: '42%', right: '10%' }} rotate={10} width={44} height={16} tint="rgba(251,146,60,0.6)" />
 
-            {/* Passport stamp */}
-            <PassportStamp className="absolute -bottom-6 -right-4 w-28 h-28 z-20" style={{ transform: 'rotate(8deg)' }} />
-
-            <Sparkle className="absolute w-4 h-4 pointer-events-none z-20" style={{ top: '4%', left: '8%', animation: 'sparkle 4s ease-in-out infinite' }} />
+            {/* Travel stamp — anchored to a fixed offset below the collage box (not a
+                percentage) so it always clears the frontmost photo's bottom edge,
+                regardless of breakpoint. Never overlaps photo content. */}
+            <TravelStamp
+              className="absolute z-0"
+              style={{ top: 'calc(100% + 22px)', right: '10%', width: '62px', height: '62px', transform: 'rotate(9deg)', opacity: 0.85 }}
+            />
           </div>
         </div>
       </section>
 
       {/* ══════════════════════════════
-          FEATURE STRIP
+          FEATURE STRIP — full-width, clipped into an irregular torn band
+          via CSS clip-path (see .feature-strip-torn in index.css) instead
+          of layered SVG edge overlays.
       ══════════════════════════════ */}
-      <section className="py-10" style={{ background: 'linear-gradient(135deg, #ea580c 0%, #f97316 100%)' }}>
-        <div className="max-w-6xl mx-auto px-6 sm:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
-            {FEATURES.map(({ title, desc, Icon }) => (
-              <div key={title} className="flex flex-col items-center text-center gap-2 text-white">
-                <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{ border: '1.5px solid rgba(255,255,255,0.55)' }}>
-                  <Icon className="w-5 h-5" />
-                </div>
-                <p className="text-sm font-bold">{title}</p>
-                <p className="text-xs text-white/75">{desc}</p>
+      <section className="relative isolate overflow-hidden bg-[#f45a0a] text-white feature-strip-torn">
+        <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 px-6 py-10 sm:grid-cols-4 sm:px-8">
+          {FEATURES.map(({ title, desc, Icon }) => (
+            <div key={title} className="flex flex-col items-center text-center gap-2 text-white">
+              <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{ border: '1.5px solid rgba(255,255,255,0.55)' }}>
+                <Icon className="w-5 h-5" />
               </div>
-            ))}
-          </div>
+              <p className="text-sm font-bold">{title}</p>
+              <p className="text-xs text-white/75">{desc}</p>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -707,7 +788,7 @@ export default function HomePage() {
                     boxShadow: '0 2px 12px rgba(249,115,22,0.08)',
                   }}
                 >
-                  {plan.highlight && (
+                  {plan.highlight ? (
                     <>
                       <div aria-hidden="true" className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255,255,255,0.12) 0%, transparent 70%)' }} />
                       <div className="absolute -top-3 left-1/2 -translate-x-1/2">
@@ -716,6 +797,8 @@ export default function HomePage() {
                         </span>
                       </div>
                     </>
+                  ) : (
+                    <FoldedCorner />
                   )}
 
                   <div className="relative">
@@ -746,7 +829,7 @@ export default function HomePage() {
                     }`}
                     style={plan.highlight ? {} : {
                       background: 'linear-gradient(135deg, #ea580c, #f97316)',
-                      boxShadow: '0 2px 10px rgba(234,88,12,0.3)',
+                      boxShadow: '0 2px 8px rgba(234,88,12,0.2)',
                     }}
                   >
                     {plan.cta}
@@ -848,7 +931,7 @@ export default function HomePage() {
                   <button
                     type="submit"
                     className="px-6 py-3 rounded-2xl text-sm font-bold text-white transition-all duration-200 hover:-translate-y-0.5 whitespace-nowrap"
-                    style={{ background: 'linear-gradient(135deg, #ea580c, #f97316)', boxShadow: '0 3px 14px rgba(234,88,12,0.28)' }}
+                    style={{ background: 'linear-gradient(135deg, #ea580c, #f97316)', boxShadow: '0 2px 8px rgba(234,88,12,0.2)' }}
                   >
                     Subscribe
                   </button>
@@ -856,8 +939,15 @@ export default function HomePage() {
               )}
             </div>
 
-            <div className="hidden lg:flex justify-center relative">
-              <SuitcaseIllustration className="w-56 h-48" />
+            <div className="hidden lg:block relative w-72 shrink-0 justify-self-end">
+              <div className="rounded-3xl overflow-hidden border-[6px] border-white" style={{ boxShadow: '0 4px 8px rgba(60,25,0,0.1), 0 16px 32px rgba(60,25,0,0.18)' }}>
+                <img
+                  src={PHOTOS.travelFlatlay}
+                  alt="Camera, compass, world map and a stamped passport cover laid out on a table"
+                  className="w-full h-auto object-cover"
+                  loading="lazy"
+                />
+              </div>
             </div>
           </div>
         </div>
